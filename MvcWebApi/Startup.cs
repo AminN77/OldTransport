@@ -1,8 +1,4 @@
-using System;
 using DependencyInjection;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -24,7 +20,7 @@ namespace MvcWebApi
         public void ConfigureServices(IServiceCollection services)
         {
             // Set Database
-            var connectionString = Configuration.GetConnectionString("Team_Db");
+            var connectionString = Configuration.GetConnectionString("Transport_Db");
             services.AddCrossService();
             services.AddDataService(connectionString);
             services.AddBusinessLogicService();
