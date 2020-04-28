@@ -35,7 +35,7 @@ namespace Data.Model
         public string Password { get; set; }
 
         [Required]
-        [Column(TypeName = "char(128)")]
+        [EmailAddress]
         [StringLength(128, MinimumLength = 128)]
         public string EmailAddress { get; set; }
 
