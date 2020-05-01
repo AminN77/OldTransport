@@ -35,8 +35,7 @@ namespace Data.Model
         public string Password { get; set; }
 
         [Required]
-        [EmailAddress]
-        [StringLength(128, MinimumLength = 128)]
+        [RegularExpression(@"^([\w\.\-]+)@([\w\-]+)((\.(\w){2,3})+)(|-deleted\d{4})$")]
         public string EmailAddress { get; set; }
 
         [StringLength(128, MinimumLength = 1)]
@@ -47,6 +46,9 @@ namespace Data.Model
 
         [Required]
         public bool IsDeleted { get; set; }
+
+
+        public string Token { get; set; }
 
         [Required]
         [MaxLength(32)]

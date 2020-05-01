@@ -5,6 +5,6 @@ namespace BusinessLogic.Abstractions
 {
     public interface IUserAuthenticator
     {
-        Task<IBusinessLogicResult<UserSignInInfoViewModel>> IsUserAuthenticateAsync(SignInInfoViewModel signInInfoViewModel);
+        Task<IBusinessLogicResult<UserSignInViewModel>> IsUserAuthenticateAsync(SignInInfoViewModel signInInfoViewModel);
     }
 }

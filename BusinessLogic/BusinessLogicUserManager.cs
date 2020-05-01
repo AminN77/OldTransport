@@ -806,7 +806,7 @@ namespace BusinessLogic
             _userRepository.Dispose();
         }
 
-        public async Task<IBusinessLogicResult<UserSignInInfoViewModel>> IsUserAuthenticateAsync(
+        public async Task<IBusinessLogicResult<UserSignInViewModel>> IsUserAuthenticateAsync(
             SignInInfoViewModel signInInfoViewModel)
         {
             var messages = new List<IBusinessLogicMessage>();
@@ -822,7 +822,7 @@ namespace BusinessLogic
                     {
                         messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.UsernameOrPasswordInvalid,
                             BusinessLogicSetting.UserDisplayName));
-                        return new BusinessLogicResult<UserSignInInfoViewModel>(succeeded: false,
+                        return new BusinessLogicResult<UserSignInViewModel>(succeeded: false,
                             result: null,
                             messages: messages);
                     }
@@ -831,7 +831,7 @@ namespace BusinessLogic
                 {
                     messages.Add(new BusinessLogicMessage(type: MessageType.Critical,
                         message: MessageId.InternalError));
-                    return new BusinessLogicResult<UserSignInInfoViewModel>(succeeded: false, result: null,
+                    return new BusinessLogicResult<UserSignInViewModel>(succeeded: false, result: null,
                         messages: messages, exception: exception);
                 }
 
@@ -844,7 +844,7 @@ namespace BusinessLogic
                     {
                         messages.Add(new BusinessLogicMessage(type: MessageType.Critical,
                             message: MessageId.UsernameOrPasswordInvalid));
-                        return new BusinessLogicResult<UserSignInInfoViewModel>(succeeded: false, result: null,
+                        return new BusinessLogicResult<UserSignInViewModel>(succeeded: false, result: null,
                             messages: messages);
                     }
                 }
@@ -852,19 +852,19 @@ namespace BusinessLogic
                 {
                     messages.Add(new BusinessLogicMessage(type: MessageType.Critical,
                         message: MessageId.InternalError));
-                    return new BusinessLogicResult<UserSignInInfoViewModel>(succeeded: false, result: null,
+                    return new BusinessLogicResult<UserSignInViewModel>(succeeded: false, result: null,
                         messages: messages, exception: exception);
                 }
                 // Mapping
-                var userSignInViewModel = await _utility.MapAsync<User, UserSignInInfoViewModel>(user);
-                return new BusinessLogicResult<UserSignInInfoViewModel>(succeeded: userSignInViewModel != null,
+                var userSignInViewModel = await _utility.MapAsync<User, UserSignInViewModel>(user);
+                return new BusinessLogicResult<UserSignInViewModel>(succeeded: userSignInViewModel != null,
                     result: userSignInViewModel, messages: messages);
             }
             catch (Exception exception)
             {
                 messages.Add(new BusinessLogicMessage(type: MessageType.Critical,
                     message: MessageId.InternalError));
-                return new BusinessLogicResult<UserSignInInfoViewModel>(succeeded: false, result: null,
+                return new BusinessLogicResult<UserSignInViewModel>(succeeded: false, result: null,
                     messages: messages, exception: exception);
             }
         }
