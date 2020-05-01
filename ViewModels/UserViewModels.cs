@@ -55,8 +55,10 @@ namespace ViewModels
         public string PasswordConfirm { get; set; }
     }
 
-    public class UserSignInInfoViewModel:UserBaseViewModel
+    public class UserSignInViewModel:UserBaseViewModel
     {
+        [Required]
+        public string Token { get; set; }
     }
 
     public class EditUserViewModel : UserBaseViewModel
