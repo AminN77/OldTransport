@@ -11,17 +11,7 @@ namespace ViewModels
         [Required(ErrorMessage = "لطفا {0} را وارد کنید.")]
         [Display(Name = "نام")]
         [StringLength(32, MinimumLength = 1, ErrorMessage = "{0} باید حداقل {2} و حداکثر {1} کاراکتر ‌باشد.")]
-        public string FirstName { get; set; }
-
-        [Required(ErrorMessage = "لطفا {0} را وارد کنید.")]
-        [Display(Name = "نام خانوادگی")]
-        [StringLength(64, MinimumLength = 1, ErrorMessage = "{0} باید حداقل {2} و حداکثر {1} کاراکتر ‌باشد.")]
-        public string LastName { get; set; }
-
-        [Required(ErrorMessage = "لطفا {0} را وارد کنید.")]
-        [Display(Name = "نام کاربری")]
-        [RegularExpression(@"^\w{1,64}$",ErrorMessage = "{0} باید {1} کاراکتر ‌باشد.")]
-        public virtual string Username { get; set; }
+        public string Name { get; set; }
 
         [Required(ErrorMessage = "لطفا {0} را وارد کنید.")]
         [Display(Name = "فعال")]
@@ -37,6 +27,9 @@ namespace ViewModels
         [DataType(DataType.ImageUrl)]
         public virtual string Picture { get; set; }
 
+        public DateTimeOffset? LastLoggedIn { get; set; }
+
+        public string SerialNumber { get; set; }
     }
 
     public class AddUserViewModel : EditUserViewModel
@@ -55,7 +48,7 @@ namespace ViewModels
         public string PasswordConfirm { get; set; }
     }
 
-    public class UserSignInViewModel:UserBaseViewModel
+    public class UserSignInViewModel : UserBaseViewModel
     {
         [Required]
         public string Token { get; set; }
@@ -110,7 +103,7 @@ namespace ViewModels
         [Required(ErrorMessage = "لطفا {0} را وارد کنید.")]
         [Display(Name = "نام کاربری")]
         [StringLength(64, MinimumLength = 1, ErrorMessage = "{0} باید حداقل {2} و حداکثر {1} کاراکتر ‌باشد.")]
-        public string Username { get; set; }
+        public string Email { get; set; }
 
         [Required(ErrorMessage = "لطفا {0} را وارد کنید.")]
         [Display(Name = "کلمه عبور")]
