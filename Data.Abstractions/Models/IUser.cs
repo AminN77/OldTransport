@@ -4,15 +4,17 @@ namespace Data.Abstractions.Models
 {
     public interface IUser: IEntity<int>
     {
-        string FirstName { get; set; }
-        string LastName { get; set; }
-        string Username { get; set; }
-        string Password { get; set; }
+        string Name { get; set; }
         string EmailAddress { get; set; }
+        string Password { get; set; }
         string Picture { get; set; }
         bool IsEnabled { get; set; }
         bool IsDeleted { get; set; }
-        string Token { get; set; }
+        byte[] Salt { get; set; }
+        int IterationCount { get; set; }
+        int ActivationCode { get; set; }
+        string SerialNumber { get; set; }
+        DateTimeOffset? LastLoggedIn { get; set; }
         DateTime CreateDateTime { get; set; }
     }
 }
