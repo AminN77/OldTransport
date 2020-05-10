@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Data.Abstractions.Models;
@@ -62,5 +63,6 @@ namespace Data.Model
         [Required]
         public DateTime CreateDateTime { get; set; }
 
+        public virtual ICollection<UserRole> UserRoles { get; set; }
     }
 }
