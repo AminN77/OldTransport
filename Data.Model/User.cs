@@ -16,18 +16,7 @@ namespace Data.Model
 
         [Required]
         [StringLength(32, MinimumLength = 1)]
-        public string FirstName { get; set; }
-
-        [Required]
-        [StringLength(64, MinimumLength = 1)]
-        public string LastName { get; set; }
-
-        [NotMapped]
-        public string FullName => FirstName + " " + LastName;
-
-        [Required]
-        [RegularExpression(@"^\w{1,64}(|-deleted\d{4})$")]
-        public string Username { get; set; }
+        public string Name { get; set; }
 
         [Required]
         [Column(TypeName = "char(128)")]
@@ -58,6 +47,17 @@ namespace Data.Model
         [Required]
         [Range(1, int.MaxValue)]
         public int IterationCount { get; set; }
+
+        public int ActivationCode { get; set; }
+
+        /// <summary>
+        /// every time the user changes his Password,
+        /// or an admin changes his Roles or stat/IsActive,
+        /// create a new `SerialNumber` GUID and store it in the DB.
+        /// </summary>
+        public string SerialNumber { get; set; }
+
+        public DateTimeOffset? LastLoggedIn { get; set; }
 
         [Required]
         public DateTime CreateDateTime { get; set; }
