@@ -20,8 +20,6 @@ namespace Data.DataAccess.Context
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            //modelBuilder.Entity<User>().HasIndex(u => u.Name);
-            //modelBuilder.Entity<User>().HasIndex(u => u.EmailAddress).IsUnique();
 
             modelBuilder.Entity<User>(entity =>
             {
@@ -44,8 +42,6 @@ namespace Data.DataAccess.Context
                 entity.HasIndex(e => e.RoleId);
                 entity.Property(e => e.UserId);
                 entity.Property(e => e.RoleId);
-                //entity.HasOne(d => d.Role).WithMany(p => p.UserRoles).HasForeignKey(d => d.RoleId);
-                //entity.HasOne(d => d.User).WithMany(p => p.UserRoles).HasForeignKey(d => d.UserId);
             });
 
             modelBuilder.Seed();
