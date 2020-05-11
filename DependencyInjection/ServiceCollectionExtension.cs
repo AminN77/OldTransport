@@ -37,6 +37,8 @@ namespace DependencyInjection
             services.AddScoped<ISecurityProvider, SecurityProvider>();
             services.AddScoped<IUserAuthenticator,BusinessLogicUserManager>();
             services.AddScoped<IBusinessLogicUserManager, BusinessLogicUserManager>();
+            services.AddScoped<IBusinessLogicRoleManager, BusinessLogicRoleManager>();
+            services.AddScoped<IBusinessLogicUserTokenManager, BusinessLogicUserTokenManager>();
             return services;
         }
     }
