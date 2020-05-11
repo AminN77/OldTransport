@@ -101,18 +101,18 @@ namespace BusinessLogic
             return salt;
         }
 
-        public IUser IsUserAuthenticate(string userName, string password)
+        public IUser IsUserAuthenticate(string emailAddress, string password)
         {
             var user = UserRepository.DeferredSelectAll()
-                .SingleOrDefault(usr => usr.Username == userName && usr.IsEnabled);
+                .SingleOrDefault(usr => usr.EmailAddress == emailAddress && usr.IsEnabled);
             if (user == null) return null;
             var passwordHash = PasswordHasher.HashPassword(password, user.Salt, user.IterationCount, 128);
             return user.Password == passwordHash ? user : null;
         }
 
-        public async Task<IUser> IsUserAuthenticateAsync(string userName, string password)
+        public async Task<IUser> IsUserAuthenticateAsync(string emailAddress, string password)
         {
-            var user = await UserRepository.DeferredSelectAll().SingleOrDefaultAsync(usr => usr.Username == userName && usr.IsEnabled);
+            var user = await UserRepository.DeferredSelectAll().SingleOrDefaultAsync(usr => usr.EmailAddress == emailAddress && usr.IsEnabled);
             if (user == null) return null;
             var passwordHash = await PasswordHasher.HashPasswordAsync(password, user.Salt, user.IterationCount, 128);
             return user.Password == passwordHash ? user : null;

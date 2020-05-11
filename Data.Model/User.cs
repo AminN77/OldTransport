@@ -64,5 +64,7 @@ namespace Data.Model
         public DateTime CreateDateTime { get; set; }
 
         public virtual ICollection<UserRole> UserRoles { get; set; }
+
+        public virtual ICollection<UserToken> UserTokens { get; set; }
     }
 }

@@ -1,13 +1,20 @@
+using System;
 using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
+using Cross.Abstractions.EntityEnums;
 using DependencyInjection;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
+using MvcWebApi.Models;
 using MvcWebApi.Providers;
 
 namespace MvcWebApi
@@ -24,41 +31,101 @@ namespace MvcWebApi
         public void ConfigureServices(IServiceCollection services)
         {
 
-            // configure strongly typed settings objects
-            var appSettingsSection = Configuration.GetSection("AppSettings");
-            services.Configure<AppSettings>(appSettingsSection);
+            // Add Custom Anti forgery
+            services.AddAntiforgery(x => x.HeaderName = "X-XSRF-TOKEN");
+            services.AddMvc(options =>
+            {
+                options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
+            });
 
-            // configure jwt authentication
-            var appSettings = appSettingsSection.Get<AppSettings>();
-            var key = Encoding.ASCII.GetBytes(appSettings.Secret);
-            services.AddAuthentication(x =>
+            // Add Custom Cors
+            services.AddCors(options =>
+            {
+                options.AddPolicy("CorsPolicy",
+                    builder => builder
+                        .WithOrigins("http://localhost:44338") //Note:  The URL must be specified without a trailing slash (/).
+                        .AllowAnyMethod()
+                        .AllowAnyHeader()
+                        .SetIsOriginAllowed((host) => true)
+                        .AllowCredentials());
+            });
+
+            // Add CustomJwt Bearer
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy(RoleType.Admin.ToString(), policy => policy.RequireRole(RoleType.Admin.ToString()));
+                options.AddPolicy(RoleType.Merchant.ToString(), policy => policy.RequireRole(RoleType.Merchant.ToString()));
+                options.AddPolicy(RoleType.Transporter.ToString(), policy => policy.RequireRole(RoleType.Transporter.ToString()));
+                options.AddPolicy(RoleType.DeveloperSupport.ToString(), policy => policy.RequireRole(RoleType.DeveloperSupport.ToString()));
+            });
+
+            // Needed for jwt auth.
+            services
+                .AddAuthentication(options =>
                 {
-                    x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                    x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultSignInScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 })
-                .AddJwtBearer(x =>
+                .AddJwtBearer(cfg =>
                 {
-                    x.RequireHttpsMetadata = false;
-                    x.SaveToken = true;
-                    x.TokenValidationParameters = new TokenValidationParameters
+                    cfg.RequireHttpsMetadata = false;
+                    cfg.SaveToken = true;
+                    cfg.TokenValidationParameters = new TokenValidationParameters
                     {
-                        ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(key),
-                        ValidateIssuer = false,
-                        ValidateAudience = false
+                        ValidIssuer = Configuration["BearerTokens:Issuer"], // site that makes the token
+                        ValidateIssuer = false, // TODO: change this to avoid forwarding attacks
+                        ValidAudience = Configuration["BearerTokens:Audience"], // site that consumes the token
+                        ValidateAudience = false, // TODO: change this to avoid forwarding attacks
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["BearerTokens:Key"])),
+                        ValidateIssuerSigningKey = true, // verify signature to avoid tampering
+                        ValidateLifetime = true, // validate the expiration
+                        ClockSkew = TimeSpan.Zero // tolerance for the expiration date
+                    };
+                    cfg.Events = new JwtBearerEvents
+                    {
+                        OnAuthenticationFailed = context => Task.CompletedTask,
+                        OnTokenValidated = context =>
+                        {
+                            var tokenValidatorService = context.HttpContext.RequestServices.GetRequiredService<ITokenValidatorService>();
+                            return tokenValidatorService.ValidateAsync(context);
+                        },
+                        // On Message Receive
+//                        const string tokenKey = "Authorization";
+//                        context.HttpContext.Request.Headers.TryGetValue(tokenKey, out var authorizationToken);
+//                        context.Token = authorizationToken;
+                        OnMessageReceived = context => Task.CompletedTask,
+                        OnChallenge = context => Task.CompletedTask
                     };
                 });
 
-            // configure DI for application services
-            services.AddScoped<IUserService, UserService>();
+
+            // Add Custom Options
+            //services.Configure<BearerTokensOptions>(options => Configuration.GetSection("BearerTokens").Bind(options));
+            services.AddOptions<BearerTokensOptions>()
+                .Bind(Configuration.GetSection("BearerTokens"))
+                .Validate(bearerTokens =>
+                {
+                    return bearerTokens.AccessTokenExpirationMinutes < bearerTokens.RefreshTokenExpirationMinutes;
+                }, "RefreshTokenExpirationMinutes is less than AccessTokenExpirationMinutes. Obtaining new tokens using the refresh token should happen only if the access token has expired.");
+            services.AddOptions<ApiSettings>()
+                .Bind(Configuration.GetSection("ApiSettings"));
 
 
-            // Set Database
+
+            // Dependency Injection
             var connectionString = Configuration.GetConnectionString("Transport_Db");
             services.AddCrossService();
             services.AddDataService(connectionString);
             services.AddBusinessLogicService();
+            services.AddScoped<ISecurityService, SecurityService>();
+            services.AddScoped<IAntiForgeryCookieService, AntiForgeryCookieService>();
+            services.AddScoped<ITokenStoreService, TokenStoreService>();
+            services.AddScoped<ITokenValidatorService, TokenValidatorService>();
+            services.AddScoped<ITokenFactoryService, TokenFactoryService>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddControllers();
+
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -69,11 +136,47 @@ namespace MvcWebApi
             }
             else
             {
-                app.UseExceptionHandler("/Home/Error");
                 app.UseHsts();
             }
 
+            app.UseExceptionHandler(appBuilder =>
+            {
+                appBuilder.Use(async (context, next) =>
+                {
+                    var error = context.Features[typeof(IExceptionHandlerFeature)] as IExceptionHandlerFeature;
+                    if (error?.Error is SecurityTokenExpiredException)
+                    {
+                        context.Response.StatusCode = 401;
+                        context.Response.ContentType = "application/json";
+                        await context.Response.WriteAsync(JsonSerializer.Serialize(new
+                        {
+                            State = 401,
+                            Msg = "token expired"
+                        }));
+                    }
+                    else if (error?.Error != null)
+                    {
+                        context.Response.StatusCode = 500;
+                        context.Response.ContentType = "application/json";
+                        await context.Response.WriteAsync(JsonSerializer.Serialize(new
+                        {
+                            State = 500,
+                            Msg = error.Error.Message
+                        }));
+                    }
+                    else
+                    {
+                        await next();
+                    }
+                });
+            });
+
+            app.UseStatusCodePages();
+            app.UseStaticFiles();
             app.UseRouting();
+            app.UseAuthentication();
+            app.UseCors("CorsPolicy");
+            app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
