@@ -20,6 +20,7 @@ namespace BusinessLogic.Abstractions
         Task<IBusinessLogicResult<UserSignInViewModel>> FindUserAsync(int userId);
         Task<IBusinessLogicResult> UpdateUserLastActivityDateAsync(int userId);
         Task<IBusinessLogicResult> SendVerificationEmailAsync(EmailViewModel emailViewModel, int activationCode);
+        Task<IBusinessLogicResult> VerifyActivationCodeAysnc(ActivationCodeViewModel activationCodeViewModel);
 
     }
 }

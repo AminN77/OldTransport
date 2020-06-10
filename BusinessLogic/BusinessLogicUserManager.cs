@@ -19,6 +19,7 @@ namespace BusinessLogic
     {
         // Variables
         private readonly IRepository<User> _userRepository;
+        private readonly IRepository<UserRole> _userRoleRepository;
         private readonly BusinessLogicUtility _utility;
         private readonly ILogger<BusinessLogicUserManager> _logger;
         private readonly IPasswordHasher _passwordHasher;
@@ -27,10 +28,11 @@ namespace BusinessLogic
 
         // Constructor
         public BusinessLogicUserManager(IRepository<User> userRepository, ILogger<BusinessLogicUserManager> logger,
-            BusinessLogicUtility utility,
+                BusinessLogicUtility utility, IRepository<UserRole> userRoleRepository,
                 IPasswordHasher passwordHasher, ISecurityProvider securityProvider, IEmailSender emailSender)
         {
             _userRepository = userRepository;
+            _userRoleRepository = userRoleRepository;
             _logger = logger;
             _utility = utility;
             _passwordHasher = passwordHasher;
@@ -1041,10 +1043,57 @@ namespace BusinessLogic
             }
         }
 
+        public async Task<IBusinessLogicResult> VerifyActivationCodeAysnc(ActivationCodeViewModel activationCodeViewModel)
+        {
+            var messages = new List<IBusinessLogicMessage>();
+            try
+            {
+                User user;
+                user = await _userRepository.DeferredSelectAll().SingleOrDefaultAsync(usr => usr.EmailAddress == activationCodeViewModel.EmailAddress);
+
+                if (user.ActivationCode == activationCodeViewModel.ActivationCode)
+                {
+                    user.IsEnabled = true;
+                    try
+                    {
+                        await _userRepository.UpdateAsync(user);
+                    }
+                    catch (Exception exception)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                        return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+                    }
+                    try
+                    {
+                        UserRole userRole = new UserRole()
+                        {
+                            UserId = user.Id,
+                            RoleId = 2
+                        };
+                        await _userRoleRepository.AddAsync(userRole);
+                    }
+                    catch (Exception exception)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                        return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+                    }
+                    messages.Add(new BusinessLogicMessage(MessageType.Info, MessageId.UserSuccessfullyActivated));
+                    return new BusinessLogicResult(succeeded: true, messages: messages);
+                }
+                messages.Add(new BusinessLogicMessage(MessageType.Info, MessageId.ActivationCodeVerficationFailed));
+                return new BusinessLogicResult(succeeded: false, messages: messages);
+            }
+            catch (Exception exception)
+            {
+                messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+            }
+        }
+
         public void Dispose()
         {
             _userRepository.Dispose();
+            _userRoleRepository.Dispose();
         }
-
     }
 }

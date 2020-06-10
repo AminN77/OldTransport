@@ -57,5 +57,17 @@ namespace MvcWebApi.Controllers
             _antiForgery.RegenerateAntiForgeryCookies(result.Claims);
             return Ok(new { access_token = result.AccessToken, refresh_token = result.RefreshToken });
         }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> EmailVerification(ActivationCodeViewModel activationCodeViewModel)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var res = await _businessLogicUserManager.VerifyActivationCodeAysnc(activationCodeViewModel);
+            if (!res.Succeeded) return StatusCode(500, res);
+
+            return Ok(res);
+        }
     }
 }

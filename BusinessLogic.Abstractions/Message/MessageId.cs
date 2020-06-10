@@ -79,6 +79,10 @@ namespace BusinessLogic.Abstractions.Message
         [Display(Name = "ایمیل وارد شده قبلا ثبت نام شده است")]
         EmailSuccessfullyVerified,
         [Display(Name = "ایمیل حاوی کد فعالسازی با موفقیت ارسال شد")]
-        VerificationEmailSuccessfullySent
+        VerificationEmailSuccessfullySent,
+        [Display(Name = "User Successfully Activated")]
+        UserSuccessfullyActivated,
+        [Display(Name = "Activation Code Is Not Valid")]
+        ActivationCodeVerficationFailed,
     }
 }
