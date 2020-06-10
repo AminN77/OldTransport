@@ -6,7 +6,7 @@ namespace BusinessLogic.Abstractions
 {
     public interface IBusinessLogicUserManager : IDisposable
     {
-        Task<IBusinessLogicResult<AddUserViewModel>> AddUserAsync(AddUserViewModel addUserViewModel, int adderUserId);
+        Task<IBusinessLogicResult<AddUserViewModel>> AddUserAsync(EmailViewModel emailViewModel);
         Task<IBusinessLogicResult<ListResultViewModel<ListUserViewModel>>> GetUsersAsync(int getterUserId, int page,
             int pageSize, string search, string sort, string filter);
         Task<IBusinessLogicResult<EditUserViewModel>> EditUserAsync(EditUserViewModel editUserViewModel, int editorUserId);

@@ -17,14 +17,16 @@ namespace MvcWebApi.Controllers
         private readonly ITokenStoreService _tokenStoreService;
         private readonly IAntiForgeryCookieService _antiForgery;
         private readonly ITokenFactoryService _tokenFactoryService;
+        private readonly IBusinessLogicUserManager _businessLogicUserManager;
 
         public AuthController(IUserAuthenticator userAuthenticator, ITokenStoreService tokenStoreService,
-            ITokenFactoryService tokenFactoryService, IAntiForgeryCookieService antiForgery)
+            ITokenFactoryService tokenFactoryService, IAntiForgeryCookieService antiForgery, IBusinessLogicUserManager businessLogicUserManager)
         {
             _userAuthenticator = userAuthenticator;
             _tokenStoreService = tokenStoreService;
             _antiForgery = antiForgery;
             _tokenFactoryService = tokenFactoryService;
+            _businessLogicUserManager = businessLogicUserManager;
         }
 
         [HttpPost]

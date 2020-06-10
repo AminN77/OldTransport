@@ -48,33 +48,32 @@ namespace BusinessLogic
         /// <param name="addUserViewModel"></param>
         /// <param name="adderUserId"></param>
         /// <returns></returns>
-        public async Task<IBusinessLogicResult<AddUserViewModel>> AddUserAsync(AddUserViewModel addUserViewModel,
-            int adderUserId)
+        public async Task<IBusinessLogicResult<AddUserViewModel>> AddUserAsync(EmailViewModel emailViewModel)
         {
             var messages = new List<BusinessLogicMessage>();
             try
             {
-                // Validation Password
-                if (addUserViewModel.Password != addUserViewModel.PasswordConfirm)
-                {
-                    messages.Add(new BusinessLogicMessage(type: MessageType.Error,
-                        message: MessageId.PasswordAndPasswordConfirmAreNotMached));
-                    return new BusinessLogicResult<AddUserViewModel>(succeeded: false, result: null,
-                        messages: messages);
-                }
+                //// Validation Password
+                //if (addUserViewModel.Password != addUserViewModel.PasswordConfirm)
+                //{
+                //    messages.Add(new BusinessLogicMessage(type: MessageType.Error,
+                //        message: MessageId.PasswordAndPasswordConfirmAreNotMached));
+                //    return new BusinessLogicResult<AddUserViewModel>(succeeded: false, result: null,
+                //        messages: messages);
+                //}
 
-                // Critical Validation Username
-                var isUserNameExisted = await _userRepository.DeferredSelectAll().AnyAsync(usr => usr.EmailAddress == addUserViewModel.EmailAddress);
-                if (isUserNameExisted)
-                {
-                    messages.Add(new BusinessLogicMessage(type: MessageType.Error,
-                        message: MessageId.UsernameAlreadyExisted, viewMessagePlaceHolders: addUserViewModel.EmailAddress));
-                    return new BusinessLogicResult<AddUserViewModel>(succeeded: false, result: null,
-                        messages: messages);
-                }
+                //// Critical Validation Username
+                //var isUserNameExisted = await _userRepository.DeferredSelectAll().AnyAsync(usr => usr.EmailAddress == addUserViewModel.EmailAddress);
+                //if (isUserNameExisted)
+                //{
+                //    messages.Add(new BusinessLogicMessage(type: MessageType.Error,
+                //        message: MessageId.UsernameAlreadyExisted, viewMessagePlaceHolders: addUserViewModel.EmailAddress));
+                //    return new BusinessLogicResult<AddUserViewModel>(succeeded: false, result: null,
+                //        messages: messages);
+                //}
 
-                // Safe Map
-                var user = await _utility.MapAsync<AddUserViewModel, User>(addUserViewModel);
+                //// Safe Map
+                //var user = await _utility.MapAsync<AddUserViewModel, User>(addUserViewModel);
 
                 // Safe initialization
                 //user.AdderUserId = adderUserId;
@@ -82,13 +81,27 @@ namespace BusinessLogic
                 //user.AddedDateTime = DateTime.Now;
                 //user.LastEditedDateTime = user.AddedDateTime;
                 // Create password hash
+
+                User user = new User();
+
+                user.Name = "New User";
+                user.EmailAddress = emailViewModel.EmailAddress;
                 user.Salt = await _securityProvider.GenerateRandomSaltAsync(BusinessLogicSetting.DefaultSaltCount);
                 user.IterationCount = new Random().Next(BusinessLogicSetting.DefaultMinIterations,
                     BusinessLogicSetting.DefaultMaxIterations);
-                user.Password = await _securityProvider.PasswordHasher.HashPasswordAsync(addUserViewModel.Password,
+                user.ActivationCode = new Random().Next(10001, 99999);
+                user.Password = await _securityProvider.PasswordHasher.HashPasswordAsync(user.ActivationCode.ToString(),
                     user.Salt, user.IterationCount, BusinessLogicSetting.DefaultPassworHashCount);
 
                 user.CreateDateTime = DateTime.Now;
+
+                //var res = await SendVerificationEmailAsync(emailViewModel, user.ActivationCode);
+                //if (!res.Succeeded)
+                //{
+                //    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
+                //    return new BusinessLogicResult<AddUserViewModel>(succeeded: false, result: null, messages: messages, exception: res.Exception);
+                //}
+
                 // Critical Database operation
                 try
                 {
@@ -101,8 +114,17 @@ namespace BusinessLogic
                         messages: messages, exception: exception);
                 }
 
+                //AddUserViewModel addUserViewModel = new AddUserViewModel()
+                //{
+                //    EmailAddress = emailViewModel.EmailAddress,
+                //    Password = user.ActivationCode.ToString(),
+                //    ActivationCode = user.ActivationCode
+                //};
+
+                var addUserViewModel = await _utility.MapAsync<User, AddUserViewModel>(user);
+
                 messages.Add(new BusinessLogicMessage(type: MessageType.Info,
-                    message: MessageId.UserSuccessfullyAdded));
+                    message: MessageId.ProjectSuccessfullyAdded));
                 return new BusinessLogicResult<AddUserViewModel>(succeeded: true, result: addUserViewModel,
                     messages: messages);
             }
