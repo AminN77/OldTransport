@@ -21,6 +21,7 @@ namespace BusinessLogic
         private readonly IRepository<User> _userRepository;
         private readonly IRepository<UserRole> _userRoleRepository;
         private readonly IRepository<Merchant> _merchantRepository;
+        private readonly IRepository<Transporter> _transporterRepository;
         private readonly BusinessLogicUtility _utility;
         private readonly ILogger<BusinessLogicUserManager> _logger;
         private readonly IPasswordHasher _passwordHasher;
@@ -30,7 +31,7 @@ namespace BusinessLogic
         // Constructor
         public BusinessLogicUserManager(IRepository<User> userRepository, ILogger<BusinessLogicUserManager> logger,
                 BusinessLogicUtility utility, IRepository<UserRole> userRoleRepository, IRepository<Merchant> merchantRepository,
-                IPasswordHasher passwordHasher, ISecurityProvider securityProvider, IEmailSender emailSender)
+                IPasswordHasher passwordHasher, ISecurityProvider securityProvider, IEmailSender emailSender, IRepository<Transporter> transporterRepository)
         {
             _userRepository = userRepository;
             _userRoleRepository = userRoleRepository;
@@ -40,6 +41,7 @@ namespace BusinessLogic
             _securityProvider = securityProvider;
             _emailSender = emailSender;
             _merchantRepository = merchantRepository;
+            _transporterRepository = transporterRepository;
         }
 
         #region User
@@ -1180,11 +1182,40 @@ namespace BusinessLogic
             }
         }
 
+        public async Task<IBusinessLogicResult> AddTransporterAsync(UserIdViewModel userIdViewModel)
+        {
+            var messages = new List<IBusinessLogicMessage>();
+            try
+            {
+                Transporter transporter = new Transporter()
+                {
+                    UserId = userIdViewModel.UserId
+                };
+                try
+                {
+                    await _transporterRepository.AddAsync(transporter);
+                    messages.Add(new BusinessLogicMessage(MessageType.Info, MessageId.EntitySuccessfullyAdded));
+                    return new BusinessLogicResult(succeeded: true, messages: messages);
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                    return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+                }
+            }
+            catch (Exception exception)
+            {
+                messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+            }
+        }
+
         public void Dispose()
         {
             _userRepository.Dispose();
             _userRoleRepository.Dispose();
             _merchantRepository.Dispose();
+            _transporterRepository.Dispose();
         }
     }
 }

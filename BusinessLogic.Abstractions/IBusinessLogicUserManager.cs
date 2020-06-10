@@ -23,7 +23,7 @@ namespace BusinessLogic.Abstractions
         Task<IBusinessLogicResult> VerifyActivationCodeAysnc(ActivationCodeViewModel activationCodeViewModel);
         Task<IBusinessLogicResult<UserSignInViewModel>> UpdateUserRegisterInfoAsync(UserRegisterViewModel userRegisterViewModel);
         Task<IBusinessLogicResult> AddMerchantAsync(UserIdViewModel userIdViewModel);
-        //Task<IBusinessLogicResult> AddTransporterAsync(UserIdViewModel userIdViewModel);
+        Task<IBusinessLogicResult> AddTransporterAsync(UserIdViewModel userIdViewModel);
 
     }
 }
