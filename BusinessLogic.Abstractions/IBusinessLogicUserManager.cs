@@ -19,6 +19,7 @@ namespace BusinessLogic.Abstractions
         Task<IBusinessLogicResult> ResetPasswordAsync(UserSetPasswordViewModel adminUserSetPasswordViewModel, int reSetterUserId);
         Task<IBusinessLogicResult<UserSignInViewModel>> FindUserAsync(int userId);
         Task<IBusinessLogicResult> UpdateUserLastActivityDateAsync(int userId);
+        Task<IBusinessLogicResult> SendVerificationEmailAsync(EmailViewModel emailViewModel, int activationCode);
 
     }
 }

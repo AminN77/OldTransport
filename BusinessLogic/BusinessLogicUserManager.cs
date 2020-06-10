@@ -23,21 +23,19 @@ namespace BusinessLogic
         private readonly ILogger<BusinessLogicUserManager> _logger;
         private readonly IPasswordHasher _passwordHasher;
         private readonly ISecurityProvider _securityProvider;
-
-
+        private readonly IEmailSender _emailSender;
 
         // Constructor
         public BusinessLogicUserManager(IRepository<User> userRepository, ILogger<BusinessLogicUserManager> logger,
             BusinessLogicUtility utility,
-                IPasswordHasher passwordHasher,
-        ISecurityProvider securityProvider
-            )
+                IPasswordHasher passwordHasher, ISecurityProvider securityProvider, IEmailSender emailSender)
         {
             _userRepository = userRepository;
             _logger = logger;
             _utility = utility;
             _passwordHasher = passwordHasher;
             _securityProvider = securityProvider;
+            _emailSender = emailSender;
         }
 
         #region User
@@ -95,12 +93,12 @@ namespace BusinessLogic
 
                 user.CreateDateTime = DateTime.Now;
 
-                //var res = await SendVerificationEmailAsync(emailViewModel, user.ActivationCode);
-                //if (!res.Succeeded)
-                //{
-                //    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
-                //    return new BusinessLogicResult<AddUserViewModel>(succeeded: false, result: null, messages: messages, exception: res.Exception);
-                //}
+                var res = await SendVerificationEmailAsync(emailViewModel, user.ActivationCode);
+                if (!res.Succeeded)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
+                    return new BusinessLogicResult<AddUserViewModel>(succeeded: false, result: null, messages: messages, exception: res.Exception);
+                }
 
                 // Critical Database operation
                 try
@@ -1026,6 +1024,23 @@ namespace BusinessLogic
                 return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
             }
         }
+
+        public async Task<IBusinessLogicResult> SendVerificationEmailAsync(EmailViewModel emailViewModel, int activationCode)
+        {
+            var messages = new List<IBusinessLogicMessage>();
+            try
+            {
+                await _emailSender.Send(emailViewModel.EmailAddress, "Gikhar", activationCode.ToString());
+                messages.Add(new BusinessLogicMessage(MessageType.Info, MessageId.VerificationEmailSuccessfullySent));
+                return new BusinessLogicResult(succeeded: true, messages: messages);
+            }
+            catch (Exception exception)
+            {
+                messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+            }
+        }
+
         public void Dispose()
         {
             _userRepository.Dispose();

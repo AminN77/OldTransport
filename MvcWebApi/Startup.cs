@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Cross.Abstractions.EntityEnums;
+using Cross.Models;
 using DependencyInjection;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -110,6 +111,8 @@ namespace MvcWebApi
                 }, "RefreshTokenExpirationMinutes is less than AccessTokenExpirationMinutes. Obtaining new tokens using the refresh token should happen only if the access token has expired.");
             services.AddOptions<ApiSettings>()
                 .Bind(Configuration.GetSection("ApiSettings"));
+
+            services.AddOptions<EmailSettings>().Bind(Configuration.GetSection("EmailSettings"));
 
 
 

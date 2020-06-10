@@ -77,6 +77,8 @@ namespace BusinessLogic.Abstractions.Message
         [Display(Name = "EmailDoesNotExist")]
         EmailDoesNotExist,
         [Display(Name = "ایمیل وارد شده قبلا ثبت نام شده است")]
-        EmailSuccessfullyVerified
+        EmailSuccessfullyVerified,
+        [Display(Name = "ایمیل حاوی کد فعالسازی با موفقیت ارسال شد")]
+        VerificationEmailSuccessfullySent
     }
 }
