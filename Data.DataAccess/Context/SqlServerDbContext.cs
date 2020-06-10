@@ -17,6 +17,7 @@ namespace Data.DataAccess.Context
         public DbSet<Role> Roles { set; get; }
         public DbSet<UserRole> UserRoles { get; set; }
         public DbSet<UserToken> UserTokens { get; set; }
+        public DbSet<Merchant> Merchants { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

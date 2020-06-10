@@ -20,6 +20,7 @@ namespace BusinessLogic
         // Variables
         private readonly IRepository<User> _userRepository;
         private readonly IRepository<UserRole> _userRoleRepository;
+        private readonly IRepository<Merchant> _merchantRepository;
         private readonly BusinessLogicUtility _utility;
         private readonly ILogger<BusinessLogicUserManager> _logger;
         private readonly IPasswordHasher _passwordHasher;
@@ -28,7 +29,7 @@ namespace BusinessLogic
 
         // Constructor
         public BusinessLogicUserManager(IRepository<User> userRepository, ILogger<BusinessLogicUserManager> logger,
-                BusinessLogicUtility utility, IRepository<UserRole> userRoleRepository,
+                BusinessLogicUtility utility, IRepository<UserRole> userRoleRepository, IRepository<Merchant> merchantRepository,
                 IPasswordHasher passwordHasher, ISecurityProvider securityProvider, IEmailSender emailSender)
         {
             _userRepository = userRepository;
@@ -38,6 +39,7 @@ namespace BusinessLogic
             _passwordHasher = passwordHasher;
             _securityProvider = securityProvider;
             _emailSender = emailSender;
+            _merchantRepository = merchantRepository;
         }
 
         #region User
@@ -124,7 +126,7 @@ namespace BusinessLogic
                 var addUserViewModel = await _utility.MapAsync<User, AddUserViewModel>(user);
 
                 messages.Add(new BusinessLogicMessage(type: MessageType.Info,
-                    message: MessageId.ProjectSuccessfullyAdded));
+                    message: MessageId.EntitySuccessfullyAdded));
                 return new BusinessLogicResult<AddUserViewModel>(succeeded: true, result: addUserViewModel,
                     messages: messages);
             }
@@ -751,10 +753,10 @@ namespace BusinessLogic
         }
 
 
-        public async Task<IBusinessLogicResult> ResetPasswordAsync(UserSetPasswordViewModel userSetPasswordViewModel,
-            int reSetterUserId)
-        {
-            return null;
+        //public async Task<IBusinessLogicResult> ResetPasswordAsync(UserSetPasswordViewModel userSetPasswordViewModel,
+        //    int reSetterUserId)
+        //{
+        //    return null;
 //            var messages = new List<BusinessLogicMessage>();
 //            try
 //            {
@@ -822,7 +824,7 @@ namespace BusinessLogic
 //                return new BusinessLogicResult<UserSetPasswordViewModel>(succeeded: false, result: null,
 //                    messages: messages, exception: exception);
 //            }
-        }
+        //}
 
 
          public async Task<IBusinessLogicResult<UserSignInViewModel>> IsUserAuthenticateAsync(
@@ -836,7 +838,7 @@ namespace BusinessLogic
                 try
                 {
                     user = await _userRepository.DeferredSelectAll()
-                        .SingleOrDefaultAsync(usr => usr.EmailAddress == signInInfoViewModel.Email && usr.IsEnabled);
+                        .SingleOrDefaultAsync(usr => usr.EmailAddress == signInInfoViewModel.EmailAddress && usr.IsEnabled);
                     if (user == null || user.IsDeleted || user.IsEnabled == false)
                     {
                         messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.UsernameOrPasswordInvalid,
@@ -1150,10 +1152,39 @@ namespace BusinessLogic
 
         }
 
+        public async Task<IBusinessLogicResult> AddMerchantAsync(UserIdViewModel userIdViewModel)
+        {
+            var messages = new List<IBusinessLogicMessage>();
+            try
+            {
+                Merchant merchant = new Merchant()
+                {
+                    UserId = userIdViewModel.UserId
+                };
+                try
+                {
+                    await _merchantRepository.AddAsync(merchant);
+                    messages.Add(new BusinessLogicMessage(MessageType.Info, MessageId.EntitySuccessfullyAdded));
+                    return new BusinessLogicResult(succeeded: true, messages: messages);
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                    return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+                }
+            }
+            catch (Exception exception)
+            {
+                messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+            }
+        }
+
         public void Dispose()
         {
             _userRepository.Dispose();
             _userRoleRepository.Dispose();
+            _merchantRepository.Dispose();
         }
     }
 }

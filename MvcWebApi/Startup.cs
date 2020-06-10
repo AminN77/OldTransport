@@ -54,10 +54,9 @@ namespace MvcWebApi
             // Add CustomJwt Bearer
             services.AddAuthorization(options =>
             {
-                options.AddPolicy(RoleType.Admin.ToString(), policy => policy.RequireRole(RoleType.Admin.ToString()));
-                options.AddPolicy(RoleType.Merchant.ToString(), policy => policy.RequireRole(RoleType.Merchant.ToString()));
-                options.AddPolicy(RoleType.Transporter.ToString(), policy => policy.RequireRole(RoleType.Transporter.ToString()));
-                options.AddPolicy(RoleType.DeveloperSupport.ToString(), policy => policy.RequireRole(RoleType.DeveloperSupport.ToString()));
+                options.AddPolicy(RoleTypes.Admin.ToString(), policy => policy.RequireRole(RoleTypes.Admin.ToString()));
+                options.AddPolicy(RoleTypes.User.ToString(), policy => policy.RequireRole(RoleTypes.User.ToString()));
+                options.AddPolicy(RoleTypes.DeveloperSupport.ToString(), policy => policy.RequireRole(RoleTypes.DeveloperSupport.ToString()));
             });
 
             // Needed for jwt auth.
