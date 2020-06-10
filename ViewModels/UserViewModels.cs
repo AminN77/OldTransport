@@ -1,26 +1,68 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace ViewModels
 {
     public abstract class UserBaseViewModel
     {
-        public int Id { get; set; }
+        [Required(ErrorMessage = "لطفا {0} را وارد کنید.")]
+        [Display(Name = "آدرس ایمیل")]
+        [RegularExpression(@"^([\w\.\-]+)@([\w\-]+)((\.(\w){2,3})+)(|-deleted\d{4})$", ErrorMessage = "ایمیل وارد شده داری فرمت نامعتبر می باشد")]
+        public virtual string EmailAddress { get; set; }
+    }
+
+    public class EmailViewModel : UserBaseViewModel { }
+
+    public class AddUserViewModel : UserBaseViewModel
+    {
 
         [Required(ErrorMessage = "لطفا {0} را وارد کنید.")]
-        [Display(Name = "نام")]
-        [StringLength(32, MinimumLength = 1, ErrorMessage = "{0} باید حداقل {2} و حداکثر {1} کاراکتر ‌باشد.")]
+        [Display(Name = "کلمه عبور")]
+        [DataType(DataType.Password)]
+        [MaxLength(128, ErrorMessage = "{0} حداکثر {1} کاراکتر می‌باشد.")]
+        public string Password { get; set; }
+
+        [Required]
+        public int ActivationCode { get; set; }
+    }
+
+    public class UserSignInViewModel : ListUserViewModel
+    {
+        [Required]
+        public string Token { get; set; }
+    }
+
+    public class EditUserViewModel : UserBaseViewModel
+    {
+        public int Id { get; set; }
+
+        [Required(ErrorMessage = "Please enter {0}")]
+        [Display(Name = "Name")]
+        [StringLength(32, MinimumLength = 1, ErrorMessage = "{0} must be somewhat between {1} and {2} characters")]
+        public string Name { get; set; }
+
+        [Required(ErrorMessage = "لطفا {0} را وارد کنید.")]
+        [Display(Name = "عکس پروفایل")]
+        [DataType(DataType.ImageUrl)]
+        public virtual string Picture { get; set; }
+
+        [Display(Name = "Bio")]
+        [DataType(DataType.MultilineText)]
+        public string Bio { get; set; }
+    }
+
+    public class ListUserViewModel : UserBaseViewModel
+    {
+        public int Id { get; set; }
+
+        [Required(ErrorMessage = "Please enter {0}")]
+        [Display(Name = "Name")]
+        [StringLength(32, MinimumLength = 1, ErrorMessage = "{0} must be somewhat between {1} and {2} characters")]
         public string Name { get; set; }
 
         [Required(ErrorMessage = "لطفا {0} را وارد کنید.")]
         [Display(Name = "فعال")]
         public bool IsEnabled { get; set; }
-
-        [Required(ErrorMessage = "لطفا {0} را وارد کنید.")]
-        [Display(Name = "آدرس ایمیل")]
-        [DataType(DataType.EmailAddress)]
-        public virtual string EmailAddress { get; set; }
 
         [Required(ErrorMessage = "لطفا {0} را وارد کنید.")]
         [Display(Name = "عکس پروفایل")]
@@ -32,36 +74,6 @@ namespace ViewModels
         public string SerialNumber { get; set; }
     }
 
-    public class AddUserViewModel : EditUserViewModel
-    {
-        [Required(ErrorMessage = "لطفا {0} را وارد کنید.")]
-        [Display(Name = "کلمه عبور")]
-        [DataType(DataType.Password)]
-        [MaxLength(128, ErrorMessage = "{0} حداکثر {1} کاراکتر می‌باشد.")]
-        public string Password { get; set; }
-
-        [Required(ErrorMessage = "لطفا {0} را وارد کنید.")]
-        [Display(Name = "تکرار کلمه عبور")]
-        [DataType(DataType.Password)]
-        [MaxLength(128, ErrorMessage = "{0} حداکثر {1} کاراکتر می‌باشد.")]
-        [Compare(nameof(Password), ErrorMessage = "{0} نامعتبر می‌باشد.")]
-        public string PasswordConfirm { get; set; }
-    }
-
-    public class UserSignInViewModel : UserBaseViewModel
-    {
-        [Required]
-        public string Token { get; set; }
-    }
-
-    public class EditUserViewModel : UserBaseViewModel
-    {
-    }
-
-    public class ListUserViewModel : UserBaseViewModel
-    {
-    }
-
     public class DetailUserViewModel : ListUserViewModel
     {
         [Required(ErrorMessage = "لطفا {0} را وارد کنید.")]
@@ -69,7 +81,7 @@ namespace ViewModels
         public DateTime CreateDateTime { get; set; }
     }
 
-    public class UserSetPasswordViewModel
+    public class UserResetPasswordViewModel
     {
         public int Id { get; set; }
 
@@ -87,7 +99,7 @@ namespace ViewModels
         public string PasswordConfirm { get; set; }
     }
 
-    public class UserChangePasswordViewModel : UserSetPasswordViewModel
+    public class UserChangePasswordViewModel : UserResetPasswordViewModel
     {
         [Required(ErrorMessage = "لطفا {0} را وارد کنید.")]
         [Display(Name = "کلمه عبور قدیمی")]
@@ -96,15 +108,8 @@ namespace ViewModels
         public string OldPassword { get; set; }
     }
 
-    public class SignInInfoViewModel
+    public class SignInInfoViewModel : UserBaseViewModel
     {
-        public int Id { get; set; }
-
-        [Required(ErrorMessage = "لطفا {0} را وارد کنید.")]
-        [Display(Name = "نام کاربری")]
-        [StringLength(64, MinimumLength = 1, ErrorMessage = "{0} باید حداقل {2} و حداکثر {1} کاراکتر ‌باشد.")]
-        public string Email { get; set; }
-
         [Required(ErrorMessage = "لطفا {0} را وارد کنید.")]
         [Display(Name = "کلمه عبور")]
         [DataType(DataType.Password)]
@@ -114,4 +119,45 @@ namespace ViewModels
         [Display(Name = "مرا به خاطر بسپار")]
         public bool RememberMe { get; set; }
     }
+
+    public class ActivationCodeViewModel : UserBaseViewModel
+    {
+        [Required(ErrorMessage = "Please enter {0}")]
+        [Display(Name = "ActivationCode")]
+        //[RegularExpression(@"^\d$", ErrorMessage = "Enter A Valid Activation Code")]
+        public int ActivationCode { get; set; }
+    }
+
+    public class UserRegisterViewModel : UserBaseViewModel
+    {
+        [Required(ErrorMessage = "Please enter {0}")]
+        [Display(Name = "Name")]
+        [StringLength(32, MinimumLength = 1, ErrorMessage = "{0} must be somewhat between {1} and {2} characters")]
+        public string Name { get; set; }
+
+        [Required(ErrorMessage = "Please enter {0}")]
+        [Display(Name = "Password")]
+        [DataType(DataType.Password)]
+        [MaxLength(128, ErrorMessage = "{0} can accept a maximum of 128 characters")]
+        public string Password { get; set; }
+
+        [Required(ErrorMessage = "Please enter {0}")]
+        [Display(Name = "PasswordConfirm")]
+        [DataType(DataType.Password)]
+        [MaxLength(128, ErrorMessage = "{0} can accept a maximum of 128 characters")]
+        [Compare(nameof(Password), ErrorMessage = "{0} doesn't match")]
+        public string PasswordConfirm { get; set; }
+
+        [Required(ErrorMessage = "Role Required")]
+        public bool Role { get; set; }
+    }
+
+    public class UserIdViewModel
+    {
+        [Required(ErrorMessage = "Please enter {0}")]
+        [Display(Name = "User Id")]
+        public int UserId { get; set; }
+    }
+
+    public class UserForgetPasswordViewModel : EmailViewModel { }
 }
