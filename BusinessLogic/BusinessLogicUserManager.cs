@@ -974,6 +974,36 @@ namespace BusinessLogic
 
         #endregion
 
+        public async Task<IBusinessLogicResult> DoesEmailExistAsync(EmailViewModel emailViewModel)
+        {
+            var messages = new List<IBusinessLogicMessage>();
+            try
+            {
+                // Check email existance
+                User user;
+                try
+                {
+                    user = await _userRepository.DeferredSelectAll().SingleOrDefaultAsync(usr => usr.EmailAddress == emailViewModel.EmailAddress);
+                    if (user == null || user.IsDeleted || user.IsEnabled == false)
+                    {
+                        messages.Add(new BusinessLogicMessage(MessageType.Info, MessageId.EmailDoesNotExist));
+                        return new BusinessLogicResult(succeeded: false, messages: messages);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                    return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+                }
+                messages.Add(new BusinessLogicMessage(MessageType.Info, MessageId.EmailSuccessfullyVerified));
+                return new BusinessLogicResult(succeeded: true, messages: messages);
+            }
+            catch (Exception exception)
+            {
+                messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+            }
+        }
         public void Dispose()
         {
             _userRepository.Dispose();

@@ -73,6 +73,10 @@ namespace BusinessLogic.Abstractions.Message
         [Display(Name = "این سطح سازمانی دارای زیر شاخه است.")]
         ThisOrganizationPostHasChild,
         [Display(Name = "کاربرانی در این سطح سازمانی موجود می‌باشند.")]
-        ThisOrganizationPostHasUsers
+        ThisOrganizationPostHasUsers,
+        [Display(Name = "EmailDoesNotExist")]
+        EmailDoesNotExist,
+        [Display(Name = "ایمیل وارد شده قبلا ثبت نام شده است")]
+        EmailSuccessfullyVerified
     }
 }

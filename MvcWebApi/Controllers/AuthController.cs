@@ -30,6 +30,21 @@ namespace MvcWebApi.Controllers
         [HttpPost]
         [AllowAnonymous]
         [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> EmailAuthentication(EmailViewModel emailViewModel)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var res1 = await _userAuthenticator.DoesEmailExistAsync(emailViewModel);
+            if (res1.Succeeded) return Ok(new { res1 });
+
+            var res2 = await _businessLogicUserManager.AddUserAsync(emailViewModel);
+            if (!res2.Succeeded) return StatusCode(500, res2);
+
+            return Ok(new { res2 });
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> Login(SignInInfoViewModel signInInfoViewModel)
         {
             if (!ModelState.IsValid) return BadRequest();
