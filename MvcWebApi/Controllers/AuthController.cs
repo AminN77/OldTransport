@@ -69,5 +69,23 @@ namespace MvcWebApi.Controllers
 
             return Ok(res);
         }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> Register(UserRegisterViewModel userRegisterViewModel)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var res = await _businessLogicUserManager.UpdateUserRegisterInfoAsync(userRegisterViewModel);
+            if (!res.Succeeded) return StatusCode(500, res);
+            var result = await _tokenFactoryService.CreateJwtTokensAsync(res.Result);
+            await _tokenStoreService.AddUserTokenAsync(res.Result, result.RefreshTokenSerial, result.AccessToken, null);
+            _antiForgery.RegenerateAntiForgeryCookies(result.Claims);
+
+            Response.Headers.Add("AccessToken", result.AccessToken);
+            Response.Headers.Add("RefreshToken", result.RefreshToken);
+
+            return Ok(/*new { access_token = result.AccessToken, refresh_token = result.RefreshToken }*/);
+        }
     }
 }

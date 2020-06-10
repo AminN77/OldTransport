@@ -1090,6 +1090,66 @@ namespace BusinessLogic
             }
         }
 
+        public async Task<IBusinessLogicResult<UserSignInViewModel>> UpdateUserRegisterInfoAsync(UserRegisterViewModel userRegisterViewModel)
+        {
+            var messages = new List<IBusinessLogicMessage>();
+            try
+            {
+                User user;
+                user = await _userRepository.DeferredSelectAll().SingleOrDefaultAsync(usr => usr.EmailAddress == userRegisterViewModel.EmailAddress);
+
+                user.Name = userRegisterViewModel.Name;
+                user.Password = await _securityProvider.PasswordHasher.HashPasswordAsync(userRegisterViewModel.Password,
+                        user.Salt, user.IterationCount, BusinessLogicSetting.DefaultPassworHashCount);
+                user.SerialNumber = Guid.NewGuid().ToString();
+                try
+                {
+                    await _userRepository.UpdateAsync(user);
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                    return new BusinessLogicResult<UserSignInViewModel>(succeeded: false, result: null, messages: messages, exception: exception);
+                }
+
+                UserIdViewModel userIdViewModel = new UserIdViewModel()
+                {
+                    UserId = user.Id
+                };
+
+                //if (userRegisterViewModel.Role)
+                //{
+                //    var res = await AddMerchantAsync(userIdViewModel);
+                //    if (!res.Succeeded)
+                //    {
+                //        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
+                //        return new BusinessLogicResult<UserSignInViewModel>(succeeded: false, result: null, messages: messages);
+                //    }
+                //}
+                //else
+                //{
+                //    var res = await AddTransporterAsync(userIdViewModel);
+                //    if (!res.Succeeded)
+                //    {
+                //        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
+                //        return new BusinessLogicResult<UserSignInViewModel>(succeeded: false, result: null, messages: messages);
+                //    }
+                //}
+
+                // Safe Map
+                var userSignInViewModel = await _utility.MapAsync<User, UserSignInViewModel>(user);
+
+                messages.Add(new BusinessLogicMessage(MessageType.Info, MessageId.EntitySuccessfullyUpdated));
+                return new BusinessLogicResult<UserSignInViewModel>(succeeded: true, result: userSignInViewModel, messages: messages);
+            }
+            catch (Exception exception)
+            {
+                messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                return new BusinessLogicResult<UserSignInViewModel>(succeeded: false, result: null, messages: messages, exception: exception);
+            }
+
+        }
+
         public void Dispose()
         {
             _userRepository.Dispose();

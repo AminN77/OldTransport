@@ -45,7 +45,7 @@ namespace BusinessLogic.Abstractions.Message
         [Display(Name = "{0} با موفقیت حذف شد.")]
         EntitySuccessfullyDeleted,
         [Display(Name = "{0} با موفقیت ویرایش شد.")]
-        EntitySuccessfullyEdited,
+        EntitySuccessfullyUpdated,
         [Display(Name = "{0} با موفقیت افزوده شد.")]
         EntitySuccessfullyAdded,
         Successed,
