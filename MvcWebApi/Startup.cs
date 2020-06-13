@@ -2,7 +2,6 @@ using System;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Cross.Abstractions.EntityEnums;
 using Cross.Models;
 using DependencyInjection;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -54,9 +53,9 @@ namespace MvcWebApi
             // Add CustomJwt Bearer
             services.AddAuthorization(options =>
             {
-                options.AddPolicy(RoleTypes.Admin.ToString(), policy => policy.RequireRole(RoleTypes.Admin.ToString()));
-                options.AddPolicy(RoleTypes.User.ToString(), policy => policy.RequireRole(RoleTypes.User.ToString()));
-                options.AddPolicy(RoleTypes.DeveloperSupport.ToString(), policy => policy.RequireRole(RoleTypes.DeveloperSupport.ToString()));
+                options.AddPolicy(CustomRoles.Admin, policy => policy.RequireRole(CustomRoles.Admin));
+                options.AddPolicy(CustomRoles.User, policy => policy.RequireRole(CustomRoles.User));
+                options.AddPolicy(CustomRoles.DeveloperSupport, policy => policy.RequireRole(CustomRoles.DeveloperSupport));
             });
 
             // Needed for jwt auth.
