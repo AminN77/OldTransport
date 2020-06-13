@@ -49,8 +49,10 @@ namespace Data.DataAccess.Context
 
             modelBuilder.Entity<Project>(entity =>
             {
-                entity.HasIndex(e => e.Destination);
-                entity.HasIndex(e => e.Beginning);
+                entity.HasIndex(e => e.DestinationCountry);
+                entity.HasIndex(e => e.DestinationCity);
+                entity.HasIndex(e => e.BeginningCountry);
+                entity.HasIndex(e => e.BeginningCity);
 
             });
 
