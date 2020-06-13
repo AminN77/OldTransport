@@ -41,7 +41,8 @@ namespace MvcWebApi.Controllers
         public async Task<IActionResult> UserDetails(int userId)
         {
             if (!ModelState.IsValid) return BadRequest();
-            var res = await _businessLogicUserManager.GetUserDetailsAsync(userId, HttpContext.GetCurrentUserId());
+            var getterUserId = HttpContext.GetCurrentUserId();
+            var res = await _businessLogicUserManager.GetUserDetailsAsync(userId, getterUserId);
             if (!res.Succeeded) return StatusCode(500, res);
             return Ok(res);
         }

@@ -22,7 +22,7 @@ namespace BusinessLogic.Abstractions.Message
         UserSuccessfullyEdited,
         [Display(Name = "کاربر با موفقیت حذف شد.")]
         UserSuccessfullyDeleted,
-        [Display(Name = "دسترسی غیر مجاز.")]
+        [Display(Name = "Access Denied")]
         AccessDenied,
         [Display(Name = "پسورد با موفقیت تغییر یافت.")]
         PasswordSuccessfullyChanged,
