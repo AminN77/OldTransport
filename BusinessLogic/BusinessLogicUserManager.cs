@@ -1070,6 +1070,11 @@ namespace BusinessLogic
             try
             {
                 User user = await _userRepository.DeferredSelectAll().SingleOrDefaultAsync(usr => usr.EmailAddress == activationCodeViewModel.EmailAddress);
+                if (user == null || user.IsDeleted)
+                {
+                    messages.Add(new BusinessLogicMessage(MessageType.Info, MessageId.EmailDoesNotExist));
+                    return new BusinessLogicResult(succeeded: false, messages: messages);
+                }
 
                 if (user.ActivationCode == activationCodeViewModel.ActivationCode)
                 {
