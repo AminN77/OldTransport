@@ -1,14 +1,9 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using BusinessLogic.Abstractions;
-using Cross.Abstractions.EntityEnums;
-using Data.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using MvcWebApi.Provider;
-using MvcWebApi.Providers;
-using ViewModels;
 
 namespace MvcWebApi.Controllers
 {
@@ -31,18 +26,6 @@ namespace MvcWebApi.Controllers
         {
             if (!ModelState.IsValid) return BadRequest();
             var res = await _businessLogicUserManager.GetUsersAsync(1, page, pageSize, search, sort, filter);
-            if (!res.Succeeded) return StatusCode(500, res);
-            return Ok(res);
-        }
-
-        [HttpGet]
-        [Authorize]
-        [IgnoreAntiforgeryToken]
-        public async Task<IActionResult> UserDetails(int userId)
-        {
-            if (!ModelState.IsValid) return BadRequest();
-            var getterUserId = HttpContext.GetCurrentUserId();
-            var res = await _businessLogicUserManager.GetUserDetailsAsync(userId, getterUserId);
             if (!res.Succeeded) return StatusCode(500, res);
             return Ok(res);
         }
