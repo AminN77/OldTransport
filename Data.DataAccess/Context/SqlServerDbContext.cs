@@ -19,6 +19,7 @@ namespace Data.DataAccess.Context
         public DbSet<UserToken> UserTokens { get; set; }
         public DbSet<Merchant> Merchants { get; set; }
         public DbSet<Transporter> Transporters { get; set; }
+        public DbSet<Project> Projects { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -44,6 +45,13 @@ namespace Data.DataAccess.Context
                 entity.HasIndex(e => e.RoleId);
                 entity.Property(e => e.UserId);
                 entity.Property(e => e.RoleId);
+            });
+
+            modelBuilder.Entity<Project>(entity =>
+            {
+                entity.HasIndex(e => e.Destination);
+                entity.HasIndex(e => e.Beginning);
+
             });
 
             modelBuilder.Seed();
