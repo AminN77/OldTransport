@@ -8,7 +8,7 @@ using ViewModels;
 
 namespace MvcWebApi.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/[controller]/[action]")]
     [EnableCors("CorsPolicy")]
     [ApiController]
     public class AuthController : ControllerBase
@@ -37,10 +37,9 @@ namespace MvcWebApi.Controllers
             if (!ModelState.IsValid) return BadRequest();
             var res1 = await _userAuthenticator.DoesEmailExistAsync(emailViewModel);
             if (res1.Succeeded) return Ok(new { res1 });
-
+            if (!res1.Succeeded && res1.Exception.Message == "DeactivatedUser") return NotFound(res1);
             var res2 = await _businessLogicUserManager.AddUserAsync(emailViewModel);
             if (!res2.Succeeded) return StatusCode(500, res2);
-
             return Ok(new { res2 });
         }
 
