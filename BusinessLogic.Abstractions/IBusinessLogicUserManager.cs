@@ -24,6 +24,7 @@ namespace BusinessLogic.Abstractions
         Task<IBusinessLogicResult<UserSignInViewModel>> UpdateUserRegisterInfoAsync(UserRegisterViewModel userRegisterViewModel);
         Task<IBusinessLogicResult> AddMerchantAsync(UserIdViewModel userIdViewModel);
         Task<IBusinessLogicResult> AddTransporterAsync(UserIdViewModel userIdViewModel);
-
+        Task<IBusinessLogicResult> DeactivateUserAsync(int userId, int deactivatorUserId);
+        Task<IBusinessLogicResult> ActivateUserAsync(int userId, int activatorUserId);
     }
 }

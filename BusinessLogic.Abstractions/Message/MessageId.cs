@@ -85,6 +85,8 @@ namespace BusinessLogic.Abstractions.Message
         [Display(Name = "Activation Code Is Not Valid")]
         ActivationCodeVerficationFailed,
         [Display(Name = "EmailSendingProcessFailed")]
-        EmailSendingProcessFailed
+        EmailSendingProcessFailed,
+        [Display(Name = "User Successfully Deactivated")]
+        UserSuccessfullyDeactivated,
     }
 }
