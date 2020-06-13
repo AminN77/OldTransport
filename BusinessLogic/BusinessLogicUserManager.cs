@@ -305,88 +305,87 @@ namespace BusinessLogic
         /// <returns></returns>
         public async Task<IBusinessLogicResult> DeleteUserAsync(int userId, int deleterUserId)
         {
-            return null;
-//            var messages = new List<BusinessLogicMessage>();
-//            try
-//            {
-//                // User verification
-//                User user;
-//                try
-//                {
-//                    user = await _userRepository.FindAsync(userId);
-//                    if (user == null || user.IsDeleted)
-//                    {
-//                        messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.EntityDoesNotExist,
-//                            BusinessLogicSetting.UserDisplayName));
-//                        return new BusinessLogicResult(succeeded: false, messages: messages);
-//                    }
-//                }
-//                catch (Exception exception)
-//                {
-//                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
-//                    return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
-//                }
-//
-//                // Check organization level
-//                var getterUser = await _userRepository.FindAsync(deleterUserId);
-//                var subLevelsId = await GetSubLevels(getterUser.OrganizationLevelId);
-//                if (!subLevelsId.Result.Contains(user.OrganizationLevelId) || userId != deleterUserId)
-//                {
-//                    messages.Add(new BusinessLogicMessage(type: MessageType.Error,
-//                        message: MessageId.AccessDenied, BusinessLogicSetting.UserDisplayName));
-//                    return new BusinessLogicResult<AddUserViewModel>(succeeded: false, result: null,
-//                        messages: messages);
-//                }
-//
-//                // Check developer role
-//                var developerRole = await _roleRepository.DeferredSelectAll()
-//                    .SingleOrDefaultAsync(role => role.Name == RoleType.DeveloperSupport.ToString().ToLower());
-//                var isUserInDeveloperRole = await _userRoleRepository.DeferredSelectAll().AnyAsync(userRole =>
-//                    userRole.RoleId == developerRole.Id && userRole.UserId == user.Id);
-//                if (isUserInDeveloperRole)
-//                {
-//                    messages.Add(new BusinessLogicMessage(type: MessageType.Error,
-//                        message: MessageId.AccessDenied, BusinessLogicSetting.UserDisplayName));
-//                    return new BusinessLogicResult<AddUserViewModel>(succeeded: false, result: null,
-//                        messages: messages);
-//                }
-//
-//                // Critical Database operation
-//                try
-//                {
-//                    //-------------------------------------------------------------------
-//                    user.IsDeleted = true;
-//                    user.IsEnabled = false;
-//                    user.Username += "-deleted" +
-//                                     (await _userRepository
-//                                         .DeferredWhere(us => us.Username.Contains(user.Username + "-deleted"))
-//                                         .CountAsync()).ToString("D4");
-//                    user.PhoneNumber += "-deleted" +
-//                                        (await _userRepository.DeferredWhere(us =>
-//                                            us.PhoneNumber.Contains(user.PhoneNumber + "-deleted")).CountAsync())
-//                                        .ToString("D4");
-//                    user.PersonelId += "-deleted" +
-//                                       (await _userRepository.DeferredWhere(us =>
-//                                           us.PersonelId.Contains(user.PersonelId + "-deleted")).CountAsync())
-//                                       .ToString("D4");
-//                    user.SerialNumber = Guid.NewGuid();
-//                    //-------------------------------------------------------------------
-//                    await _userRepository.UpdateAsync(user, true);
-//                    messages.Add(new BusinessLogicMessage(type: MessageType.Info,
-//                        message: MessageId.UserSuccessfullyDeleted));
-//                    return new BusinessLogicResult(succeeded: true, messages: messages);
-//                }
-//                catch (Exception exception)
-//                {
-//                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
-//                    return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
-//                }
-//            }
-//            catch (Exception exception)
-//            {
-//                messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
-//                return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
-//            }
+            var messages = new List<BusinessLogicMessage>();
+            try
+            {
+                // Critical Authentication and Authorization
+                try
+                {
+                    var isUserAdmin = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == deleterUserId && u.RoleId != 2);
+                    if (userId != deleterUserId || !isUserAdmin)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
+                        return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
+                            messages: messages);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
+
+                // User verification
+                User user;
+                try
+                {
+                    user = await _userRepository.FindAsync(userId);
+                    if (user == null || user.IsDeleted)
+                    {
+                        messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.EntityDoesNotExist,
+                            BusinessLogicSetting.UserDisplayName));
+                        return new BusinessLogicResult(succeeded: false, messages: messages);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+                }
+
+                // Check developer role
+                var isUserDeveloper = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == userId && u.RoleId == 3);
+                if (isUserDeveloper)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error,
+                        message: MessageId.AccessDenied, BusinessLogicSetting.UserDisplayName));
+                    return new BusinessLogicResult<AddUserViewModel>(succeeded: false, result: null,
+                        messages: messages);
+                }
+
+                // Critical Database operation
+                try
+                {
+                    //-------------------------------------------------------------------
+                    user.IsDeleted = true;
+                    user.IsEnabled = false;
+                    user.EmailAddress += "-deleted" +
+                                     (await _userRepository
+                                         .DeferredWhere(us => us.EmailAddress.Contains(user.EmailAddress + "-deleted"))
+                                         .CountAsync()).ToString("D4");
+                    user.Picture += "-deleted" +
+                                        (await _userRepository.DeferredWhere(us =>
+                                            us.Picture.Contains(user.Picture + "-deleted")).CountAsync())
+                                        .ToString("D4");
+                    user.SerialNumber = Guid.NewGuid().ToString();
+                    //-------------------------------------------------------------------
+                    await _userRepository.UpdateAsync(user, true);
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Info,
+                        message: MessageId.UserSuccessfullyDeleted));
+                    return new BusinessLogicResult(succeeded: true, messages: messages);
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+                }
+            }
+            catch (Exception exception)
+            {
+                messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
+                return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+            }
         }
 
         /// <summary>
@@ -604,12 +603,21 @@ namespace BusinessLogic
             try
             {
                 // Critical Authentication and Authorization
-                var IsUserAdmin = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == getterUserId && u.RoleId == 2);
-                if (userId != getterUserId || !IsUserAdmin)
+                try
                 {
-                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
+                    var isUserAdmin = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == getterUserId && u.RoleId != 2);
+                    if (userId != getterUserId || !isUserAdmin)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
+                        return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
+                            messages: messages);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
                     return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
-                        messages: messages);
+                        messages: messages, exception: exception);
                 }
 
                 User user;

@@ -25,7 +25,7 @@ namespace MvcWebApi.Controllers
         }
 
         [HttpGet]
-        // [Authorize/*(Policy = "Admin")*/]
+        // [Authorize/*(Policy = "Admin, DeveloperSupport")*/]
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> UsersList(int page, int pageSize, string search, string sort, string filter)
         {
@@ -36,12 +36,23 @@ namespace MvcWebApi.Controllers
         }
 
         [HttpGet]
-        // [Authorize(Policy = "Admin")]
+        [Authorize]
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> UserDetails(int userId)
         {
             if (!ModelState.IsValid) return BadRequest();
             var res = await _businessLogicUserManager.GetUserDetailsAsync(userId, HttpContext.GetCurrentUserId());
+            if (!res.Succeeded) return StatusCode(500, res);
+            return Ok(res);
+        }
+
+        [HttpGet]
+        [Authorize]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> DeleteUser(int userId)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var res = await _businessLogicUserManager.DeleteUserAsync(userId, HttpContext.GetCurrentUserId());
             if (!res.Succeeded) return StatusCode(500, res);
             return Ok(res);
         }
