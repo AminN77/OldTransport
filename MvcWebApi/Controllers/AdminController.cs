@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using BusinessLogic.Abstractions;
+using Cross.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
@@ -20,7 +21,7 @@ namespace MvcWebApi.Controllers
         }
 
         [HttpGet]
-        // [Authorize/*(Policy = "Admin, DeveloperSupport")*/]
+        [Authorize(Policy = CustomRoles.DeveloperSupport)]
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> UsersList(int page, int pageSize, string search, string sort, string filter)
         {
