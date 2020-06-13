@@ -615,7 +615,7 @@ namespace BusinessLogic
                 {
                     var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
                     var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == getterUserId && u.RoleId != userRole.Id);
-                    if (userId != getterUserId || !isUserAuthorized)
+                    if (userId != getterUserId || isUserAuthorized)
                     {
                         messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
                         return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
