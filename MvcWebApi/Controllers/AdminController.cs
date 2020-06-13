@@ -56,5 +56,16 @@ namespace MvcWebApi.Controllers
             if (!res.Succeeded) return StatusCode(500, res);
             return Ok(res);
         }
+
+        [HttpGet]
+        // [Authorize/*(Policy = "Admin, DeveloperSupport")*/]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> DeactivateUser(int userId)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var res = await _businessLogicUserManager.DeactivateUserAsync(userId, HttpContext.GetCurrentUserId());
+            if (!res.Succeeded) return StatusCode(500, res);
+            return Ok(res);
+        }
     }
 }

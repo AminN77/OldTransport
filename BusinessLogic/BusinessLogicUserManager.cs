@@ -1201,6 +1201,73 @@ namespace BusinessLogic
             }
         }
 
+        public async Task<IBusinessLogicResult> DeactivateUserAsync(int userId, int deactivatorUserId)
+        {
+            var messages = new List<IBusinessLogicMessage>();
+            try
+            {
+                // Critical Authentication and Authorization
+                try
+                {
+                    var isUserAdmin = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == deactivatorUserId && u.RoleId != 2);
+                    if (!isUserAdmin)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
+                        return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
+                            messages: messages);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
+
+                User user;
+                // Critical Database
+                try
+                {
+                    user = await _userRepository.FindAsync(userId);
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
+
+                // user Verification
+                if (user == null || user.IsDeleted)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error,
+                        message: MessageId.EntityDoesNotExist,
+                        viewMessagePlaceHolders: BusinessLogicSetting.UserDisplayName));
+                    return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
+                        messages: messages);
+                }
+
+                user.IsEnabled = false;
+                try
+                {
+                    await _userRepository.UpdateAsync(user);
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                    return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+                }
+                messages.Add(new BusinessLogicMessage(MessageType.Info, MessageId.UserSuccessfullyDeactivated));
+                return new BusinessLogicResult(succeeded: true, messages: messages);
+            }
+            catch (Exception exception)
+            {
+                messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+            }
+        }
+
+
         public void Dispose()
         {
             _userRepository.Dispose();
