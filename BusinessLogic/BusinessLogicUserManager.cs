@@ -1121,6 +1121,17 @@ namespace BusinessLogic
             try
             {
                 var user = await _userRepository.DeferredSelectAll().SingleOrDefaultAsync(usr => usr.EmailAddress == userRegisterViewModel.EmailAddress);
+                if (user == null || user.IsDeleted)
+                {
+                    messages.Add(new BusinessLogicMessage(MessageType.Info, MessageId.EmailDoesNotExist));
+                    return new BusinessLogicResult<UserSignInViewModel>(succeeded: false, messages: messages, result: null);
+                }
+                if (!user.IsEnabled)
+                {
+                    Exception exception = new Exception("DeactivatedUser");
+                    messages.Add(new BusinessLogicMessage(MessageType.Info, MessageId.DeactivatedUser));
+                    return new BusinessLogicResult<UserSignInViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
+                }
 
                 user.Name = userRegisterViewModel.Name;
                 user.Password = await _securityProvider.PasswordHasher.HashPasswordAsync(userRegisterViewModel.Password,
