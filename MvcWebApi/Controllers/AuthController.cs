@@ -17,14 +17,31 @@ namespace MvcWebApi.Controllers
         private readonly ITokenStoreService _tokenStoreService;
         private readonly IAntiForgeryCookieService _antiForgery;
         private readonly ITokenFactoryService _tokenFactoryService;
+        private readonly IBusinessLogicUserManager _businessLogicUserManager;
 
         public AuthController(IUserAuthenticator userAuthenticator, ITokenStoreService tokenStoreService,
-            ITokenFactoryService tokenFactoryService, IAntiForgeryCookieService antiForgery)
+            ITokenFactoryService tokenFactoryService, IAntiForgeryCookieService antiForgery, IBusinessLogicUserManager businessLogicUserManager)
         {
             _userAuthenticator = userAuthenticator;
             _tokenStoreService = tokenStoreService;
             _antiForgery = antiForgery;
             _tokenFactoryService = tokenFactoryService;
+            _businessLogicUserManager = businessLogicUserManager;
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> EmailAuthentication(EmailViewModel emailViewModel)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var res1 = await _userAuthenticator.DoesEmailExistAsync(emailViewModel);
+            if (res1.Succeeded) return Ok(new { res1 });
+
+            var res2 = await _businessLogicUserManager.AddUserAsync(emailViewModel);
+            if (!res2.Succeeded) return StatusCode(500, res2);
+
+            return Ok(new { res2 });
         }
 
         [HttpPost]
@@ -39,6 +56,36 @@ namespace MvcWebApi.Controllers
             await _tokenStoreService.AddUserTokenAsync(res.Result, result.RefreshTokenSerial, result.AccessToken, null);
             _antiForgery.RegenerateAntiForgeryCookies(result.Claims);
             return Ok(new { access_token = result.AccessToken, refresh_token = result.RefreshToken });
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> EmailVerification(ActivationCodeViewModel activationCodeViewModel)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var res = await _businessLogicUserManager.VerifyActivationCodeAysnc(activationCodeViewModel);
+            if (!res.Succeeded) return StatusCode(500, res);
+
+            return Ok(res);
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> Register(UserRegisterViewModel userRegisterViewModel)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var res = await _businessLogicUserManager.UpdateUserRegisterInfoAsync(userRegisterViewModel);
+            if (!res.Succeeded) return StatusCode(500, res);
+            var result = await _tokenFactoryService.CreateJwtTokensAsync(res.Result);
+            await _tokenStoreService.AddUserTokenAsync(res.Result, result.RefreshTokenSerial, result.AccessToken, null);
+            _antiForgery.RegenerateAntiForgeryCookies(result.Claims);
+
+            Response.Headers.Add("AccessToken", result.AccessToken);
+            Response.Headers.Add("RefreshToken", result.RefreshToken);
+
+            return Ok(/*new { access_token = result.AccessToken, refresh_token = result.RefreshToken }*/);
         }
     }
 }

@@ -28,6 +28,7 @@ namespace DependencyInjection
         {
             services.AddScoped<IUtility, Utility>();
             services.AddScoped<IPasswordHasher, PasswordHasher>();
+            services.AddScoped<IEmailSender, EmailSender>();
             return services;
         }
 

@@ -45,7 +45,7 @@ namespace BusinessLogic.Abstractions.Message
         [Display(Name = "{0} با موفقیت حذف شد.")]
         EntitySuccessfullyDeleted,
         [Display(Name = "{0} با موفقیت ویرایش شد.")]
-        EntitySuccessfullyEdited,
+        EntitySuccessfullyUpdated,
         [Display(Name = "{0} با موفقیت افزوده شد.")]
         EntitySuccessfullyAdded,
         Successed,
@@ -73,6 +73,18 @@ namespace BusinessLogic.Abstractions.Message
         [Display(Name = "این سطح سازمانی دارای زیر شاخه است.")]
         ThisOrganizationPostHasChild,
         [Display(Name = "کاربرانی در این سطح سازمانی موجود می‌باشند.")]
-        ThisOrganizationPostHasUsers
+        ThisOrganizationPostHasUsers,
+        [Display(Name = "EmailDoesNotExist")]
+        EmailDoesNotExist,
+        [Display(Name = "ایمیل وارد شده قبلا ثبت نام شده است")]
+        EmailSuccessfullyVerified,
+        [Display(Name = "ایمیل حاوی کد فعالسازی با موفقیت ارسال شد")]
+        VerificationEmailSuccessfullySent,
+        [Display(Name = "User Successfully Activated")]
+        UserSuccessfullyActivated,
+        [Display(Name = "Activation Code Is Not Valid")]
+        ActivationCodeVerficationFailed,
+        [Display(Name = "EmailSendingProcessFailed")]
+        EmailSendingProcessFailed
     }
 }

@@ -18,22 +18,17 @@ namespace Data.DataAccess.Context
                 new Role
                 {
                     Id = 1,
-                    Name = RoleType.Admin.ToString()
+                    Name = RoleTypes.Admin.ToString()
                 },
                 new Role
                 {
                     Id = 2,
-                    Name = RoleType.Merchant.ToString()
-                },
+                    Name = RoleTypes.User.ToString()
+                },             
                 new Role
                 {
                     Id = 3,
-                    Name = RoleType.Transporter.ToString()
-                },
-                new Role
-                {
-                    Id = 4,
-                    Name = RoleType.DeveloperSupport.ToString()
+                    Name = RoleTypes.DeveloperSupport.ToString()
                 }
             };
 
@@ -81,7 +76,7 @@ namespace Data.DataAccess.Context
 
             var userRole = new UserRole
             {
-                RoleId = 4,
+                RoleId = 3,
                 UserId = developerUser.Id
             };
 

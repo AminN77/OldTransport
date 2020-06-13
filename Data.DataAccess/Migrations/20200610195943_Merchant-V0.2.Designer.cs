@@ -4,14 +4,16 @@ using Data.DataAccess.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Data.DataAccess.Migrations
 {
     [DbContext(typeof(SqlServerDbContext))]
-    partial class SqlServerDbContextModelSnapshot : ModelSnapshot
+    [Migration("20200610195943_Merchant-V0.2")]
+    partial class MerchantV02
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -74,26 +76,6 @@ namespace Data.DataAccess.Migrations
                             Id = 3,
                             Name = "DeveloperSupport"
                         });
-                });
-
-            modelBuilder.Entity("Data.Model.Transporter", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<string>("Bio")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Transporters");
                 });
 
             modelBuilder.Entity("Data.Model.User", b =>
@@ -165,15 +147,15 @@ namespace Data.DataAccess.Migrations
                         {
                             Id = 1,
                             ActivationCode = 0,
-                            CreateDateTime = new DateTime(2020, 6, 11, 0, 36, 35, 320, DateTimeKind.Local).AddTicks(1150),
+                            CreateDateTime = new DateTime(2020, 6, 11, 0, 29, 42, 387, DateTimeKind.Local).AddTicks(3535),
                             EmailAddress = "abolfazl.sh1374@gmail.com",
                             IsDeleted = false,
                             IsEnabled = true,
-                            IterationCount = 83323,
+                            IterationCount = 92408,
                             Name = "Developer",
-                            Password = "08F82D6D47F887F22B1C2B04AF79466ED5050E51199ECF285B7AAA39A3EBC4DA46005AC686EDEE9F37A52847BD56DE99BAC2FE2FE0753F6C2E020A645635B0DD",
-                            Salt = new byte[] { 125, 53, 148, 88, 1, 195, 51, 159, 126, 96, 7, 125, 52, 63, 188, 18, 191, 25, 33, 19, 128, 201, 97, 132, 239, 219, 123, 214, 50, 100, 128, 180 },
-                            SerialNumber = "e39485c6-12b1-44a1-9b65-0997bb581486"
+                            Password = "B22FFD5992F0AC8CC27C0D00DBFCCAB7958B989E34076777D929FC67CF5018B00EAE9B4EF97A5B20A335C15342F8036C39247A082529DDB2E9B9DCF109648339",
+                            Salt = new byte[] { 194, 178, 184, 28, 220, 100, 161, 186, 0, 60, 7, 91, 63, 90, 27, 131, 12, 249, 127, 30, 125, 119, 173, 207, 122, 0, 47, 137, 196, 25, 200, 126 },
+                            SerialNumber = "2cb1689c-2cf9-4605-abb7-4b1f3dd16c3d"
                         });
                 });
 
@@ -234,15 +216,6 @@ namespace Data.DataAccess.Migrations
                 });
 
             modelBuilder.Entity("Data.Model.Merchant", b =>
-                {
-                    b.HasOne("Data.Model.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Data.Model.Transporter", b =>
                 {
                     b.HasOne("Data.Model.User", "User")
                         .WithMany()
