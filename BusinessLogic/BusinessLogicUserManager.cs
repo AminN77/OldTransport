@@ -600,62 +600,53 @@ namespace BusinessLogic
 
         public async Task<IBusinessLogicResult<DetailUserViewModel>> GetUserDetailsAsync(int userId, int getterUserId)
         {
-            return null;
-//            var messages = new List<IBusinessLogicMessage>();
-//            try
-//            {
-//                // Critical Authentication and Authorization
-//                var isUserInPermission = await IsUserInPermissionAsync<DetailUserViewModel>(getterUserId,
-//                    UserManagerPermissions.DetailUser.ToString());
-//                if (!isUserInPermission.Succeeded) return isUserInPermission;
-//
-//                User user;
-//                // Critical Database
-//                try
-//                {
-//                    user = await _userRepository.FindAsync(userId);
-//                }
-//                catch (Exception exception)
-//                {
-//                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
-//                    return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
-//                        messages: messages, exception: exception);
-//                }
-//
-//                // user Verification
-//                if (user == null || user.IsDeleted)
-//                {
-//                    messages.Add(new BusinessLogicMessage(type: MessageType.Error,
-//                        message: MessageId.EntityDoesNotExist,
-//                        viewMessagePlaceHolders: BusinessLogicSetting.UserDisplayName));
-//                    return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
-//                        messages: messages);
-//                }
-//
-//                // Check organization level
-//                var getterUser = await _userRepository.FindAsync(getterUserId);
-//                var subLevelsId = await GetSubLevels(getterUser.OrganizationLevelId);
-//                if (!subLevelsId.Result.Contains(user.OrganizationLevelId) || userId != getterUserId)
-//                {
-//                    messages.Add(new BusinessLogicMessage(type: MessageType.Error,
-//                        message: MessageId.AccessDenied, BusinessLogicSetting.UserDisplayName));
-//                    return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
-//                        messages: messages);
-//                }
-//
-//                //safe Map
-//                var userViewModel = await _utility.MapAsync<User, DetailUserViewModel>(user);
-//                return new BusinessLogicResult<DetailUserViewModel>(succeeded: true, result: userViewModel,
-//                    messages: messages);
-//            }
-//            catch (Exception exception)
-//            {
-//                messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
-//                return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
-//                    messages: messages, exception: exception);
-//            }
-        }
+            var messages = new List<IBusinessLogicMessage>();
+            try
+            {
+                // Critical Authentication and Authorization
+                var IsUserAdmin = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == getterUserId && u.RoleId == 2);
+                if (userId != getterUserId || !IsUserAdmin)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
+                    return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
+                        messages: messages);
+                }
 
+                User user;
+                // Critical Database
+                try
+                {
+                    user = await _userRepository.FindAsync(userId);
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
+
+                // user Verification
+                if (user == null || user.IsDeleted)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error,
+                        message: MessageId.EntityDoesNotExist,
+                        viewMessagePlaceHolders: BusinessLogicSetting.UserDisplayName));
+                    return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
+                        messages: messages);
+                }
+
+                //safe Map
+                var userViewModel = await _utility.MapAsync<User, DetailUserViewModel>(user);
+                return new BusinessLogicResult<DetailUserViewModel>(succeeded: true, result: userViewModel,
+                    messages: messages);
+            }
+            catch (Exception exception)
+            {
+                messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
+                return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
+                    messages: messages, exception: exception);
+            }
+        }
 
         public async Task<IBusinessLogicResult<EditUserViewModel>> GetUserForEditAsync(int userId, int getterUserId)
         {
