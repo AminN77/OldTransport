@@ -1147,26 +1147,29 @@ namespace BusinessLogic
                     return new BusinessLogicResult<UserSignInViewModel>(succeeded: false, result: null, messages: messages, exception: exception);
                 }
 
-                var userIdViewModel = await _utility.MapAsync<User, UserIdViewModel>(user);
+                var userIdViewModel = new UserIdViewModel()
+                {
+                    UserId = user.Id
+                };
 
-                //if (userRegisterViewModel.Role)
-                //{
-                //    var res = await AddMerchantAsync(userIdViewModel);
-                //    if (!res.Succeeded)
-                //    {
-                //        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
-                //        return new BusinessLogicResult<UserSignInViewModel>(succeeded: false, result: null, messages: messages);
-                //    }
-                //}
-                //else
-                //{
-                //    var res = await AddTransporterAsync(userIdViewModel);
-                //    if (!res.Succeeded)
-                //    {
-                //        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
-                //        return new BusinessLogicResult<UserSignInViewModel>(succeeded: false, result: null, messages: messages);
-                //    }
-                //}
+                if (userRegisterViewModel.Role)
+                {
+                    var res = await AddMerchantAsync(userIdViewModel);
+                    if (!res.Succeeded)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
+                        return new BusinessLogicResult<UserSignInViewModel>(succeeded: false, result: null, messages: messages);
+                    }
+                }
+                else
+                {
+                    var res = await AddTransporterAsync(userIdViewModel);
+                    if (!res.Succeeded)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
+                        return new BusinessLogicResult<UserSignInViewModel>(succeeded: false, result: null, messages: messages);
+                    }
+                }
 
                 // Safe Map
                 var userSignInViewModel = await _utility.MapAsync<User, UserSignInViewModel>(user);
