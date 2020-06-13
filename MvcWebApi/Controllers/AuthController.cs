@@ -3,6 +3,7 @@ using BusinessLogic.Abstractions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
+using MvcWebApi.Provider;
 using MvcWebApi.Providers;
 using ViewModels;
 
@@ -86,6 +87,35 @@ namespace MvcWebApi.Controllers
             Response.Headers.Add("RefreshToken", result.RefreshToken);
 
             return Ok(/*new { access_token = result.AccessToken, refresh_token = result.RefreshToken }*/);
+        }
+
+        [HttpPost]
+        [Authorize]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> ChangePassword(UserChangePasswordViewModel userChangePasswordViewModel)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var res1 = await _businessLogicUserManager.ChangePasswordAsync(userChangePasswordViewModel, HttpContext.GetCurrentUserId());
+            if (!res1.Succeeded)
+            {
+                return StatusCode(500, res1);
+            }
+            return Ok();
+        }
+
+
+        [HttpPost]
+        [AllowAnonymous]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> ForgetPassword(UserForgetPasswordViewModel userForgetPasswordViewModel)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var res = await _businessLogicUserManager.ForgetPasswordAsync(userForgetPasswordViewModel);
+            if (!res.Succeeded)
+            {
+                return StatusCode(500, res);
+            }
+            return Ok(res);
         }
     }
 }

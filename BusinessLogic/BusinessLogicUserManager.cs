@@ -275,7 +275,7 @@ namespace BusinessLogic
                 //user.IterationCount = new Random().Next(BusinessLogicSetting.DefaultMinIterations,
                 //BusinessLogicSetting.DefaultMaxIterations);
                 user.Password = await _securityProvider.PasswordHasher.HashPasswordAsync(
-                    userChangePasswordViewModel.OldPassword, user.Salt, user.IterationCount,
+                    userChangePasswordViewModel.NewPassword, user.Salt, user.IterationCount,
                     BusinessLogicSetting.DefaultPassworHashCount);
                 // Critical Database operation
                 try
@@ -1357,6 +1357,95 @@ namespace BusinessLogic
             }
         }
 
+        public async Task<IBusinessLogicResult> ForgetPasswordAsync(UserForgetPasswordViewModel userForgetPasswordViewModel)
+        {
+            var messages = new List<IBusinessLogicMessage>();
+
+            try
+            {
+                User user;
+
+                try
+                {
+                    user = await _userRepository.DeferredSelectAll().SingleOrDefaultAsync
+                   (u => u.EmailAddress == userForgetPasswordViewModel.EmailAddress);
+                }
+
+                catch (Exception exception)
+                {
+
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.EmailDoesNotExist));
+                    return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+
+                }
+
+                if (user == null || user.IsEnabled == false || user.IsDeleted == true)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.EmailDoesNotExist));
+                    return new BusinessLogicResult(succeeded: false, messages: messages);
+                }
+
+                var Password = Guid.NewGuid().ToString("d").Substring(1, 8);
+
+                try
+                {
+                    user.Password = await _securityProvider.PasswordHasher.HashPasswordAsync(
+                    Password.ToString(), user.Salt, user.IterationCount,
+                    BusinessLogicSetting.DefaultPassworHashCount);
+
+                }
+                catch (Exception exception)
+                {
+
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.EmailDoesNotExist));
+                    return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+
+                }
+
+                try
+                {
+                    var EmailRes = await _emailSender.Send(userForgetPasswordViewModel.EmailAddress, "New Password", Password);
+
+                    if (!EmailRes)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.CanNotSendEmail));
+                        return new BusinessLogicResult(succeeded: false, messages: messages);
+                    }
+
+                }
+
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.EmailDoesNotExist));
+                    return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+                }
+
+                try
+                {
+                    await _userRepository.UpdateAsync(user, true); //, nameof(user.Password)
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Info,
+                        message: MessageId.PasswordSuccessfullyChanged));
+                    return new BusinessLogicResult<UserForgetPasswordViewModel>(succeeded: true,
+                        result: userForgetPasswordViewModel, messages: messages);
+
+                }
+                catch (Exception exception)
+                {
+
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.EmailDoesNotExist));
+                    return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+                }
+
+            }
+
+            catch (Exception exception)
+            {
+                messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+            }
+
+        }
+
         public void Dispose()
         {
             _userRepository.Dispose();
@@ -1364,5 +1453,7 @@ namespace BusinessLogic
             _merchantRepository.Dispose();
             _transporterRepository.Dispose();
         }
+
+        
     }
 }
