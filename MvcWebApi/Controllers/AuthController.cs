@@ -85,7 +85,7 @@ namespace MvcWebApi.Controllers
             Response.Headers.Add("AccessToken", result.AccessToken);
             Response.Headers.Add("RefreshToken", result.RefreshToken);
 
-            return Ok(/*new { access_token = result.AccessToken, refresh_token = result.RefreshToken }*/);
+            return Ok(res);
         }
 
         [HttpPost]
