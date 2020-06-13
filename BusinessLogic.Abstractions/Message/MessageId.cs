@@ -94,5 +94,7 @@ namespace BusinessLogic.Abstractions.Message
         ProjectSuccessfullyAdded,
         [Display(Name = "ProjectNotFound")]
         ProjectNotFound,
+        [Display(Name = "This User Is Not Active")]
+        DeactivatedUser,
     }
 }

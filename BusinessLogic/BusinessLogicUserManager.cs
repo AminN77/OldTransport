@@ -1016,10 +1016,16 @@ namespace BusinessLogic
                 try
                 {
                     var user = await _userRepository.DeferredSelectAll().SingleOrDefaultAsync(usr => usr.EmailAddress == emailViewModel.EmailAddress);
-                    if (user == null || user.IsDeleted || user.IsEnabled == false)
+                    if (user == null || user.IsDeleted)
                     {
                         messages.Add(new BusinessLogicMessage(MessageType.Info, MessageId.EmailDoesNotExist));
                         return new BusinessLogicResult(succeeded: false, messages: messages);
+                    }
+                    if (!user.IsEnabled)
+                    {
+                        Exception exception = new Exception("DeactivatedUser");
+                        messages.Add(new BusinessLogicMessage(MessageType.Info, MessageId.DeactivatedUser));
+                        return new BusinessLogicResult(succeeded: false, messages: messages, exception:exception );
                     }
                 }
                 catch (Exception exception)
@@ -1042,7 +1048,7 @@ namespace BusinessLogic
             var messages = new List<IBusinessLogicMessage>();
             try
             {
-                var res = await _emailSender.Send(emailViewModel.EmailAddress, "Gikhar", activationCode.ToString());
+                var res = await _emailSender.Send(emailViewModel.EmailAddress, "Dear User", activationCode.ToString());
                 if (!res)
                 {
                     messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.EmailSendingProcessFailed));
