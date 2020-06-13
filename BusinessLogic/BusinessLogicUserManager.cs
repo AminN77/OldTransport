@@ -7,6 +7,7 @@ using AutoMapper.QueryableExtensions;
 using BusinessLogic.Abstractions;
 using BusinessLogic.Abstractions.Message;
 using Cross.Abstractions;
+using Cross.Abstractions.EntityEnums;
 using Data.Abstractions;
 using Data.Model;
 using Microsoft.EntityFrameworkCore;
@@ -19,6 +20,7 @@ namespace BusinessLogic
     {
         // Variables
         private readonly IRepository<User> _userRepository;
+        private readonly IRepository<Role> _roleRepository;
         private readonly IRepository<UserRole> _userRoleRepository;
         private readonly IRepository<Merchant> _merchantRepository;
         private readonly IRepository<Transporter> _transporterRepository;
@@ -31,7 +33,8 @@ namespace BusinessLogic
         // Constructor
         public BusinessLogicUserManager(IRepository<User> userRepository, ILogger<BusinessLogicUserManager> logger,
                 BusinessLogicUtility utility, IRepository<UserRole> userRoleRepository, IRepository<Merchant> merchantRepository,
-                IPasswordHasher passwordHasher, ISecurityProvider securityProvider, IEmailSender emailSender, IRepository<Transporter> transporterRepository)
+                IPasswordHasher passwordHasher, ISecurityProvider securityProvider, IEmailSender emailSender,
+                IRepository<Transporter> transporterRepository, IRepository<Role> roleRepository)
         {
             _userRepository = userRepository;
             _userRoleRepository = userRoleRepository;
@@ -42,6 +45,7 @@ namespace BusinessLogic
             _emailSender = emailSender;
             _merchantRepository = merchantRepository;
             _transporterRepository = transporterRepository;
+            _roleRepository = roleRepository;
         }
 
         #region User
@@ -311,8 +315,9 @@ namespace BusinessLogic
                 // Critical Authentication and Authorization
                 try
                 {
-                    var isUserAdmin = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == deleterUserId && u.RoleId != 2);
-                    if (userId != deleterUserId || !isUserAdmin)
+                    var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
+                    var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == deleterUserId && u.RoleId != userRole.Id);
+                    if (userId != deleterUserId || !isUserAuthorized)
                     {
                         messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
                         return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
@@ -344,9 +349,12 @@ namespace BusinessLogic
                     return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
                 }
 
-                // Check developer role
-                var isUserDeveloper = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == userId && u.RoleId == 3);
-                if (isUserDeveloper)
+                // Check developer & admin role
+                var developerRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.DeveloperSupport.ToString());
+                var isUserDeveloper = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == userId && u.RoleId == developerRole.Id);
+                var adminRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.Admin.ToString());
+                var isUserAdmin = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == userId && u.RoleId == adminRole.Id);
+                if (isUserAdmin || isUserDeveloper)
                 {
                     messages.Add(new BusinessLogicMessage(type: MessageType.Error,
                         message: MessageId.AccessDenied, BusinessLogicSetting.UserDisplayName));
@@ -605,8 +613,9 @@ namespace BusinessLogic
                 // Critical Authentication and Authorization
                 try
                 {
-                    var isUserAdmin = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == getterUserId && u.RoleId != 2);
-                    if (userId != getterUserId || !isUserAdmin)
+                    var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
+                    var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == getterUserId && u.RoleId != userRole.Id);
+                    if (userId != getterUserId || !isUserAuthorized)
                     {
                         messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
                         return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
@@ -1209,8 +1218,9 @@ namespace BusinessLogic
                 // Critical Authentication and Authorization
                 try
                 {
-                    var isUserAdmin = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == deactivatorUserId && u.RoleId != 2);
-                    if (!isUserAdmin)
+                    var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
+                    var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == deactivatorUserId && u.RoleId != userRole.Id);
+                    if (userId != deactivatorUserId || !isUserAuthorized)
                     {
                         messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
                         return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
@@ -1247,6 +1257,19 @@ namespace BusinessLogic
                         messages: messages);
                 }
 
+                // Check developer & admin role
+                var developerRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.DeveloperSupport.ToString());
+                var isUserDeveloper = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == userId && u.RoleId == developerRole.Id);
+                var adminRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.Admin.ToString());
+                var isUserAdmin = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == userId && u.RoleId == adminRole.Id);
+                if (isUserAdmin || isUserDeveloper)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error,
+                        message: MessageId.AccessDenied, BusinessLogicSetting.UserDisplayName));
+                    return new BusinessLogicResult<AddUserViewModel>(succeeded: false, result: null,
+                        messages: messages);
+                }
+
                 user.IsEnabled = false;
                 try
                 {
@@ -1267,7 +1290,7 @@ namespace BusinessLogic
             }
         }
 
-        public async Task<IBusinessLogicResult> ActivateUserAsync(int userId, int deactivatorUserId)
+        public async Task<IBusinessLogicResult> ActivateUserAsync(int userId, int activatorUserId)
         {
             var messages = new List<IBusinessLogicMessage>();
             try
@@ -1275,8 +1298,9 @@ namespace BusinessLogic
                 // Critical Authentication and Authorization
                 try
                 {
-                    var isUserAdmin = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == deactivatorUserId && u.RoleId != 2);
-                    if (!isUserAdmin)
+                    var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
+                    var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == activatorUserId && u.RoleId != userRole.Id);
+                    if (userId != activatorUserId || !isUserAuthorized)
                     {
                         messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
                         return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
