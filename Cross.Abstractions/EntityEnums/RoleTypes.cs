@@ -4,11 +4,11 @@ namespace Cross.Abstractions.EntityEnums
 {
     public enum RoleTypes : byte
     {
-        [Display(Name = "مدیر")]
+        [Display(Name = "Admin")]
         Admin = 1,
-        [Display(Name = "کاربر")]
+        [Display(Name = "User")]
         User = 2,
-        [Display(Name = "مدیریت تنظیمات")]
+        [Display(Name = "Developer Support")]
         DeveloperSupport = 3
     }
 }

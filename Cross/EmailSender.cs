@@ -38,15 +38,11 @@ namespace Cross
             {
                 await SmtpServer.SendMailAsync(mail);
                 return true;
-
             }
             catch (System.Exception)
             {
-
                 return false;
-
-            }
-            
+            } 
         }
     }
 }

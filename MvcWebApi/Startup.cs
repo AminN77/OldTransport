@@ -113,8 +113,6 @@ namespace MvcWebApi
 
             services.AddOptions<EmailSettings>().Bind(Configuration.GetSection("EmailSettings"));
 
-
-
             // Dependency Injection
             var connectionString = Configuration.GetConnectionString("Transport_Db");
             services.AddCrossService();

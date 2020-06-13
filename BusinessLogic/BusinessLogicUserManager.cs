@@ -84,12 +84,11 @@ namespace BusinessLogic
                 //user.LastEditorUserId = adderUserId;
                 //user.AddedDateTime = DateTime.Now;
                 //user.LastEditedDateTime = user.AddedDateTime;
-                // Create password hash
 
-                User user = new User();
+                // Create password hash
+                var user = await _utility.MapAsync<EmailViewModel, User>(emailViewModel);
 
                 user.Name = "New User";
-                user.EmailAddress = emailViewModel.EmailAddress;
                 user.Salt = await _securityProvider.GenerateRandomSaltAsync(BusinessLogicSetting.DefaultSaltCount);
                 user.IterationCount = new Random().Next(BusinessLogicSetting.DefaultMinIterations,
                     BusinessLogicSetting.DefaultMaxIterations);
@@ -1006,10 +1005,9 @@ namespace BusinessLogic
             try
             {
                 // Check email existance
-                User user;
                 try
                 {
-                    user = await _userRepository.DeferredSelectAll().SingleOrDefaultAsync(usr => usr.EmailAddress == emailViewModel.EmailAddress);
+                    var user = await _userRepository.DeferredSelectAll().SingleOrDefaultAsync(usr => usr.EmailAddress == emailViewModel.EmailAddress);
                     if (user == null || user.IsDeleted || user.IsEnabled == false)
                     {
                         messages.Add(new BusinessLogicMessage(MessageType.Info, MessageId.EmailDoesNotExist));
@@ -1036,7 +1034,12 @@ namespace BusinessLogic
             var messages = new List<IBusinessLogicMessage>();
             try
             {
-                await _emailSender.Send(emailViewModel.EmailAddress, "Gikhar", activationCode.ToString());
+                var res = await _emailSender.Send(emailViewModel.EmailAddress, "Gikhar", activationCode.ToString());
+                if (!res)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.EmailSendingProcessFailed));
+                    return new BusinessLogicResult(succeeded: false, messages: messages);
+                }
                 messages.Add(new BusinessLogicMessage(MessageType.Info, MessageId.VerificationEmailSuccessfullySent));
                 return new BusinessLogicResult(succeeded: true, messages: messages);
             }
@@ -1052,21 +1055,11 @@ namespace BusinessLogic
             var messages = new List<IBusinessLogicMessage>();
             try
             {
-                User user;
-                user = await _userRepository.DeferredSelectAll().SingleOrDefaultAsync(usr => usr.EmailAddress == activationCodeViewModel.EmailAddress);
+                User user = await _userRepository.DeferredSelectAll().SingleOrDefaultAsync(usr => usr.EmailAddress == activationCodeViewModel.EmailAddress);
 
                 if (user.ActivationCode == activationCodeViewModel.ActivationCode)
                 {
                     user.IsEnabled = true;
-                    try
-                    {
-                        await _userRepository.UpdateAsync(user);
-                    }
-                    catch (Exception exception)
-                    {
-                        messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
-                        return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
-                    }
                     try
                     {
                         UserRole userRole = new UserRole()
@@ -1075,6 +1068,15 @@ namespace BusinessLogic
                             RoleId = 2
                         };
                         await _userRoleRepository.AddAsync(userRole);
+                    }
+                    catch (Exception exception)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                        return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+                    }
+                    try
+                    {
+                        await _userRepository.UpdateAsync(user);
                     }
                     catch (Exception exception)
                     {
@@ -1099,8 +1101,7 @@ namespace BusinessLogic
             var messages = new List<IBusinessLogicMessage>();
             try
             {
-                User user;
-                user = await _userRepository.DeferredSelectAll().SingleOrDefaultAsync(usr => usr.EmailAddress == userRegisterViewModel.EmailAddress);
+                var user = await _userRepository.DeferredSelectAll().SingleOrDefaultAsync(usr => usr.EmailAddress == userRegisterViewModel.EmailAddress);
 
                 user.Name = userRegisterViewModel.Name;
                 user.Password = await _securityProvider.PasswordHasher.HashPasswordAsync(userRegisterViewModel.Password,
@@ -1116,10 +1117,7 @@ namespace BusinessLogic
                     return new BusinessLogicResult<UserSignInViewModel>(succeeded: false, result: null, messages: messages, exception: exception);
                 }
 
-                UserIdViewModel userIdViewModel = new UserIdViewModel()
-                {
-                    UserId = user.Id
-                };
+                var userIdViewModel = await _utility.MapAsync<User, UserIdViewModel>(user);
 
                 //if (userRegisterViewModel.Role)
                 //{
@@ -1159,10 +1157,7 @@ namespace BusinessLogic
             var messages = new List<IBusinessLogicMessage>();
             try
             {
-                Merchant merchant = new Merchant()
-                {
-                    UserId = userIdViewModel.UserId
-                };
+                var merchant = await _utility.MapAsync<UserIdViewModel, Merchant>(userIdViewModel);
                 try
                 {
                     await _merchantRepository.AddAsync(merchant);
@@ -1187,10 +1182,7 @@ namespace BusinessLogic
             var messages = new List<IBusinessLogicMessage>();
             try
             {
-                Transporter transporter = new Transporter()
-                {
-                    UserId = userIdViewModel.UserId
-                };
+                var transporter = await _utility.MapAsync<UserIdViewModel, Transporter>(userIdViewModel);
                 try
                 {
                     await _transporterRepository.AddAsync(transporter);
