@@ -8,9 +8,13 @@ namespace Data.Abstractions.Models
     {
         string Description { get; set; }
 
-        string Beginning { get; set; }
+        string BeginningCountry { get; set; }
 
-        string Destination { get; set; }
+        string BeginningCity { get; set; }
+
+        string DestinationCountry { get; set; }
+
+        string DestinationCity { get; set; }
 
         string Title { get; set; }
 

@@ -7,14 +7,31 @@ namespace ViewModels
 {
     public abstract class ProjectBaseViewModel
     {
-
-        [Display(Name = "Beginning")]
+        [Display(Name = "Title")]
         [Required(ErrorMessage = "Please enter {0}")]
-        public string Beginning { get; set; }
+        [MaxLength(500)]
+        public string Title { get; set; }
 
-        [Display(Name = "Destination")]
+        [Display(Name = "Beginning Country")]
         [Required(ErrorMessage = "Please enter {0}")]
-        public string Destination { get; set; }
+        public string BeginningCountry { get; set; }
+
+        [Display(Name = "Beginning City")]
+        [Required(ErrorMessage = "Please enter {0}")]
+        public string BeginningCity { get; set; }
+
+        [Display(Name = "Destination Country")]
+        [Required(ErrorMessage = "Please enter {0}")]
+        public string DestinationCountry { get; set; }
+        
+        [Display(Name = "Destination City")]
+        [Required(ErrorMessage = "Please enter {0}")]
+        public string DestinationCity { get; set; }
+
+        [Display(Name = "Budget")]
+        [Required(ErrorMessage = "Please enter {0}")]
+        [Range(0.0, double.MaxValue)]
+        public double Budget { get; set; }
 
     }
 
@@ -24,19 +41,6 @@ namespace ViewModels
         [DataType(DataType.MultilineText)]
         public string Description { get; set; }
 
-
-
-        [Display(Name = "Title")]
-        [Required(ErrorMessage = "Please enter {0}")]
-        [MaxLength(500)]
-        public string Title { get; set; }
-
-
-        [Display(Name = "Budget")]
-        [Required(ErrorMessage = "Please enter {0}")]
-        [Range(0.0, double.MaxValue)]
-        public double Budget { get; set; }
-
         [Display(Name = "Weight")]
         [Required(ErrorMessage = "Please enter {0}")]
         [Range(0.0, double.MaxValue)]
@@ -45,7 +49,8 @@ namespace ViewModels
 
     public class ListProjectViewModel : ProjectBaseViewModel
     {
-
+        [Required]
+        public int Id { get; set; }
     }
 
     public class EditProjectViewModel : ProjectBaseViewModel
@@ -54,9 +59,5 @@ namespace ViewModels
         public int Id { get; set; }
     }
 
-    public class DeleteProjectViewModel
-    {
-        [Required]
-        public int Id { get; set; }
-    }
+  
 }

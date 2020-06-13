@@ -33,11 +33,11 @@ namespace MvcWebApi.Controllers
         {
             if (!ModelState.IsValid) return BadRequest();
 
-            var res = await _businessLogicProjectManager.AddProjectAsync(addProjectViewModel, HttpContext.GetCurrentUserId());
+            var result = await _businessLogicProjectManager.AddProjectAsync(addProjectViewModel, HttpContext.GetCurrentUserId());
 
-            if (!res.Succeeded) return StatusCode(500, res);
+            if (!result.Succeeded) return StatusCode(500, result);
 
-            return Ok();
+            return Ok(result);
         }
 
 
@@ -48,11 +48,11 @@ namespace MvcWebApi.Controllers
         {
             if (!ModelState.IsValid) return BadRequest();
 
-            var res = await _businessLogicProjectManager.GetProjectsAsync(1, page, pageSize, search, sort, filter);
+            var result = await _businessLogicProjectManager.GetProjectsAsync(1, page, pageSize, search, sort, filter);
 
-            if (!res.Succeeded) return StatusCode(500, res);
+            if (!result.Succeeded) return StatusCode(500, result);
 
-            return Ok(res);
+            return Ok(result);
 
         }
 
@@ -64,11 +64,11 @@ namespace MvcWebApi.Controllers
         {
             if (!ModelState.IsValid) return BadRequest();
 
-            var res = await _businessLogicProjectManager.EditProjectAsync(editProjectViewModel, HttpContext.GetCurrentUserId());
+            var result = await _businessLogicProjectManager.EditProjectAsync(editProjectViewModel, HttpContext.GetCurrentUserId());
 
-            if (!res.Succeeded) return StatusCode(500, res);
+            if (!result.Succeeded) return StatusCode(500, result);
 
-            return Ok();
+            return Ok(result);
 
         }
 
@@ -79,11 +79,11 @@ namespace MvcWebApi.Controllers
         {
             if (!ModelState.IsValid) return BadRequest();
 
-            var res = await _businessLogicProjectManager.GetProjectForEditAsync(Id);
+            var result = await _businessLogicProjectManager.GetProjectForEditAsync(Id,HttpContext.GetCurrentUserId());
 
-            if (!res.Succeeded) return StatusCode(500, res);
+            if (!result.Succeeded) return StatusCode(500, result);
 
-            return Ok(res);
+            return Ok(result);
 
         }
 
@@ -91,15 +91,15 @@ namespace MvcWebApi.Controllers
         [HttpPost]
         [Authorize]
         [IgnoreAntiforgeryToken]
-        public async Task<IActionResult> DeleteProject(DeleteProjectViewModel deleteProjectViewModel)
+        public async Task<IActionResult> DeleteProject(int projectId)
         {
             if (!ModelState.IsValid) return BadRequest();
 
-            var res = await _businessLogicProjectManager.DeleteProjectAsync(deleteProjectViewModel);
+            var result = await _businessLogicProjectManager.DeleteProjectAsync(projectId,HttpContext.GetCurrentUserId());
 
-            if (!res.Succeeded) return StatusCode(500, res);
+            if (!result.Succeeded) return StatusCode(500, result);
 
-            return Ok("deleted");
+            return Ok(result);
 
         }
 

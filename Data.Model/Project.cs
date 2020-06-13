@@ -24,10 +24,16 @@ namespace Data.Model
         public string Description { get; set; }
 
         [Required]
-        public string Beginning { get; set; }
+        public string BeginningCountry { get; set; }
 
         [Required]
-        public string Destination { get; set; }
+        public string BeginningCity { get; set; }
+
+        [Required]
+        public string DestinationCountry { get; set; }
+
+        [Required]
+        public string DestinationCity { get; set; }
 
         [Required]
         [MaxLength(500)]

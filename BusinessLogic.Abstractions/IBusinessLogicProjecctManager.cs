@@ -15,9 +15,9 @@ namespace BusinessLogic.Abstractions
 
         Task<IBusinessLogicResult<EditProjectViewModel>> EditProjectAsync(EditProjectViewModel editProjectViewModel, int EditorId);
 
-        Task<IBusinessLogicResult<EditProjectViewModel>> GetProjectForEditAsync(int projectId);
+        Task<IBusinessLogicResult<EditProjectViewModel>> GetProjectForEditAsync(int projectId , int editorId);
 
-        Task<IBusinessLogicResult<EditProjectViewModel>> DeleteProjectAsync(DeleteProjectViewModel deleteProjectViewModel);
+        Task<IBusinessLogicResult<EditProjectViewModel>> DeleteProjectAsync(int projectId,int deleterId);
 
     }
 }

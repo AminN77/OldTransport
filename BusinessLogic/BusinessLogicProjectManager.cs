@@ -55,21 +55,25 @@ namespace BusinessLogic
                         messages: messages, exception: exception);
                 }
 
-                Project project = new Project()
+                Project project;
+            
+
+                try
                 {
-                    Beginning = addProjectViewModel.Beginning,
-                    Description = addProjectViewModel.Description,
-                    Destination = addProjectViewModel.Destination,
-                    Title = addProjectViewModel.Title,
-                    Budget = addProjectViewModel.Budget,
-                    Weight = addProjectViewModel.Weight,
+                   project = await _utility.MapAsync<AddProjectViewModel, Project>(addProjectViewModel);
+                }
+                catch (Exception exception)
+                {
 
-                    CreateDateTime = DateTime.Now,
-                    IsDeleted = false,
-                    MerchantId = merchant.Id,
-                    Merchant = merchant
-                };
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<AddProjectViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
 
+                project.CreateDateTime = DateTime.Now;
+                project.IsDeleted = false;
+                project.MerchantId = merchant.Id;
+                project.Merchant = merchant;
 
                 try
                 {
@@ -100,7 +104,7 @@ namespace BusinessLogic
 
         }
 
-        public async Task<IBusinessLogicResult<EditProjectViewModel>> DeleteProjectAsync(DeleteProjectViewModel deleteProjectViewModel)
+        public async Task<IBusinessLogicResult<EditProjectViewModel>> DeleteProjectAsync(int projectId,int deleterId)
         {
             var messages = new List<IBusinessLogicMessage>();
             try
@@ -114,7 +118,7 @@ namespace BusinessLogic
                 // Critical Database
                 try
                 {
-                    project = await _projectRepository.FindAsync(deleteProjectViewModel.Id);
+                    project = await _projectRepository.FindAsync(projectId);
                 }
                 catch (Exception exception)
                 {
@@ -131,6 +135,15 @@ namespace BusinessLogic
                     return new BusinessLogicResult<EditProjectViewModel>(succeeded: false, result: null,
                         messages: messages);
                 }
+
+                if (project.Merchant.UserId != deleterId)
+                {
+                    messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.AccessDenied,
+                        BusinessLogicSetting.UserDisplayName));
+                    return new BusinessLogicResult<EditProjectViewModel>(succeeded: false, result: null,
+                        messages: messages);
+                }
+
 
                 project.IsDeleted = true;
 
@@ -156,8 +169,6 @@ namespace BusinessLogic
                     messages: messages, exception: exception);
             }
         }
-
-        
 
         public async Task<IBusinessLogicResult<EditProjectViewModel>> EditProjectAsync(EditProjectViewModel editProjectViewModel, int EditorId)
         {
@@ -201,7 +212,7 @@ namespace BusinessLogic
                            messages: messages);
                     }
 
-                    if (project.MerchantId != EditorId)
+                    if (project.Merchant.UserId != EditorId)
                     {
                         messages.Add(new BusinessLogicMessage(type: MessageType.Error,
                                 message: MessageId.AccessDenied, BusinessLogicSetting.UserDisplayName));
@@ -220,8 +231,7 @@ namespace BusinessLogic
 
                 try
                 {
-                    project.Beginning = editProjectViewModel.Beginning;
-                    project.Destination = editProjectViewModel.Destination;
+                    await _utility.MapAsync<EditProjectViewModel, Project>(editProjectViewModel);
                 }
                 catch (Exception exception)
                 {
@@ -327,7 +337,7 @@ namespace BusinessLogic
             }
         }
 
-        public async Task<IBusinessLogicResult<EditProjectViewModel>> GetProjectForEditAsync(int projectId)
+        public async Task<IBusinessLogicResult<EditProjectViewModel>> GetProjectForEditAsync(int projectId,int editorId)
         {
 
             var messages = new List<IBusinessLogicMessage>();
@@ -356,6 +366,14 @@ namespace BusinessLogic
                 {
                     messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.ProjectNotFound,
                         BusinessLogicSetting.UserDisplayName));
+                    return new BusinessLogicResult<EditProjectViewModel>(succeeded: false, result: null,
+                        messages: messages);
+                }
+
+                if(project.Merchant.UserId != editorId)
+                {
+                    messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.AccessDenied,
+                                            BusinessLogicSetting.UserDisplayName));
                     return new BusinessLogicResult<EditProjectViewModel>(succeeded: false, result: null,
                         messages: messages);
                 }
@@ -396,7 +414,8 @@ namespace BusinessLogic
                 if (!string.IsNullOrEmpty(search))
                 {
                     usersQuery = usersQuery.Where(project =>
-                        project.Beginning.Contains(search) || project.Destination.Contains(search));
+                        project.BeginningCountry.Contains(search) || project.DestinationCountry.Contains(search) || project.DestinationCity.Contains(search)
+                        || project.BeginningCity.Contains(search));
 
                 }
 
@@ -409,14 +428,14 @@ namespace BusinessLogic
 
                 if (string.IsNullOrWhiteSpace(sort))
                 {
-                    sort = nameof(ListProjectViewModel.Beginning) + ":Asc";
+                    sort = nameof(ListProjectViewModel.BeginningCountry) + ":Asc";
                 }
                 else
                 {
                     var propertyName = sort.Split(':')[0];
                     var propertyInfo = typeof(ListProjectViewModel).GetProperties().SingleOrDefault(p =>
                         p.Name.Equals(propertyName, StringComparison.InvariantCultureIgnoreCase));
-                    if (propertyInfo == null) sort = nameof(ListProjectViewModel.Beginning) + ":Asc";
+                    if (propertyInfo == null) sort = nameof(ListProjectViewModel.BeginningCountry) + ":Asc";
                 }
 
                 usersQuery = usersQuery.ApplyOrderBy(sort);
