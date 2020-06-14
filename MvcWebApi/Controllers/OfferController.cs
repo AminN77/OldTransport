@@ -55,6 +55,36 @@ namespace MvcWebApi.Controllers
 
         }
 
+        [HttpPut]
+        [Authorize]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> EditProject(EditOfferViewModel editOfferViewModel)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+
+            var result = await _businessLogicOfferManager.EditOfferAsync(editOfferViewModel, HttpContext.GetCurrentUserId());
+
+            if (!result.Succeeded) return StatusCode(500, result);
+
+            return Ok();
+
+        }
+
+        [HttpGet]
+        [Authorize]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> EditProject(int transporterId, int projectId)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+
+            var res = await _businessLogicOfferManager.GetOfferForEditAsync(transporterId, projectId ,HttpContext.GetCurrentUserId());
+
+            if (!res.Succeeded) return StatusCode(500, res);
+
+            return Ok(res);
+
+        }
+
 
     }
 }
