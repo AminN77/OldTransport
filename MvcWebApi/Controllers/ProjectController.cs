@@ -33,7 +33,9 @@ namespace MvcWebApi.Controllers
         {
             if (!ModelState.IsValid) return BadRequest();
 
-            var result = await _businessLogicProjectManager.AddProjectAsync(addProjectViewModel, HttpContext.GetCurrentUserId());
+            var adderUserId = HttpContext.GetCurrentUserId();
+
+            var result = await _businessLogicProjectManager.AddProjectAsync(addProjectViewModel, adderUserId);
 
             if (!result.Succeeded) return StatusCode(500, result);
 
@@ -48,7 +50,9 @@ namespace MvcWebApi.Controllers
         {
             if (!ModelState.IsValid) return BadRequest();
 
-            var result = await _businessLogicProjectManager.GetProjectsAsync(1, page, pageSize, search, sort, filter);
+            var getterUserId = HttpContext.GetCurrentUserId();
+
+            var result = await _businessLogicProjectManager.GetProjectsAsync(getterUserId, page, pageSize, search, sort, filter);
 
             if (!result.Succeeded) return StatusCode(500, result);
 
@@ -64,7 +68,9 @@ namespace MvcWebApi.Controllers
         {
             if (!ModelState.IsValid) return BadRequest();
 
-            var result = await _businessLogicProjectManager.EditProjectAsync(editProjectViewModel, HttpContext.GetCurrentUserId());
+            var editorUserId = HttpContext.GetCurrentUserId();
+
+            var result = await _businessLogicProjectManager.EditProjectAsync(editProjectViewModel, editorUserId);
 
             if (!result.Succeeded) return StatusCode(500, result);
 
@@ -75,11 +81,13 @@ namespace MvcWebApi.Controllers
         [HttpGet]
         [Authorize]
         [IgnoreAntiforgeryToken]
-        public async Task<IActionResult> EditProject(int Id)
+        public async Task<IActionResult> EditProject(int projectId)
         {
             if (!ModelState.IsValid) return BadRequest();
 
-            var result = await _businessLogicProjectManager.GetProjectForEditAsync(Id,HttpContext.GetCurrentUserId());
+            var getterUserId = HttpContext.GetCurrentUserId();
+
+            var result = await _businessLogicProjectManager.GetProjectForEditAsync(projectId, getterUserId);
 
             if (!result.Succeeded) return StatusCode(500, result);
 
