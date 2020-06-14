@@ -38,12 +38,8 @@ namespace BusinessLogic
             try
             {
                 Transporter transporter;
-
                 Project project;
-
                 Offer DuplicateOffer;
-
-
 
                 try
                 {
@@ -119,16 +115,10 @@ namespace BusinessLogic
                         messages: messages, exception: exception);
                 }
 
-
-
-
-
                 offer.CreateDate = DateTime.Now;
                 offer.IsDeleted = false;
                 offer.Transporter = transporter;
                 offer.Project = project;
-
-
 
                 try
                 {
@@ -190,14 +180,14 @@ namespace BusinessLogic
 
                 if (string.IsNullOrWhiteSpace(sort))
                 {
-                    sort = nameof(ListOfferViewModel.Description) + ":Asc";
+                    sort = nameof(ListOfferViewModel.Price) + ":Asc";
                 }
                 else
                 {
                     var propertyName = sort.Split(':')[0];
                     var propertyInfo = typeof(ListProjectViewModel).GetProperties().SingleOrDefault(p =>
                         p.Name.Equals(propertyName, StringComparison.InvariantCultureIgnoreCase));
-                    if (propertyInfo == null) sort = nameof(ListProjectViewModel.Beginning) + ":Asc";
+                    if (propertyInfo == null) sort = nameof(ListOfferViewModel.Price) + ":Asc";
                 }
 
                 usersQuery = usersQuery.ApplyOrderBy(sort);

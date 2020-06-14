@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using ViewModels;
 
 namespace BusinessLogic.Abstractions
 {
     public interface IBusinessLogicOfferManager : IDisposable
     {
-        Task<IBusinessLogicResult<AddOfferViewModel>> AddOfferAsync(AddOfferViewModel addProjectViewModel, int adderId, int projectId);
+        Task<IBusinessLogicResult<AddOfferViewModel>> AddOfferAsync(AddOfferViewModel addProjectViewModel, int adderId);
 
         Task<IBusinessLogicResult<ListResultViewModel<ListOfferViewModel>>> GetOfferAsync(int getterUserId, int page,
            int pageSize, string search, string sort, string filter);
