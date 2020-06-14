@@ -7,6 +7,8 @@
   <ItemGroup>
     <Compile Remove="Migrations\20200610194426_kiri.cs" />
     <Compile Remove="Migrations\20200610194426_kiri.Designer.cs" />
+    <Compile Remove="Migrations\20200614205134_V0.6-AddOfferAndAccept.cs" />
+    <Compile Remove="Migrations\20200614205134_V0.6-AddOfferAndAccept.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>

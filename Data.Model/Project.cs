@@ -55,6 +55,8 @@ namespace Data.Model
 
         public virtual Merchant Merchant { get; set; }
 
+        public virtual Accept Accept { get; set; }
+
         public virtual ICollection<Offer> Offers { get; set; }
     }
 }

@@ -1,18 +1,19 @@
 ﻿using Data.Abstractions.Models;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Text;
 
 namespace Data.Model
 {
-    public class Offer
+    public class Offer : IOffer
     {
         public Offer()
         {
 
         }
+
+        [Key]
+        public int Id { get; set; }
 
         [ForeignKey("Transporter")]
         public int TransporterId { get; set; }
@@ -39,5 +40,7 @@ namespace Data.Model
         public virtual Transporter Transporter { get; set; }
 
         public virtual Project Project { get; set; }
+
+        public virtual Accept Accept { get; set; }
     }
 }

@@ -22,7 +22,8 @@ namespace Data.Model
 
         public User User { get; set; }
 
-        public virtual ICollection<Project> Projects { get; set; }
+        public virtual Accept Accept { get; set; }
 
+        public virtual ICollection<Project> Projects { get; set; }
     }
 }

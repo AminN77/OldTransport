@@ -21,6 +21,7 @@ namespace Data.DataAccess.Context
         public DbSet<Transporter> Transporters { get; set; }
         public DbSet<Project> Projects { get; set; }
         public DbSet<Offer> Offers { get; set; }
+        public DbSet<Accept> Accepts { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -59,12 +60,21 @@ namespace Data.DataAccess.Context
 
             modelBuilder.Entity<Offer>(entity =>
             {
-                entity.HasKey(e => new { e.TransporterId, e.ProjectId });
                 entity.HasIndex(e => e.TransporterId);
                 entity.HasIndex(e => e.ProjectId);
+            });
+
+            modelBuilder.Entity<Accept>(entity =>
+            {
+                entity.HasKey(e => new { e.MerchantId, e.TransporterId, e.ProjectId, e.OfferId });
+                entity.HasIndex(e => e.MerchantId);
+                entity.HasIndex(e => e.TransporterId);
+                entity.HasIndex(e => e.ProjectId);
+                entity.HasIndex(e => e.OfferId);
+                entity.Property(e => e.MerchantId);
                 entity.Property(e => e.TransporterId);
                 entity.Property(e => e.ProjectId);
-
+                entity.Property(e => e.OfferId);
             });
 
             modelBuilder.Entity<Project>().HasMany(b => b.Offers).WithOne(u => u.Project)
