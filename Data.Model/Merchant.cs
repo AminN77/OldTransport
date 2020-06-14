@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Data.Abstractions.Models;
 
@@ -20,5 +21,8 @@ namespace Data.Model
         public string Bio { get; set; }
 
         public User User { get; set; }
+
+        public virtual ICollection<Project> Projects { get; set; }
+
     }
 }

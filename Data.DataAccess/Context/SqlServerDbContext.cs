@@ -67,6 +67,15 @@ namespace Data.DataAccess.Context
 
             });
 
+            modelBuilder.Entity<Project>().HasMany(b => b.Offers).WithOne(u => u.Project)
+                .HasForeignKey(b => b.ProjectId).OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Transporter>().HasMany(t => t.Offers).WithOne(t => t.Transporter)
+                .HasForeignKey(t => t.TransporterId).OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Merchant>().HasMany(m => m.Projects).WithOne(m => m.Merchant)
+                .HasForeignKey(m => m.MerchantId).OnDelete(DeleteBehavior.Cascade);
+
             modelBuilder.Seed();
             base.OnModelCreating(modelBuilder);
         }

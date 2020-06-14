@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Data.Model
 {
-    public class Offer : IOffer
+    public class Offer
     {
         public Offer()
         {
