@@ -1,14 +1,10 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using BusinessLogic.Abstractions;
-using Cross.Abstractions.EntityEnums;
-using Data.Model;
+using Cross.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using MvcWebApi.Provider;
-using MvcWebApi.Providers;
-using ViewModels;
 
 namespace MvcWebApi.Controllers
 {
@@ -25,56 +21,34 @@ namespace MvcWebApi.Controllers
         }
 
         [HttpGet]
-        // [Authorize/*(Policy = "Admin, DeveloperSupport")*/]
-        [IgnoreAntiforgeryToken]
+        [Authorize(Policy = CustomRoles.DeveloperSupport)]
         public async Task<IActionResult> UsersList(int page, int pageSize, string search, string sort, string filter)
         {
             if (!ModelState.IsValid) return BadRequest();
-            var res = await _businessLogicUserManager.GetUsersAsync(1, page, pageSize, search, sort, filter);
+            var getterUserId = HttpContext.GetCurrentUserId();
+            var res = await _businessLogicUserManager.GetUsersAsync(getterUserId, page, pageSize, search, sort, filter);
             if (!res.Succeeded) return StatusCode(500, res);
             return Ok(res);
         }
 
         [HttpGet]
-        [Authorize]
-        [IgnoreAntiforgeryToken]
-        public async Task<IActionResult> UserDetails(int userId)
-        {
-            if (!ModelState.IsValid) return BadRequest();
-            var res = await _businessLogicUserManager.GetUserDetailsAsync(userId, HttpContext.GetCurrentUserId());
-            if (!res.Succeeded) return StatusCode(500, res);
-            return Ok(res);
-        }
-
-        [HttpGet]
-        [Authorize]
-        [IgnoreAntiforgeryToken]
-        public async Task<IActionResult> DeleteUser(int userId)
-        {
-            if (!ModelState.IsValid) return BadRequest();
-            var res = await _businessLogicUserManager.DeleteUserAsync(userId, HttpContext.GetCurrentUserId());
-            if (!res.Succeeded) return StatusCode(500, res);
-            return Ok(res);
-        }
-
-        [HttpGet]
-        // [Authorize/*(Policy = "Admin, DeveloperSupport")*/]
-        [IgnoreAntiforgeryToken]
+        [Authorize(Policy = CustomRoles.DeveloperSupport)]
         public async Task<IActionResult> DeactivateUser(int userId)
         {
             if (!ModelState.IsValid) return BadRequest();
-            var res = await _businessLogicUserManager.DeactivateUserAsync(userId, HttpContext.GetCurrentUserId());
+            var deactivatorUserId = HttpContext.GetCurrentUserId();
+            var res = await _businessLogicUserManager.DeactivateUserAsync(userId, deactivatorUserId);
             if (!res.Succeeded) return StatusCode(500, res);
             return Ok(res);
         }
 
         [HttpGet]
-        // [Authorize/*(Policy = "Admin, DeveloperSupport")*/]
-        [IgnoreAntiforgeryToken]
+        [Authorize(Policy = CustomRoles.DeveloperSupport)]
         public async Task<IActionResult> ActivateUser(int userId)
         {
             if (!ModelState.IsValid) return BadRequest();
-            var res = await _businessLogicUserManager.ActivateUserAsync(userId, HttpContext.GetCurrentUserId());
+            var activatorUserId = HttpContext.GetCurrentUserId();
+            var res = await _businessLogicUserManager.ActivateUserAsync(userId, activatorUserId);
             if (!res.Succeeded) return StatusCode(500, res);
             return Ok(res);
         }

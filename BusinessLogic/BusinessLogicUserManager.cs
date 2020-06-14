@@ -317,7 +317,7 @@ namespace BusinessLogic
                 {
                     var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
                     var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == deleterUserId && u.RoleId != userRole.Id);
-                    if (userId != deleterUserId || !isUserAuthorized)
+                    if (userId != deleterUserId && !isUserAuthorized)
                     {
                         messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
                         return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
@@ -615,7 +615,7 @@ namespace BusinessLogic
                 {
                     var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
                     var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == getterUserId && u.RoleId != userRole.Id);
-                    if (userId != getterUserId || !isUserAuthorized)
+                    if (userId != getterUserId && !isUserAuthorized)
                     {
                         messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
                         return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
@@ -1016,10 +1016,17 @@ namespace BusinessLogic
                 try
                 {
                     var user = await _userRepository.DeferredSelectAll().SingleOrDefaultAsync(usr => usr.EmailAddress == emailViewModel.EmailAddress);
-                    if (user == null || user.IsDeleted || user.IsEnabled == false)
+                    if (user == null || user.IsDeleted)
                     {
+                        Exception exception = new Exception("");
                         messages.Add(new BusinessLogicMessage(MessageType.Info, MessageId.EmailDoesNotExist));
-                        return new BusinessLogicResult(succeeded: false, messages: messages);
+                        return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+                    }
+                    if (!user.IsEnabled)
+                    {
+                        Exception exception = new Exception("DeactivatedUser");
+                        messages.Add(new BusinessLogicMessage(MessageType.Info, MessageId.DeactivatedUser));
+                        return new BusinessLogicResult(succeeded: false, messages: messages, exception:exception );
                     }
                 }
                 catch (Exception exception)
@@ -1042,7 +1049,7 @@ namespace BusinessLogic
             var messages = new List<IBusinessLogicMessage>();
             try
             {
-                var res = await _emailSender.Send(emailViewModel.EmailAddress, "Gikhar", activationCode.ToString());
+                var res = await _emailSender.Send(emailViewModel.EmailAddress, "Dear User", activationCode.ToString());
                 if (!res)
                 {
                     messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.EmailSendingProcessFailed));
@@ -1064,6 +1071,11 @@ namespace BusinessLogic
             try
             {
                 User user = await _userRepository.DeferredSelectAll().SingleOrDefaultAsync(usr => usr.EmailAddress == activationCodeViewModel.EmailAddress);
+                if (user == null || user.IsDeleted)
+                {
+                    messages.Add(new BusinessLogicMessage(MessageType.Info, MessageId.EmailDoesNotExist));
+                    return new BusinessLogicResult(succeeded: false, messages: messages);
+                }
 
                 if (user.ActivationCode == activationCodeViewModel.ActivationCode)
                 {
@@ -1110,6 +1122,17 @@ namespace BusinessLogic
             try
             {
                 var user = await _userRepository.DeferredSelectAll().SingleOrDefaultAsync(usr => usr.EmailAddress == userRegisterViewModel.EmailAddress);
+                if (user == null || user.IsDeleted)
+                {
+                    messages.Add(new BusinessLogicMessage(MessageType.Info, MessageId.EmailDoesNotExist));
+                    return new BusinessLogicResult<UserSignInViewModel>(succeeded: false, messages: messages, result: null);
+                }
+                if (!user.IsEnabled)
+                {
+                    Exception exception = new Exception("DeactivatedUser");
+                    messages.Add(new BusinessLogicMessage(MessageType.Info, MessageId.DeactivatedUser));
+                    return new BusinessLogicResult<UserSignInViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
+                }
 
                 user.Name = userRegisterViewModel.Name;
                 user.Password = await _securityProvider.PasswordHasher.HashPasswordAsync(userRegisterViewModel.Password,
@@ -1125,26 +1148,29 @@ namespace BusinessLogic
                     return new BusinessLogicResult<UserSignInViewModel>(succeeded: false, result: null, messages: messages, exception: exception);
                 }
 
-                var userIdViewModel = await _utility.MapAsync<User, UserIdViewModel>(user);
+                var userIdViewModel = new UserIdViewModel()
+                {
+                    UserId = user.Id
+                };
 
-                //if (userRegisterViewModel.Role)
-                //{
-                //    var res = await AddMerchantAsync(userIdViewModel);
-                //    if (!res.Succeeded)
-                //    {
-                //        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
-                //        return new BusinessLogicResult<UserSignInViewModel>(succeeded: false, result: null, messages: messages);
-                //    }
-                //}
-                //else
-                //{
-                //    var res = await AddTransporterAsync(userIdViewModel);
-                //    if (!res.Succeeded)
-                //    {
-                //        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
-                //        return new BusinessLogicResult<UserSignInViewModel>(succeeded: false, result: null, messages: messages);
-                //    }
-                //}
+                if (userRegisterViewModel.Role)
+                {
+                    var res = await AddMerchantAsync(userIdViewModel);
+                    if (!res.Succeeded)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
+                        return new BusinessLogicResult<UserSignInViewModel>(succeeded: false, result: null, messages: messages);
+                    }
+                }
+                else
+                {
+                    var res = await AddTransporterAsync(userIdViewModel);
+                    if (!res.Succeeded)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
+                        return new BusinessLogicResult<UserSignInViewModel>(succeeded: false, result: null, messages: messages);
+                    }
+                }
 
                 // Safe Map
                 var userSignInViewModel = await _utility.MapAsync<User, UserSignInViewModel>(user);
@@ -1220,7 +1246,7 @@ namespace BusinessLogic
                 {
                     var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
                     var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == deactivatorUserId && u.RoleId != userRole.Id);
-                    if (userId != deactivatorUserId || !isUserAuthorized)
+                    if (userId != deactivatorUserId && !isUserAuthorized)
                     {
                         messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
                         return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
@@ -1300,7 +1326,7 @@ namespace BusinessLogic
                 {
                     var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
                     var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == activatorUserId && u.RoleId != userRole.Id);
-                    if (userId != activatorUserId || !isUserAuthorized)
+                    if (userId != activatorUserId && !isUserAuthorized)
                     {
                         messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
                         return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
@@ -1347,7 +1373,7 @@ namespace BusinessLogic
                     messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
                     return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
                 }
-                messages.Add(new BusinessLogicMessage(MessageType.Info, MessageId.UserSuccessfullyDeactivated));
+                messages.Add(new BusinessLogicMessage(MessageType.Info, MessageId.UserSuccessfullyActivated));
                 return new BusinessLogicResult(succeeded: true, messages: messages);
             }
             catch (Exception exception)

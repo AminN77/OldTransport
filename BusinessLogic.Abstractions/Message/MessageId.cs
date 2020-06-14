@@ -22,7 +22,7 @@ namespace BusinessLogic.Abstractions.Message
         UserSuccessfullyEdited,
         [Display(Name = "کاربر با موفقیت حذف شد.")]
         UserSuccessfullyDeleted,
-        [Display(Name = "دسترسی غیر مجاز.")]
+        [Display(Name = "Access Denied")]
         AccessDenied,
         [Display(Name = "پسورد با موفقیت تغییر یافت.")]
         PasswordSuccessfullyChanged,
@@ -44,7 +44,7 @@ namespace BusinessLogic.Abstractions.Message
         SettingSuccessfullySaved,
         [Display(Name = "{0} با موفقیت حذف شد.")]
         EntitySuccessfullyDeleted,
-        [Display(Name = "{0} با موفقیت ویرایش شد.")]
+        [Display(Name = "Entity Successfully Updated")]
         EntitySuccessfullyUpdated,
         [Display(Name = "{0} با موفقیت افزوده شد.")]
         EntitySuccessfullyAdded,
@@ -94,5 +94,9 @@ namespace BusinessLogic.Abstractions.Message
         ProjectSuccessfullyAdded,
         [Display(Name = "ProjectNotFound")]
         ProjectNotFound,
+        [Display(Name = "This User Is Not Active")]
+        DeactivatedUser,
+        [Display(Name = "This User Is Not Active")]
+        DeactivatedUser,
     }
 }
