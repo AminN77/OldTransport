@@ -21,12 +21,22 @@ namespace MvcWebApi.Controllers
 
         [HttpGet]
         [Authorize]
-        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> UserDetails(int userId)
         {
             if (!ModelState.IsValid) return BadRequest();
             var getterUserId = HttpContext.GetCurrentUserId();
             var res = await _businessLogicUserManager.GetUserDetailsAsync(userId, getterUserId);
+            if (!res.Succeeded) return StatusCode(500, res);
+            return Ok(res);
+        }
+
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> DeleteUser(int userId)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var deleterUserId = HttpContext.GetCurrentUserId();
+            var res = await _businessLogicUserManager.DeleteUserAsync(userId, deleterUserId);
             if (!res.Succeeded) return StatusCode(500, res);
             return Ok(res);
         }
