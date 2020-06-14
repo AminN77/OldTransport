@@ -118,6 +118,7 @@ namespace MvcWebApi.Controllers
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> AcceptOffer(AcceptOfferViewModel acceptOfferViewModel)
         {
+            if (!ModelState.IsValid) return BadRequest();
             var merchantId = HttpContext.GetCurrentUserId();
             var result = await _businessLogicProjectManager.AcceptOffer(acceptOfferViewModel, merchantId);
             if (!result.Succeeded) return StatusCode(500, result);
