@@ -121,7 +121,7 @@ namespace BusinessLogic
 
         }
 
-        public async Task<IBusinessLogicResult<EditProjectViewModel>> DeleteProjectAsync(int projectId,int deleterId)
+        public async Task<IBusinessLogicResult<EditProjectViewModel>> DeleteProjectAsync(int projectId,int deleterUserId)
         {
             var messages = new List<IBusinessLogicMessage>();
             try
@@ -130,7 +130,7 @@ namespace BusinessLogic
                 try
                 {
                     var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
-                    var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == deleterId && u.RoleId != userRole.Id);
+                    var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == deleterUserId && u.RoleId != userRole.Id);
                     if (!isUserAuthorized)
                     {
                         messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
@@ -167,7 +167,7 @@ namespace BusinessLogic
                         messages: messages);
                 }
 
-                if (project.Merchant.UserId != deleterId)
+                if (project.Merchant.UserId != deleterUserId)
                 {
                     messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.AccessDenied,
                         BusinessLogicSetting.UserDisplayName));

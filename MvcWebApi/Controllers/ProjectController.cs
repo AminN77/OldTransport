@@ -32,13 +32,9 @@ namespace MvcWebApi.Controllers
         public async Task<IActionResult> AddProject(AddProjectViewModel addProjectViewModel)
         {
             if (!ModelState.IsValid) return BadRequest();
-
             var adderUserId = HttpContext.GetCurrentUserId();
-
             var result = await _businessLogicProjectManager.AddProjectAsync(addProjectViewModel, adderUserId);
-
             if (!result.Succeeded) return StatusCode(500, result);
-
             return Ok(result);
         }
 
@@ -49,15 +45,10 @@ namespace MvcWebApi.Controllers
         public async Task<IActionResult> ProjectsList(int page, int pageSize, string search, string sort, string filter)
         {
             if (!ModelState.IsValid) return BadRequest();
-
             var getterUserId = HttpContext.GetCurrentUserId();
-
             var result = await _businessLogicProjectManager.GetProjectsAsync(getterUserId, page, pageSize, search, sort, filter);
-
             if (!result.Succeeded) return StatusCode(500, result);
-
             return Ok(result);
-
         }
 
 
@@ -67,15 +58,10 @@ namespace MvcWebApi.Controllers
         public async Task<IActionResult> EditProject(EditProjectViewModel editProjectViewModel)
         {
             if (!ModelState.IsValid) return BadRequest();
-
             var editorUserId = HttpContext.GetCurrentUserId();
-
             var result = await _businessLogicProjectManager.EditProjectAsync(editProjectViewModel, editorUserId);
-
             if (!result.Succeeded) return StatusCode(500, result);
-
             return Ok(result);
-
         }
 
         [HttpGet]
@@ -84,15 +70,10 @@ namespace MvcWebApi.Controllers
         public async Task<IActionResult> EditProject(int projectId)
         {
             if (!ModelState.IsValid) return BadRequest();
-
             var getterUserId = HttpContext.GetCurrentUserId();
-
             var result = await _businessLogicProjectManager.GetProjectForEditAsync(projectId, getterUserId);
-
             if (!result.Succeeded) return StatusCode(500, result);
-
             return Ok(result);
-
         }
 
 
@@ -102,15 +83,10 @@ namespace MvcWebApi.Controllers
         public async Task<IActionResult> DeleteProject(int projectId)
         {
             if (!ModelState.IsValid) return BadRequest();
-
             var deleterUserId = HttpContext.GetCurrentUserId();
-
             var result = await _businessLogicProjectManager.DeleteProjectAsync(projectId, deleterUserId);
-
             if (!result.Succeeded) return StatusCode(500, result);
-
             return Ok(result);
-
         }
 
         [HttpPost]

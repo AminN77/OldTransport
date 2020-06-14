@@ -2,6 +2,7 @@
 using AutoMapper.QueryableExtensions;
 using BusinessLogic.Abstractions;
 using BusinessLogic.Abstractions.Message;
+using Cross.Abstractions.EntityEnums;
 using Data.Abstractions;
 using Data.Model;
 using Microsoft.EntityFrameworkCore;
@@ -20,31 +21,53 @@ namespace BusinessLogic
         private readonly IRepository<Transporter> _transporterRepository;
         private readonly IRepository<Offer> _offerRepository;
         private readonly IRepository<Project> _projectRepository;
+        private readonly IRepository<Role> _roleRepository;
+        private readonly IRepository<UserRole> _userRoleRepository;
         private readonly BusinessLogicUtility _utility;
 
         public BusinessLogicOfferManager(IRepository<Offer> offerRepository, IRepository<Transporter> transporterRepository
-            , BusinessLogicUtility utility, IRepository<Project> projectRepository)
+            , BusinessLogicUtility utility, IRepository<Project> projectRepository, IRepository<Role> roleRepository, IRepository<UserRole> userRoleRepository)
         {
             _transporterRepository = transporterRepository;
             _offerRepository = offerRepository;
             _projectRepository = projectRepository;
+            _userRoleRepository = userRoleRepository;
+            _roleRepository = roleRepository;
             _utility = utility;
         }
 
-        public async Task<IBusinessLogicResult<AddOfferViewModel>> AddOfferAsync(AddOfferViewModel addOfferViewModel, int adderId)
+        public async Task<IBusinessLogicResult<AddOfferViewModel>> AddOfferAsync(AddOfferViewModel addOfferViewModel, int AdderUserId)
         {
             var messages = new List<IBusinessLogicMessage>();
 
             try
             {
+                // Critical Authentication and Authorization
+                try
+                {
+                    var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
+                    var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == AdderUserId && u.RoleId != userRole.Id);
+                    if (!isUserAuthorized)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
+                        return new BusinessLogicResult<AddOfferViewModel>(succeeded: false, result: null,
+                            messages: messages);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<AddOfferViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
+
                 Transporter transporter;
                 Project project;
                 Offer DuplicateOffer;
 
                 try
                 {
-                    transporter = await _transporterRepository.DeferredSelectAll().SingleOrDefaultAsync(m => m.UserId == adderId);
-
+                    transporter = await _transporterRepository.DeferredSelectAll().SingleOrDefaultAsync(m => m.UserId == AdderUserId);
                 }
 
                 catch (Exception exception)
@@ -214,16 +237,29 @@ namespace BusinessLogic
 
         }
 
-
-        public async Task<IBusinessLogicResult<EditOfferViewModel>> GetOfferForEditAsync(int transporterId,int projectId , int getterId)
+        public async Task<IBusinessLogicResult<EditOfferViewModel>> GetOfferForEditAsync(int transporterId,int projectId , int getterUserId)
         {
             var messages = new List<IBusinessLogicMessage>();
             try
             {
-                //// Critical Authentication and Authorization
-                //var isUserInPermission = await IsUserInPermissionAsync<EditUserViewModel>(getterUserId,
-                //    UserManagerPermissions.EditUser.ToString());
-                //if (!isUserInPermission.Succeeded) return isUserInPermission;
+                // Critical Authentication and Authorization
+                try
+                {
+                    var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
+                    var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == getterUserId && u.RoleId != userRole.Id);
+                    if (!isUserAuthorized)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
+                        return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
+                            messages: messages);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
 
                 Project project;
                 Transporter transporter;
@@ -268,7 +304,7 @@ namespace BusinessLogic
                         messages: messages);
                 }
 
-                if (transporter.UserId != getterId)
+                if (transporter.UserId != getterUserId)
                 {
                     messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.AccessDenied,
                         BusinessLogicSetting.UserDisplayName));
@@ -317,15 +353,29 @@ namespace BusinessLogic
 
         }
 
-        public async Task<IBusinessLogicResult<EditOfferViewModel>> DeleteOfferAsync(int transporterId, int projectId,int deleterId)
+        public async Task<IBusinessLogicResult<EditOfferViewModel>> DeleteOfferAsync(int transporterId, int projectId,int deleterUserId)
         {
             var messages = new List<IBusinessLogicMessage>();
             try
             {
-                //// Critical Authentication and Authorization
-                //var isUserInPermission = await IsUserInPermissionAsync<EditUserViewModel>(getterUserId,
-                //    UserManagerPermissions.EditUser.ToString());
-                //if (!isUserInPermission.Succeeded) return isUserInPermission;
+                // Critical Authentication and Authorization
+                try
+                {
+                    var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
+                    var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == deleterUserId && u.RoleId != userRole.Id);
+                    if (!isUserAuthorized)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
+                        return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
+                            messages: messages);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
 
                 Offer offer;
                 // Critical Database
@@ -383,35 +433,30 @@ namespace BusinessLogic
 
         }
 
-
-        public async Task<IBusinessLogicResult<EditOfferViewModel>> EditOfferAsync(EditOfferViewModel editOfferViewModel, int EditorId)
+        public async Task<IBusinessLogicResult<EditOfferViewModel>> EditOfferAsync(EditOfferViewModel editOfferViewModel, int editorUserId)
         {
 
             var messages = new List<BusinessLogicMessage>();
             try
             {
                 // Critical Authentication and Authorization
-                //                // Critical Database
-                //
-                //                var isUserInPermission = await IsUserInPermissionAsync<EditUserViewModel>(editorUserId,
-                //                    UserManagerPermissions.EditUser.ToString());
-                //                if (!isUserInPermission.Succeeded) return isUserInPermission;
-
-                // Check organization level
-                //                var getterUser = await _userRepository.FindAsync(editorUserId);
-                //                var subLevelsId = await GetSubLevels(getterUser.OrganizationLevelId);
-                //                if (!(subLevelsId.Result.Contains(editUserViewModel.OrganizationLevelId) ||
-                //                      editUserViewModel.Id == editorUserId))
-                //                {
-                //                    messages.Add(new BusinessLogicMessage(type: MessageType.Error,
-                //                        message: MessageId.AccessDenied, BusinessLogicSetting.UserDisplayName));
-                //                    return new BusinessLogicResult<EditUserViewModel>(succeeded: false, result: null,
-                //                        messages: messages);
-                //                }
-
-                // User verification
-                //var isUserNameExisted = await _projectRepository.DeferredSelectAll(u => u.Id != editUserViewModel.Id)
-                //  .AnyAsync(usr => usr.EmailAddress == editUserViewModel.EmailAddress);
+                try
+                {
+                    var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
+                    var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == editorUserId && u.RoleId != userRole.Id);
+                    if (!isUserAuthorized)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
+                        return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
+                            messages: messages);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
 
                 Offer offer;
 
@@ -440,7 +485,7 @@ namespace BusinessLogic
                            messages: messages);
                     }
 
-                    if (offer.TransporterId != EditorId)
+                    if (offer.TransporterId != editorUserId)
                     {
                         messages.Add(new BusinessLogicMessage(type: MessageType.Error,
                                 message: MessageId.AccessDenied, BusinessLogicSetting.UserDisplayName));
@@ -566,57 +611,6 @@ namespace BusinessLogic
             }
 
         }
-
-        public async Task<IBusinessLogicResult<EditOfferViewModel>> GetOfferForEditAsync(int transporterId, int projectId)
-        {
-            var messages = new List<IBusinessLogicMessage>();
-            try
-            {
-                //// Critical Authentication and Authorization
-                //var isUserInPermission = await IsUserInPermissionAsync<EditUserViewModel>(getterUserId,
-                //    UserManagerPermissions.EditUser.ToString());
-                //if (!isUserInPermission.Succeeded) return isUserInPermission;
-
-                Offer offer;
-                // Critical Database
-                try
-                {
-                    offer = await _offerRepository.DeferredSelectAll().SingleOrDefaultAsync(o => o.TransporterId == transporterId && o.ProjectId == projectId);
-                }
-                catch (Exception exception)
-                {
-                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
-                    return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
-                        messages: messages, exception: exception);
-                }
-
-                // User Verification
-                if (offer == null || offer.IsDeleted)
-                {
-                    messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.ProjectNotFound,
-                        BusinessLogicSetting.UserDisplayName));
-                    return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
-                        messages: messages);
-                }
-
-                // Safe Map
-                var editViewModel = await _utility.MapAsync<Offer, EditOfferViewModel>(offer);
-                //if (userId != getterUserId)
-                //    userViewModel.RoleIds = await _userRoleRepository
-                //        .DeferredWhere(userRole => userRole.UserId == userId).Select(userRole => userRole.RoleId)
-                //        .ToArrayAsync();
-                return new BusinessLogicResult<EditOfferViewModel>(succeeded: true, result: editViewModel,
-                    messages: messages);
-            }
-            catch (Exception exception)
-            {
-                messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
-                return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
-                    messages: messages, exception: exception);
-            }
-
-        }
-
 
         public void Dispose()
         {
