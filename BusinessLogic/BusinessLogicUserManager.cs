@@ -1246,7 +1246,7 @@ namespace BusinessLogic
                 {
                     var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
                     var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == deactivatorUserId && u.RoleId != userRole.Id);
-                    if (userId != getterUserId && !isUserAuthorized)
+                    if (userId != deactivatorUserId && !isUserAuthorized)
                     {
                         messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
                         return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
@@ -1326,7 +1326,7 @@ namespace BusinessLogic
                 {
                     var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
                     var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == activatorUserId && u.RoleId != userRole.Id);
-                    if (userId != getterUserId && !isUserAuthorized)
+                    if (userId != activatorUserId && !isUserAuthorized)
                     {
                         messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
                         return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
@@ -1373,7 +1373,7 @@ namespace BusinessLogic
                     messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
                     return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
                 }
-                messages.Add(new BusinessLogicMessage(MessageType.Info, MessageId.UserSuccessfullyDeactivated));
+                messages.Add(new BusinessLogicMessage(MessageType.Info, MessageId.UserSuccessfullyActivated));
                 return new BusinessLogicResult(succeeded: true, messages: messages);
             }
             catch (Exception exception)
