@@ -95,7 +95,9 @@ namespace MvcWebApi.Controllers
         {
             if (!ModelState.IsValid) return BadRequest();
 
-            var result = await _businessLogicProjectManager.DeleteProjectAsync(projectId,HttpContext.GetCurrentUserId());
+            var deleterUserId = HttpContext.GetCurrentUserId();
+
+            var result = await _businessLogicProjectManager.DeleteProjectAsync(projectId, deleterUserId);
 
             if (!result.Succeeded) return StatusCode(500, result);
 
@@ -103,6 +105,15 @@ namespace MvcWebApi.Controllers
 
         }
 
-
+        [HttpPost]
+        [Authorize]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> AcceptOffer(AcceptOfferViewModel acceptOfferViewModel)
+        {
+            var merchantId = HttpContext.GetCurrentUserId();
+            var result = await _businessLogicProjectManager.AcceptOffer(acceptOfferViewModel, merchantId);
+            if (!result.Succeeded) return StatusCode(500, result);
+            return Ok(result);
+        }
     }
 }

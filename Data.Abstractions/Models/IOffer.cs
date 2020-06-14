@@ -6,6 +6,12 @@ namespace Data.Abstractions.Models
 {
     public interface IOffer: IEntity<int>
     {
+        string Description { get; set; }
 
+        double Price { get; set; }
+
+        int EstimatedTime { get; set; }
+
+        DateTime CreateDate { get; set; }
     }
 }

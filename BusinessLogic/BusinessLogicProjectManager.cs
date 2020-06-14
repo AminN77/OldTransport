@@ -2,6 +2,7 @@
 using AutoMapper.QueryableExtensions;
 using BusinessLogic.Abstractions;
 using BusinessLogic.Abstractions.Message;
+using Cross.Abstractions.EntityEnums;
 using Data.Abstractions;
 using Data.Model;
 using Microsoft.EntityFrameworkCore;
@@ -18,12 +19,19 @@ namespace BusinessLogic
     {
         private readonly IRepository<Merchant> _merchantRepository;
         private readonly IRepository<Project> _projectRepository;
+        private readonly IRepository<Accept> _acceptRepository;
+        private readonly IRepository<Role> _roleRepository;
+        private readonly IRepository<UserRole> _userRoleRepository;
         private readonly BusinessLogicUtility _utility;
 
-        public BusinessLogicProjectManager(IRepository<Merchant> merchantRepository, IRepository<Project> projectRepository, BusinessLogicUtility utility)
+        public BusinessLogicProjectManager(IRepository<Merchant> merchantRepository, IRepository<Project> projectRepository,
+                BusinessLogicUtility utility, IRepository<Accept> acceptRepository, IRepository<Role> roleRepository, IRepository<UserRole> userRoleRepository)
         {
             _merchantRepository = merchantRepository;
             _projectRepository = projectRepository;
+            _acceptRepository = acceptRepository;
+            _userRoleRepository = userRoleRepository;
+            _roleRepository = roleRepository;
             _utility = utility;
         }
 
@@ -460,6 +468,54 @@ namespace BusinessLogic
                     result: null, messages: messages, exception: exception);
             }
 
+        }
+
+        public async Task<IBusinessLogicResult<AcceptOfferViewModel>> AcceptOffer(AcceptOfferViewModel acceptOfferViewModel, int merchantId)
+        {
+            var messages = new List<IBusinessLogicMessage>();
+            try
+            {
+                // Critical Authentication and Authorization
+                try
+                {
+                    var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
+                    var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == merchantId && u.RoleId != userRole.Id);
+                    if (!isUserAuthorized)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
+                        return new BusinessLogicResult<AcceptOfferViewModel>(succeeded: false, result: null,
+                            messages: messages);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<AcceptOfferViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
+
+                acceptOfferViewModel.MerchantId = merchantId;
+                var accept = await _utility.MapAsync<AcceptOfferViewModel, Accept>(acceptOfferViewModel);
+                try
+                {
+                    await _acceptRepository.AddAsync(accept);
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<AcceptOfferViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
+                messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.EntitySuccessfullyAdded));
+                return new BusinessLogicResult<AcceptOfferViewModel>(succeeded: false, result: acceptOfferViewModel,
+                    messages: messages);
+            }
+            catch (Exception exception)
+            {
+                messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                return new BusinessLogicResult<AcceptOfferViewModel>(succeeded: false, result: null,
+                    messages: messages, exception: exception);
+            }
         }
 
         public void Dispose()

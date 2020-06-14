@@ -19,5 +19,6 @@ namespace BusinessLogic.Abstractions
 
         Task<IBusinessLogicResult<EditProjectViewModel>> DeleteProjectAsync(int projectId,int deleterId);
 
+        Task<IBusinessLogicResult<AcceptOfferViewModel>> AcceptOffer(AcceptOfferViewModel acceptOfferViewModel, int merchantId);
     }
 }
