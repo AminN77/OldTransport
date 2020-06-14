@@ -20,6 +20,7 @@ namespace Data.DataAccess.Context
         public DbSet<Merchant> Merchants { get; set; }
         public DbSet<Transporter> Transporters { get; set; }
         public DbSet<Project> Projects { get; set; }
+        public DbSet<Offer> Offers { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -53,6 +54,16 @@ namespace Data.DataAccess.Context
                 entity.HasIndex(e => e.DestinationCity);
                 entity.HasIndex(e => e.BeginningCountry);
                 entity.HasIndex(e => e.BeginningCity);
+
+            });
+
+            modelBuilder.Entity<Offer>(entity =>
+            {
+                entity.HasKey(e => new { e.TransporterId, e.ProjectId });
+                entity.HasIndex(e => e.TransporterId);
+                entity.HasIndex(e => e.ProjectId);
+                entity.Property(e => e.TransporterId);
+                entity.Property(e => e.ProjectId);
 
             });
 
