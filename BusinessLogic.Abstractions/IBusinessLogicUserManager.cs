@@ -26,5 +26,7 @@ namespace BusinessLogic.Abstractions
         Task<IBusinessLogicResult> AddTransporterAsync(UserIdViewModel userIdViewModel);
         Task<IBusinessLogicResult> DeactivateUserAsync(int userId, int deactivatorUserId);
         Task<IBusinessLogicResult> ActivateUserAsync(int userId, int activatorUserId);
+        Task<IBusinessLogicResult> ForgetPasswordAsync(UserForgetPasswordViewModel userForgetPasswordViewModel);
+
     }
 }

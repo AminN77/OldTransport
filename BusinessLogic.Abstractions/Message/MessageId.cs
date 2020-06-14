@@ -88,5 +88,11 @@ namespace BusinessLogic.Abstractions.Message
         EmailSendingProcessFailed,
         [Display(Name = "User Successfully Deactivated")]
         UserSuccessfullyDeactivated,
+        [Display(Name = "CanNotSendEmail")]
+        CanNotSendEmail,
+        [Display(Name = "ProjectSuccessfullyAdded")]
+        ProjectSuccessfullyAdded,
+        [Display(Name = "ProjectNotFound")]
+        ProjectNotFound,
     }
 }
