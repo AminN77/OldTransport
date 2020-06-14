@@ -54,7 +54,9 @@ namespace MvcWebApi.Controllers
             var result = await _tokenFactoryService.CreateJwtTokensAsync(res.Result);
             await _tokenStoreService.AddUserTokenAsync(res.Result, result.RefreshTokenSerial, result.AccessToken, null);
             _antiForgery.RegenerateAntiForgeryCookies(result.Claims);
-            return Ok(new { access_token = result.AccessToken, refresh_token = result.RefreshToken });
+            Response.Headers.Add("AccessToken", result.AccessToken);
+            Response.Headers.Add("RefreshToken", result.RefreshToken);
+            return Ok(res);
         }
 
         [HttpPost]
@@ -80,10 +82,8 @@ namespace MvcWebApi.Controllers
             var result = await _tokenFactoryService.CreateJwtTokensAsync(res.Result);
             await _tokenStoreService.AddUserTokenAsync(res.Result, result.RefreshTokenSerial, result.AccessToken, null);
             _antiForgery.RegenerateAntiForgeryCookies(result.Claims);
-
             Response.Headers.Add("AccessToken", result.AccessToken);
             Response.Headers.Add("RefreshToken", result.RefreshToken);
-
             return Ok(res);
         }
     }

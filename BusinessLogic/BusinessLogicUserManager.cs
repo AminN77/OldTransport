@@ -317,7 +317,7 @@ namespace BusinessLogic
                 {
                     var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
                     var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == deleterUserId && u.RoleId != userRole.Id);
-                    if (userId != deleterUserId || !isUserAuthorized)
+                    if (userId != deleterUserId && !isUserAuthorized)
                     {
                         messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
                         return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
@@ -1018,8 +1018,9 @@ namespace BusinessLogic
                     var user = await _userRepository.DeferredSelectAll().SingleOrDefaultAsync(usr => usr.EmailAddress == emailViewModel.EmailAddress);
                     if (user == null || user.IsDeleted)
                     {
+                        Exception exception = new Exception("");
                         messages.Add(new BusinessLogicMessage(MessageType.Info, MessageId.EmailDoesNotExist));
-                        return new BusinessLogicResult(succeeded: false, messages: messages);
+                        return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
                     }
                     if (!user.IsEnabled)
                     {
@@ -1245,7 +1246,7 @@ namespace BusinessLogic
                 {
                     var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
                     var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == deactivatorUserId && u.RoleId != userRole.Id);
-                    if (userId != deactivatorUserId || !isUserAuthorized)
+                    if (userId != deactivatorUserId || isUserAuthorized)
                     {
                         messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
                         return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
@@ -1325,7 +1326,7 @@ namespace BusinessLogic
                 {
                     var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
                     var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == activatorUserId && u.RoleId != userRole.Id);
-                    if (userId != activatorUserId || !isUserAuthorized)
+                    if (userId != activatorUserId || isUserAuthorized)
                     {
                         messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
                         return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
