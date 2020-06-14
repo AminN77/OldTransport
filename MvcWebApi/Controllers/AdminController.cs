@@ -22,44 +22,44 @@ namespace MvcWebApi.Controllers
 
         [HttpGet]
         [Authorize(Policy = CustomRoles.DeveloperSupport)]
-        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> UsersList(int page, int pageSize, string search, string sort, string filter)
         {
             if (!ModelState.IsValid) return BadRequest();
-            var res = await _businessLogicUserManager.GetUsersAsync(1, page, pageSize, search, sort, filter);
+            var getterUserId = HttpContext.GetCurrentUserId();
+            var res = await _businessLogicUserManager.GetUsersAsync(getterUserId, page, pageSize, search, sort, filter);
             if (!res.Succeeded) return StatusCode(500, res);
             return Ok(res);
         }
 
         [HttpGet]
-        [Authorize]
-        [IgnoreAntiforgeryToken]
+        [Authorize(Policy = CustomRoles.DeveloperSupport)]
         public async Task<IActionResult> DeleteUser(int userId)
         {
             if (!ModelState.IsValid) return BadRequest();
-            var res = await _businessLogicUserManager.DeleteUserAsync(userId, HttpContext.GetCurrentUserId());
+            var deleterUserId = HttpContext.GetCurrentUserId();
+            var res = await _businessLogicUserManager.DeleteUserAsync(userId, deleterUserId);
             if (!res.Succeeded) return StatusCode(500, res);
             return Ok(res);
         }
 
         [HttpGet]
-        // [Authorize/*(Policy = "Admin, DeveloperSupport")*/]
-        [IgnoreAntiforgeryToken]
+        [Authorize(Policy = CustomRoles.DeveloperSupport)]
         public async Task<IActionResult> DeactivateUser(int userId)
         {
             if (!ModelState.IsValid) return BadRequest();
-            var res = await _businessLogicUserManager.DeactivateUserAsync(userId, HttpContext.GetCurrentUserId());
+            var deactivatorUserId = HttpContext.GetCurrentUserId();
+            var res = await _businessLogicUserManager.DeactivateUserAsync(userId, deactivatorUserId);
             if (!res.Succeeded) return StatusCode(500, res);
             return Ok(res);
         }
 
         [HttpGet]
-        // [Authorize/*(Policy = "Admin, DeveloperSupport")*/]
-        [IgnoreAntiforgeryToken]
+        [Authorize(Policy = CustomRoles.DeveloperSupport)]
         public async Task<IActionResult> ActivateUser(int userId)
         {
             if (!ModelState.IsValid) return BadRequest();
-            var res = await _businessLogicUserManager.ActivateUserAsync(userId, HttpContext.GetCurrentUserId());
+            var activatorUserId = HttpContext.GetCurrentUserId();
+            var res = await _businessLogicUserManager.ActivateUserAsync(userId, activatorUserId);
             if (!res.Succeeded) return StatusCode(500, res);
             return Ok(res);
         }
