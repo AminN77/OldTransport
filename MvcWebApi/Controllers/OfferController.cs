@@ -85,6 +85,21 @@ namespace MvcWebApi.Controllers
 
         }
 
+        [HttpPost]
+        [Authorize]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> DeleteProject(int transporterId, int projectId)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+
+            var result = await _businessLogicOfferManager.DeleteOfferAsync(transporterId,projectId , HttpContext.GetCurrentUserId());
+
+            if (!result.Succeeded) return StatusCode(500, result);
+
+            return Ok(result);
+
+        }
+
 
     }
 }

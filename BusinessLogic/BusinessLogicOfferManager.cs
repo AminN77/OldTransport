@@ -215,7 +215,7 @@ namespace BusinessLogic
         }
 
 
-        public async Task<IBusinessLogicResult<EditProjectViewModel>> GetOfferForEditAsync(int transporterId,int projectId , int getterId)
+        public async Task<IBusinessLogicResult<EditOfferViewModel>> GetOfferForEditAsync(int transporterId,int projectId , int getterId)
         {
             var messages = new List<IBusinessLogicMessage>();
             try
@@ -227,6 +227,7 @@ namespace BusinessLogic
 
                 Project project;
                 Transporter transporter;
+                Offer offer;
                 // Critical Database
                 try
                 {
@@ -235,7 +236,7 @@ namespace BusinessLogic
                 catch (Exception exception)
                 {
                     messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
-                    return new BusinessLogicResult<EditProjectViewModel>(succeeded: false, result: null,
+                    return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
                         messages: messages, exception: exception);
                 }
 
@@ -244,7 +245,7 @@ namespace BusinessLogic
                 {
                     messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.ProjectNotFound,
                         BusinessLogicSetting.UserDisplayName));
-                    return new BusinessLogicResult<EditProjectViewModel>(succeeded: false, result: null,
+                    return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
                         messages: messages);
                 }
 
@@ -255,7 +256,7 @@ namespace BusinessLogic
                 catch (Exception exception)
                 {
                     messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
-                    return new BusinessLogicResult<EditProjectViewModel>(succeeded: false, result: null,
+                    return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
                         messages: messages, exception: exception);
                 }
 
@@ -263,7 +264,7 @@ namespace BusinessLogic
                 if (transporter == null) { 
                     messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.ProjectNotFound,
                         BusinessLogicSetting.UserDisplayName));
-                    return new BusinessLogicResult<EditProjectViewModel>(succeeded: false, result: null,
+                    return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
                         messages: messages);
                 }
 
@@ -271,29 +272,52 @@ namespace BusinessLogic
                 {
                     messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.AccessDenied,
                         BusinessLogicSetting.UserDisplayName));
-                    return new BusinessLogicResult<EditProjectViewModel>(succeeded: false, result: null,
+                    return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
                         messages: messages);
                 }
 
+                try
+                {
+                    offer = await _offerRepository.DeferredSelectAll().SingleOrDefaultAsync(o => o.TransporterId == transporterId &&
+                    o.ProjectId == projectId);
+                }
+
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
+
+                
+                if (offer == null || offer.IsDeleted)
+                {
+                    messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.ProjectNotFound,
+                        BusinessLogicSetting.UserDisplayName));
+                    return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
+                        messages: messages);
+                }
+
+
                 // Safe Map
-                var editViewModel = await _utility.MapAsync<Project, EditProjectViewModel>(project);
+                var editViewModel = await _utility.MapAsync<Offer, EditOfferViewModel>(offer);
                 //if (userId != getterUserId)
                 //    userViewModel.RoleIds = await _userRoleRepository
                 //        .DeferredWhere(userRole => userRole.UserId == userId).Select(userRole => userRole.RoleId)
                 //        .ToArrayAsync();
-                return new BusinessLogicResult<EditProjectViewModel>(succeeded: true, result: editViewModel,
+                return new BusinessLogicResult<EditOfferViewModel>(succeeded: true, result: editViewModel,
                     messages: messages);
             }
             catch (Exception exception)
             {
                 messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
-                return new BusinessLogicResult<EditProjectViewModel>(succeeded: false, result: null,
+                return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
                     messages: messages, exception: exception);
             }
 
         }
 
-        public async Task<IBusinessLogicResult<EditProjectViewModel>> DeleteOfferAsync(DeleteProjectViewModel deleteProjectViewModel)
+        public async Task<IBusinessLogicResult<EditOfferViewModel>> DeleteOfferAsync(int transporterId, int projectId,int deleterId)
         {
             var messages = new List<IBusinessLogicMessage>();
             try
@@ -303,49 +327,57 @@ namespace BusinessLogic
                 //    UserManagerPermissions.EditUser.ToString());
                 //if (!isUserInPermission.Succeeded) return isUserInPermission;
 
-                Project project;
+                Offer offer;
                 // Critical Database
                 try
                 {
-                    project = await _projectRepository.FindAsync(deleteProjectViewModel.Id);
+                    offer = await _offerRepository.DeferredSelectAll().SingleOrDefaultAsync(o => o.ProjectId == projectId && o.TransporterId == transporterId);
                 }
                 catch (Exception exception)
                 {
                     messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
-                    return new BusinessLogicResult<EditProjectViewModel>(succeeded: false, result: null,
+                    return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
                         messages: messages, exception: exception);
                 }
 
                 // User Verification
-                if (project == null || project.IsDeleted)
+                if (offer == null || offer.IsDeleted)
                 {
                     messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.ProjectNotFound,
                         BusinessLogicSetting.UserDisplayName));
-                    return new BusinessLogicResult<EditProjectViewModel>(succeeded: false, result: null,
+                    return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
                         messages: messages);
                 }
 
-                project.IsDeleted = true;
+                if (offer.Transporter.UserId != deleterId)
+                {
+                    messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.AccessDenied,
+                        BusinessLogicSetting.UserDisplayName));
+                    return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
+                        messages: messages);
+                }
+
+                offer.IsDeleted = true;
 
                 try
                 {
-                    await _projectRepository.UpdateAsync(project, true);
+                    await _offerRepository.UpdateAsync(offer, true);
                 }
                 catch (Exception exception)
                 {
 
                     messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
-                    return new BusinessLogicResult<EditProjectViewModel>(succeeded: false, result: null,
+                    return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
                         messages: messages, exception: exception);
                 }
 
-                return new BusinessLogicResult<EditProjectViewModel>(succeeded: true, result: null,
+                return new BusinessLogicResult<EditOfferViewModel>(succeeded: true, result: null,
                     messages: messages);
             }
             catch (Exception exception)
             {
                 messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
-                return new BusinessLogicResult<EditProjectViewModel>(succeeded: false, result: null,
+                return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
                     messages: messages, exception: exception);
             }
 
@@ -388,7 +420,7 @@ namespace BusinessLogic
                     try
                     {
                         offer = await _offerRepository.DeferredSelectAll().SingleOrDefaultAsync(
-                       o => o.TransporterId == editOfferViewModel.TransporterId || o.ProjectId == editOfferViewModel.ProjectId);
+                       o => o.TransporterId == editOfferViewModel.TransporterId && o.ProjectId == editOfferViewModel.ProjectId);
 
                     }
                     catch (Exception exception)
@@ -585,64 +617,6 @@ namespace BusinessLogic
 
         }
 
-        public async Task<IBusinessLogicResult<EditOfferViewModel>> DeleteOfferAsync(DeleteOfferViewModel deleteOfferViewModel)
-        {
-            var messages = new List<IBusinessLogicMessage>();
-            try
-            {
-                //// Critical Authentication and Authorization
-                //var isUserInPermission = await IsUserInPermissionAsync<EditUserViewModel>(getterUserId,
-                //    UserManagerPermissions.EditUser.ToString());
-                //if (!isUserInPermission.Succeeded) return isUserInPermission;
-
-                Offer offer;
-                // Critical Database
-                try
-                {
-                    offer = await _offerRepository.DeferredSelectAll().SingleOrDefaultAsync(o =>
-                    o.ProjectId == deleteOfferViewModel.ProjectId && o.TransporterId == deleteOfferViewModel.TransporterId);
-                }
-                catch (Exception exception)
-                {
-                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
-                    return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
-                        messages: messages, exception: exception);
-                }
-
-                // User Verification
-                if (offer == null || offer.IsDeleted)
-                {
-                    messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.ProjectNotFound,
-                        BusinessLogicSetting.UserDisplayName));
-                    return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
-                        messages: messages);
-                }
-
-                offer.IsDeleted = true;
-
-                try
-                {
-                    await _offerRepository.UpdateAsync(offer, true);
-                }
-                catch (Exception exception)
-                {
-
-                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
-                    return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
-                        messages: messages, exception: exception);
-                }
-
-                return new BusinessLogicResult<EditOfferViewModel>(succeeded: true, result: null,
-                    messages: messages);
-            }
-            catch (Exception exception)
-            {
-                messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
-                return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
-                    messages: messages, exception: exception);
-            }
-
-        }
 
         public void Dispose()
         {
