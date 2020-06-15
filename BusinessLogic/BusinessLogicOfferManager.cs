@@ -275,10 +275,17 @@ namespace BusinessLogic
                         messages: messages, exception: exception);
                 }
 
-
-                if (offer == null || offer.IsDeleted)
+                if (offer == null)
                 {
                     messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.ProjectNotFound,
+                        BusinessLogicSetting.UserDisplayName));
+                    return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
+                        messages: messages);
+                }
+
+                if (offer.Transporter.UserId != getterUserId)
+                {
+                    messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.AccessDenied,
                         BusinessLogicSetting.UserDisplayName));
                     return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
                         messages: messages);
@@ -299,10 +306,9 @@ namespace BusinessLogic
                 return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
                     messages: messages, exception: exception);
             }
-
         }
 
-        public async Task<IBusinessLogicResult<EditOfferViewModel>> DeleteOfferAsync(int transporterId, int projectId,int deleterUserId)
+        public async Task<IBusinessLogicResult<EditOfferViewModel>> DeleteOfferAsync(int offerId, int deleterUserId)
         {
             var messages = new List<IBusinessLogicMessage>();
             try
@@ -330,7 +336,7 @@ namespace BusinessLogic
                 // Critical Database
                 try
                 {
-                    offer = await _offerRepository.DeferredSelectAll().SingleOrDefaultAsync(o => o.ProjectId == projectId && o.TransporterId == transporterId);
+                    offer = await _offerRepository.DeferredSelectAll().SingleOrDefaultAsync(o => o.Id == offerId);
                 }
                 catch (Exception exception)
                 {
@@ -340,7 +346,7 @@ namespace BusinessLogic
                 }
 
                 // User Verification
-                if (offer == null || offer.IsDeleted)
+                if (offer == null)
                 {
                     messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.ProjectNotFound,
                         BusinessLogicSetting.UserDisplayName));
@@ -356,11 +362,9 @@ namespace BusinessLogic
                         messages: messages);
                 }
 
-                offer.IsDeleted = true;
-
                 try
                 {
-                    await _offerRepository.UpdateAsync(offer, true);
+                    await _offerRepository.DeleteAsync(offer, true);
                 }
                 catch (Exception exception)
                 {

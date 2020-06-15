@@ -17,6 +17,6 @@ namespace BusinessLogic.Abstractions
 
         Task<IBusinessLogicResult<EditOfferViewModel>> GetOfferForEditAsync(int offerId, int getterUserId);
 
-        Task<IBusinessLogicResult<EditOfferViewModel>> DeleteOfferAsync(int transporterId, int projectId, int deleterUserId);
+        Task<IBusinessLogicResult<EditOfferViewModel>> DeleteOfferAsync(int offerId, int deleterUserId);
     }
 }

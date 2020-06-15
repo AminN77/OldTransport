@@ -77,11 +77,11 @@ namespace MvcWebApi.Controllers
         [HttpPost]
         [Authorize]
         [IgnoreAntiforgeryToken]
-        public async Task<IActionResult> DeleteProject(int transporterId, int projectId)
+        public async Task<IActionResult> DeleteOffer(int offerId)
         {
             if (!ModelState.IsValid) return BadRequest();
             var deleterUserId = HttpContext.GetCurrentUserId();
-            var result = await _businessLogicOfferManager.DeleteOfferAsync(transporterId, projectId, deleterUserId);
+            var result = await _businessLogicOfferManager.DeleteOfferAsync(int offerId, deleterUserId);
             if (!result.Succeeded) return StatusCode(500, result);
             return Ok(result);
         }
