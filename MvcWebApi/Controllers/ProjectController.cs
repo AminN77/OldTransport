@@ -75,7 +75,7 @@ namespace MvcWebApi.Controllers
         }
 
 
-        [HttpPost]
+        [HttpDelete]
         [Authorize]
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> DeleteProject(int projectId)

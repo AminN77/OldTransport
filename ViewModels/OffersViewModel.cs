@@ -9,9 +9,6 @@ namespace ViewModels
     {
         public int TransporterId { get; set; }
 
-        [Required]
-        public int ProjectId { get; set; }
-
         [Display(Name = "Description")]
         [DataType(DataType.MultilineText)]
         [Required(ErrorMessage = "please enter {0}")]
@@ -29,6 +26,8 @@ namespace ViewModels
 
     public class AddOfferViewModel : BaseOfferViewModel
     {
+        [Required]
+        public int ProjectId { get; set; }
     }
 
     public class ListOfferViewModel : BaseOfferViewModel

@@ -46,7 +46,7 @@ namespace BusinessLogic
                 try
                 {
                     var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
-                    var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == AdderUserId && u.RoleId != userRole.Id);
+                    var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == AdderUserId && u.RoleId == userRole.Id);
                     if (!isUserAuthorized)
                     {
                         messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
@@ -148,7 +148,7 @@ namespace BusinessLogic
                     await _offerRepository.AddAsync(offer);
 
                     messages.Add(new BusinessLogicMessage(type: MessageType.Info,
-                    message: MessageId.ProjectSuccessfullyAdded));
+                    message: MessageId.EntitySuccessfullyAdded));
                     return new BusinessLogicResult<AddOfferViewModel>(succeeded: true, result: addOfferViewModel,
                         messages: messages);
                 }
@@ -246,7 +246,7 @@ namespace BusinessLogic
                 try
                 {
                     var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
-                    var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == getterUserId && u.RoleId != userRole.Id);
+                    var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == getterUserId && u.RoleId == userRole.Id);
                     if (!isUserAuthorized)
                     {
                         messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
@@ -282,8 +282,13 @@ namespace BusinessLogic
                     return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
                         messages: messages);
                 }
+                var TransporterUserId = await _offerRepository.DeferredWhere(p => p.Id == offerId)
+                    .Join(_transporterRepository.DeferredSelectAll(),
+                    pr => pr.Id,
+                    m => m.Id,
+                    (m, p) => p).SingleOrDefaultAsync();
 
-                if (offer.Transporter.UserId != getterUserId)
+                if (TransporterUserId.UserId != getterUserId)
                 {
                     messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.AccessDenied,
                         BusinessLogicSetting.UserDisplayName));
@@ -317,7 +322,7 @@ namespace BusinessLogic
                 try
                 {
                     var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
-                    var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == deleterUserId && u.RoleId != userRole.Id);
+                    var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == deleterUserId && u.RoleId == userRole.Id);
                     if (!isUserAuthorized)
                     {
                         messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
@@ -354,7 +359,13 @@ namespace BusinessLogic
                         messages: messages);
                 }
 
-                if (offer.Transporter.UserId != deleterUserId)
+                var TransporterUserId = await _offerRepository.DeferredWhere(p => p.Id == offerId)
+                    .Join(_transporterRepository.DeferredSelectAll(),
+                    pr => pr.Id,
+                    m => m.Id,
+                    (m, p) => p).SingleOrDefaultAsync();
+
+                if (TransporterUserId.UserId != deleterUserId)
                 {
                     messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.AccessDenied,
                         BusinessLogicSetting.UserDisplayName));
@@ -396,7 +407,7 @@ namespace BusinessLogic
                 try
                 {
                     var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
-                    var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == editorUserId && u.RoleId != userRole.Id);
+                    var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == editorUserId && u.RoleId == userRole.Id);
                     if (!isUserAuthorized)
                     {
                         messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
@@ -435,7 +446,13 @@ namespace BusinessLogic
                            messages: messages);
                     }
 
-                    if (offer.TransporterId != editorUserId)
+                    var TransporterUserId = await _offerRepository.DeferredWhere(p => p.Id == editOfferViewModel.offerId)
+                        .Join(_transporterRepository.DeferredSelectAll(),
+                        pr => pr.Id,
+                        m => m.Id,
+                        (m, p) => p).SingleOrDefaultAsync();
+
+                    if (TransporterUserId.UserId != editorUserId)
                     {
                         messages.Add(new BusinessLogicMessage(type: MessageType.Error,
                                 message: MessageId.AccessDenied, BusinessLogicSetting.UserDisplayName));
@@ -454,7 +471,7 @@ namespace BusinessLogic
 
                 try
                 {
-                    offer = await _utility.MapAsync<EditOfferViewModel, Offer>(editOfferViewModel);
+                    await _utility.MapAsync<EditOfferViewModel, Offer>(editOfferViewModel);
 
                 }
                 catch (Exception exception)
@@ -543,7 +560,7 @@ namespace BusinessLogic
                 catch (Exception exception)
                 {
                     messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
-                    return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
+                    return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: editOfferViewModel,
                         messages: messages, exception: exception);
                 }
 

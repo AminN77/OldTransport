@@ -1064,14 +1064,19 @@ namespace BusinessLogic
                     return new BusinessLogicResult<UserSignInViewModel>(succeeded: false, result: null, messages: messages, exception: exception);
                 }
 
-                var userIdViewModel = new UserIdViewModel()
+                var addMerchantViewModel = new AddMerchantViewModel()
+                {
+                    UserId = user.Id
+                };                
+                
+                var addTransporterViewModel = new AddTransporterViewModel()
                 {
                     UserId = user.Id
                 };
 
                 if (userRegisterViewModel.Role)
                 {
-                    var res = await AddMerchantAsync(userIdViewModel);
+                    var res = await AddMerchantAsync(addMerchantViewModel);
                     if (!res.Succeeded)
                     {
                         messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
@@ -1080,7 +1085,7 @@ namespace BusinessLogic
                 }
                 else
                 {
-                    var res = await AddTransporterAsync(userIdViewModel);
+                    var res = await AddTransporterAsync(addTransporterViewModel);
                     if (!res.Succeeded)
                     {
                         messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
@@ -1102,12 +1107,12 @@ namespace BusinessLogic
 
         }
 
-        public async Task<IBusinessLogicResult> AddMerchantAsync(UserIdViewModel userIdViewModel)
+        public async Task<IBusinessLogicResult> AddMerchantAsync(AddMerchantViewModel addMerchantViewModel)
         {
             var messages = new List<IBusinessLogicMessage>();
             try
             {
-                var merchant = await _utility.MapAsync<UserIdViewModel, Merchant>(userIdViewModel);
+                var merchant = await _utility.MapAsync<AddMerchantViewModel, Merchant>(addMerchantViewModel);
                 try
                 {
                     await _merchantRepository.AddAsync(merchant);
@@ -1127,12 +1132,12 @@ namespace BusinessLogic
             }
         }
 
-        public async Task<IBusinessLogicResult> AddTransporterAsync(UserIdViewModel userIdViewModel)
+        public async Task<IBusinessLogicResult> AddTransporterAsync(AddTransporterViewModel addTransporterViewModel)
         {
             var messages = new List<IBusinessLogicMessage>();
             try
             {
-                var transporter = await _utility.MapAsync<UserIdViewModel, Transporter>(userIdViewModel);
+                var transporter = await _utility.MapAsync<AddTransporterViewModel, Transporter>(addTransporterViewModel);
                 try
                 {
                     await _transporterRepository.AddAsync(transporter);

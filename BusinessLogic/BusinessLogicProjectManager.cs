@@ -166,7 +166,13 @@ namespace BusinessLogic
                         messages: messages);
                 }
 
-                if (project.Merchant.UserId != deleterUserId)
+                var merchantUserId = await _projectRepository.DeferredWhere(p => p.Id == projectId)
+                    .Join(_merchantRepository.DeferredSelectAll(),
+                    pr => pr.Id,
+                    m => m.Id,
+                    (m, p) => p).SingleOrDefaultAsync();
+
+                if (merchantUserId.UserId != deleterUserId)
                 {
                     messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.AccessDenied,
                         BusinessLogicSetting.UserDisplayName));
@@ -235,7 +241,13 @@ namespace BusinessLogic
                            messages: messages);
                     }
 
-                    if (project.Merchant.UserId != editorUserId)
+                    var merchantUserId = await _projectRepository.DeferredWhere(p => p.Id == editProjectViewModel.Id)
+                        .Join(_merchantRepository.DeferredSelectAll(),
+                        pr => pr.Id,
+                        m => m.Id,
+                        (m, p) => p).SingleOrDefaultAsync();
+
+                    if (merchantUserId.UserId != editorUserId)
                     {
                         messages.Add(new BusinessLogicMessage(type: MessageType.Error,
                                 message: MessageId.AccessDenied, BusinessLogicSetting.UserDisplayName));
@@ -407,7 +419,13 @@ namespace BusinessLogic
                         messages: messages);
                 }
 
-                if(project.Merchant.UserId != getterUserId)
+                var merchantUserId = await _projectRepository.DeferredWhere(p => p.Id == projectId)
+                    .Join(_merchantRepository.DeferredSelectAll(),
+                    pr => pr.Id,
+                    m => m.Id,
+                    (m, p) => p).SingleOrDefaultAsync();
+
+                if (merchantUserId.UserId != getterUserId)
                 {
                     messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.AccessDenied,
                                             BusinessLogicSetting.UserDisplayName));

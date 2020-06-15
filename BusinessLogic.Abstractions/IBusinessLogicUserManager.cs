@@ -22,8 +22,8 @@ namespace BusinessLogic.Abstractions
         Task<IBusinessLogicResult> SendVerificationEmailAsync(EmailViewModel emailViewModel, int activationCode);
         Task<IBusinessLogicResult> VerifyActivationCodeAysnc(ActivationCodeViewModel activationCodeViewModel);
         Task<IBusinessLogicResult<UserSignInViewModel>> UpdateUserRegisterInfoAsync(UserRegisterViewModel userRegisterViewModel);
-        Task<IBusinessLogicResult> AddMerchantAsync(UserIdViewModel userIdViewModel);
-        Task<IBusinessLogicResult> AddTransporterAsync(UserIdViewModel userIdViewModel);
+        Task<IBusinessLogicResult> AddMerchantAsync(AddMerchantViewModel addMerchantViewModel);
+        Task<IBusinessLogicResult> AddTransporterAsync(AddTransporterViewModel addTransporterViewModel);
         Task<IBusinessLogicResult> DeactivateUserAsync(int userId, int deactivatorUserId);
         Task<IBusinessLogicResult> ActivateUserAsync(int userId, int activatorUserId);
         Task<IBusinessLogicResult> ForgetPasswordAsync(UserForgetPasswordViewModel userForgetPasswordViewModel);
