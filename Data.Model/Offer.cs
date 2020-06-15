@@ -1,5 +1,6 @@
 ﻿using Data.Abstractions.Models;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -41,6 +42,6 @@ namespace Data.Model
 
         public virtual Project Project { get; set; }
 
-        public virtual Accept Accept { get; set; }
+        public virtual ICollection<Accept> Accepts { get; set; }
     }
 }
