@@ -38,7 +38,6 @@ namespace MvcWebApi.Controllers
 
         [HttpGet]
         [Authorize]
-        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> OffersList(int page, int pageSize, string search, string sort, string filter)
         {
             if (!ModelState.IsValid) return BadRequest();
@@ -64,7 +63,6 @@ namespace MvcWebApi.Controllers
 
         [HttpGet]
         [Authorize]
-        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> EditOffer(int offerId)
         {
             if (!ModelState.IsValid) return BadRequest();
@@ -81,7 +79,7 @@ namespace MvcWebApi.Controllers
         {
             if (!ModelState.IsValid) return BadRequest();
             var deleterUserId = HttpContext.GetCurrentUserId();
-            var result = await _businessLogicOfferManager.DeleteOfferAsync(int offerId, deleterUserId);
+            var result = await _businessLogicOfferManager.DeleteOfferAsync(offerId, deleterUserId);
             if (!result.Succeeded) return StatusCode(500, result);
             return Ok(result);
         }

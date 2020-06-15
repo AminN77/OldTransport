@@ -37,5 +37,7 @@ namespace ViewModels
 
     public class EditOfferViewModel : BaseOfferViewModel
     {
+        [Required]
+        public int offerId { get; set; }
     }
 }

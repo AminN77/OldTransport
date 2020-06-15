@@ -417,9 +417,7 @@ namespace BusinessLogic
                 {
                     try
                     {
-                        offer = await _offerRepository.DeferredSelectAll().SingleOrDefaultAsync(
-                       o => o.TransporterId == editOfferViewModel.TransporterId && o.ProjectId == editOfferViewModel.ProjectId);
-
+                        offer = await _offerRepository.DeferredSelectAll().SingleOrDefaultAsync(o => o.Id == editOfferViewModel.offerId);
                     }
                     catch (Exception exception)
                     {
@@ -427,7 +425,6 @@ namespace BusinessLogic
                         messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
                         return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
                             messages: messages, exception: exception);
-
                     }
 
                     if (offer == null || offer.IsDeleted)
@@ -571,6 +568,5 @@ namespace BusinessLogic
             _transporterRepository.Dispose();
             _offerRepository.Dispose();
         }
-
     }
 }
