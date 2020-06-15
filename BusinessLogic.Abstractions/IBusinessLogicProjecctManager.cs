@@ -19,7 +19,7 @@ namespace BusinessLogic.Abstractions
 
         Task<IBusinessLogicResult<EditProjectViewModel>> DeleteProjectAsync(int projectId, int deleterUserId);
 
-        Task<IBusinessLogicResult<AcceptOfferViewModel>> AcceptOffer(AcceptOfferViewModel acceptOfferViewModel, int merchantId);
+        Task<IBusinessLogicResult<AcceptOfferViewModel>> AcceptOffer(AcceptOfferViewModel acceptOfferViewModel, int merchantUserId);
         Task<IBusinessLogicResult> DeactivateProjectAsync(int projectId, int deactivatorUsertId);
         Task<IBusinessLogicResult> ActivateProjectAsync(int projectId, int activatorUserId);
     }

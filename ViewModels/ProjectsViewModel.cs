@@ -56,7 +56,7 @@ namespace ViewModels
         public bool IsEnabled{ get; set; }
     }
 
-    public class EditProjectViewModel : ProjectBaseViewModel
+    public class EditProjectViewModel : AddProjectViewModel
     {
         [Required]
         public int Id { get; set; }

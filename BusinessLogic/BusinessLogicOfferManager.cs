@@ -282,13 +282,20 @@ namespace BusinessLogic
                     return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
                         messages: messages);
                 }
-                var TransporterUserId = await _offerRepository.DeferredWhere(p => p.Id == offerId)
-                    .Join(_transporterRepository.DeferredSelectAll(),
-                    pr => pr.Id,
-                    m => m.Id,
-                    (m, p) => p).SingleOrDefaultAsync();
 
-                if (TransporterUserId.UserId != getterUserId)
+                Transporter transporter;
+                try
+                {
+                    transporter = await _transporterRepository.DeferredSelectAll().SingleOrDefaultAsync(t => t.Id == offer.TransporterId);
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
+                    return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
+
+                if (transporter.UserId != getterUserId)
                 {
                     messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.AccessDenied,
                         BusinessLogicSetting.UserDisplayName));
@@ -359,13 +366,19 @@ namespace BusinessLogic
                         messages: messages);
                 }
 
-                var TransporterUserId = await _offerRepository.DeferredWhere(p => p.Id == offerId)
-                    .Join(_transporterRepository.DeferredSelectAll(),
-                    pr => pr.Id,
-                    m => m.Id,
-                    (m, p) => p).SingleOrDefaultAsync();
+                Transporter transporter;
+                try
+                {
+                    transporter = await _transporterRepository.DeferredSelectAll().SingleOrDefaultAsync(t => t.Id == offer.TransporterId);
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
+                    return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
 
-                if (TransporterUserId.UserId != deleterUserId)
+                if (transporter.UserId != deleterUserId)
                 {
                     messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.AccessDenied,
                         BusinessLogicSetting.UserDisplayName));
@@ -385,7 +398,9 @@ namespace BusinessLogic
                         messages: messages, exception: exception);
                 }
 
-                return new BusinessLogicResult<EditOfferViewModel>(succeeded: true, result: null,
+                var editOfferViewModel = await _utility.MapAsync<Offer, EditOfferViewModel>(offer);
+                messages.Add(new BusinessLogicMessage(type: MessageType.Info, MessageId.EntitySuccessfullyDeleted));
+                return new BusinessLogicResult<EditOfferViewModel>(succeeded: true, result: editOfferViewModel,
                     messages: messages);
             }
             catch (Exception exception)
@@ -446,13 +461,19 @@ namespace BusinessLogic
                            messages: messages);
                     }
 
-                    var TransporterUserId = await _offerRepository.DeferredWhere(p => p.Id == editOfferViewModel.offerId)
-                        .Join(_transporterRepository.DeferredSelectAll(),
-                        pr => pr.Id,
-                        m => m.Id,
-                        (m, p) => p).SingleOrDefaultAsync();
+                    Transporter transporter;
+                    try
+                    {
+                        transporter = await _transporterRepository.DeferredSelectAll().SingleOrDefaultAsync(t => t.Id == offer.TransporterId);
+                    }
+                    catch (Exception exception)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
+                        return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
+                            messages: messages, exception: exception);
+                    }
 
-                    if (TransporterUserId.UserId != editorUserId)
+                    if (transporter.UserId != editorUserId)
                     {
                         messages.Add(new BusinessLogicMessage(type: MessageType.Error,
                                 message: MessageId.AccessDenied, BusinessLogicSetting.UserDisplayName));
@@ -469,89 +490,21 @@ namespace BusinessLogic
 
                 }
 
-                try
-                {
-                    await _utility.MapAsync<EditOfferViewModel, Offer>(editOfferViewModel);
-
-                }
-                catch (Exception exception)
-                {
-                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
-                    return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
-                        messages: messages, exception: exception);
-                }
-
-                ////Check developer role
-                //var developerRole = await _userRoleRepository.DeferredSelectAll()
-                //    .SingleOrDefaultAsync(role => role.RoleId == Int32.Parse(RoleTypes.DeveloperSupport.ToString()));
-                //if (editUserViewModel.RoleIds.Contains(developerRole.Id))
-                //{
-                //    messages.Add(new BusinessLogicMessage(type: MessageType.Error,
-                //        message: MessageId.AccessDenied, BusinessLogicSetting.UserDisplayName));
-                //    return new BusinessLogicResult<AddUserViewModel>(succeeded: false, result: null,
-                //        messages: messages);
-                //}
-
-                // Check Username Existed
-                //if (isUserNameExisted)
-                //{
-                //    messages.Add(new BusinessLogicMessage(type: MessageType.Error,
-                //        message: MessageId.UsernameAlreadyExisted,
-                //        viewMessagePlaceHolders: editUserViewModel.EmailAddress));
-                //    return new BusinessLogicResult<EditUserViewModel>(succeeded: false, result: null,
-                //        messages: messages);
-                //}
-
-                //User user;
+                offer.Price = editOfferViewModel.Price;
+                offer.EstimatedTime = editOfferViewModel.EstimatedTime;
+                offer.Description = editOfferViewModel.Description;
 
                 //try
                 //{
-                //    user = await _userRepository.FindAsync(editUserViewModel.Id);
+                //    await _utility.MapAsync(editOfferViewModel,offer);
+
                 //}
                 //catch (Exception exception)
                 //{
                 //    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
-                //    return new BusinessLogicResult<EditUserViewModel>(succeeded: false, result: null,
+                //    return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
                 //        messages: messages, exception: exception);
                 //}
-
-                //if (user == null || user.IsDeleted)
-                //{
-                //    messages.Add(new BusinessLogicMessage(type: MessageType.Error,
-                //        message: MessageId.EntityDoesNotExist,
-                //        viewMessagePlaceHolders: BusinessLogicSetting.UserDisplayName));
-                //    return new BusinessLogicResult<EditUserViewModel>(succeeded: false, result: null,
-                //        messages: messages);
-                //}
-
-                //// Safe
-                //user = await _utility.MapAsync(editUserViewModel, user);
-                //var userId = user.Id;
-                //var oldUserRoles = await _userRoleRepository.DeferredWhere(userRole => userRole.UserId == userId)
-                //    .ToListAsync();
-                //var userOldRoleIds = oldUserRoles.Select(userRole => userRole.RoleId).ToList();
-                //if (editUserViewModel.RoleIds != null)
-                //{
-                //    var toBeDeletedUserRoleIds = userOldRoleIds.Except(editUserViewModel.RoleIds);
-                //    var toBeDeletedUserRoles = oldUserRoles
-                //        .Where(userRole => toBeDeletedUserRoleIds.Contains(userRole.RoleId)).ToList();
-                //    await _userRoleRepository.DeleteAllAsync(toBeDeletedUserRoles, false);
-                //    var toBeAddedUserRoleIds = editUserViewModel.RoleIds.Except(userOldRoleIds);
-                //    foreach (var roleId in toBeAddedUserRoleIds)
-                //    {
-                //        var userRole = new UserRole
-                //        {
-                //            RoleId = roleId,
-                //            UserId = user.Id
-                //        };
-                //        await _userRoleRepository.AddOrUpdateAsync(userRole, false);
-                //    }
-                //}
-
-                // Set new serial number
-                //user.SerialNumber = Guid.NewGuid().ToString();
-                //user.Name = editUserViewModel.Name;
-                //user.Picture = editUserViewModel.Picture;
 
                 try
                 {

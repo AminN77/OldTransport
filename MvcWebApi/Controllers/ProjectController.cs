@@ -93,8 +93,8 @@ namespace MvcWebApi.Controllers
         public async Task<IActionResult> AcceptOffer(AcceptOfferViewModel acceptOfferViewModel)
         {
             if (!ModelState.IsValid) return BadRequest();
-            var merchantId = HttpContext.GetCurrentUserId();
-            var result = await _businessLogicProjectManager.AcceptOffer(acceptOfferViewModel, merchantId);
+            var merchantUserId = HttpContext.GetCurrentUserId();
+            var result = await _businessLogicProjectManager.AcceptOffer(acceptOfferViewModel, merchantUserId);
             if (!result.Succeeded) return StatusCode(500, result);
             return Ok(result);
         }

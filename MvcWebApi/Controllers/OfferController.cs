@@ -57,7 +57,7 @@ namespace MvcWebApi.Controllers
             var editorUserId = HttpContext.GetCurrentUserId();
             var result = await _businessLogicOfferManager.EditOfferAsync(editOfferViewModel, editorUserId);
             if (!result.Succeeded) return StatusCode(500, result);
-            return Ok();
+            return Ok(result);
 
         }
 
@@ -72,7 +72,7 @@ namespace MvcWebApi.Controllers
             return Ok(res);
         }
 
-        [HttpPost]
+        [HttpDelete]
         [Authorize]
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> DeleteOffer(int offerId)
