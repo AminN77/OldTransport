@@ -19,7 +19,7 @@ namespace ViewModels
 
         [Display(Name = "Price")]
         [Required(ErrorMessage = "please enter {0}")]
-        [MinLength(0)]
+        [Range(0, int.MaxValue)]
         public int Price { get; set; }
 
         [Display(Name = "Estimated Time (Days)")]

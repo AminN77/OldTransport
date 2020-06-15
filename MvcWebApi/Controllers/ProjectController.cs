@@ -24,8 +24,6 @@ namespace MvcWebApi.Controllers
             _businessLogicProjectManager = businessLogicProjectManager;
         }
 
-
-
         [HttpPost]
         [Authorize]
         [IgnoreAntiforgeryToken]

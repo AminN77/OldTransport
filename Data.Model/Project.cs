@@ -43,8 +43,8 @@ namespace Data.Model
         public DateTime CreateDateTime { get; set; }
 
         [Required]
-        [Range(0.0, double.MaxValue)]
-        public double Budget { get; set; }
+        [Range(0, int.MaxValue)]
+        public int Budget { get; set; }
 
         [Required]
         [Range(0.0, double.MaxValue)]

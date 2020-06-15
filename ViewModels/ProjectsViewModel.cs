@@ -30,8 +30,8 @@ namespace ViewModels
 
         [Display(Name = "Budget")]
         [Required(ErrorMessage = "Please enter {0}")]
-        [Range(0.0, double.MaxValue)]
-        public double Budget { get; set; }
+        [Range(0, int.MaxValue)]
+        public int Budget { get; set; }
 
     }
 
