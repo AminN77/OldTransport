@@ -1,7 +1,9 @@
 ﻿using System.Threading.Tasks;
 using BusinessLogic.Abstractions;
+using Cross.Abstractions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MvcWebApi.Provider;
 using ViewModels;
@@ -52,6 +54,18 @@ namespace MvcWebApi.Controllers
             var res1 = await _businessLogicUserManager.ChangePasswordAsync(userChangePasswordViewModel, userId);
             if (!res1.Succeeded) return StatusCode(500, res1);
             return Ok();
+        }
+
+        [HttpPost]
+        [Authorize]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> EditUser(EditUserViewModel editUserViewModel, IFormFile file)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var editorUserId = HttpContext.GetCurrentUserId();
+            var res = await _businessLogicUserManager.EditUserAsync(editUserViewModel, editorUserId, file);
+            if (!res.Succeeded) return StatusCode(500, res);
+            return Ok(res);
         }
     }
 }

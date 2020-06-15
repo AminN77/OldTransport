@@ -95,6 +95,8 @@ namespace BusinessLogic.Abstractions.Message
         [Display(Name = "ProjectNotFound")]
         ProjectNotFound,
         [Display(Name = "This User Is Not Active")]
-        DeactivatedUser
+        DeactivatedUser,
+        [Display(Name = "Invalid File Type")]
+        InvalidFileType
     }
 }
