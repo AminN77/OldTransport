@@ -64,12 +64,6 @@ namespace ViewModels
 
     public class AcceptOfferViewModel
     {
-        [Required]
-        public int TransporterId { get; set; }
-
-        [Required]
-        public int ProjectId { get; set; }
-
         public int MerchantId { get; set; }
 
         [Required]
