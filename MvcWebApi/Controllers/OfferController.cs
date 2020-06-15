@@ -65,11 +65,11 @@ namespace MvcWebApi.Controllers
         [HttpGet]
         [Authorize]
         [IgnoreAntiforgeryToken]
-        public async Task<IActionResult> EditOffer(int transporterId, int projectId)
+        public async Task<IActionResult> EditOffer(int offerId)
         {
             if (!ModelState.IsValid) return BadRequest();
             var getterUserId = HttpContext.GetCurrentUserId();
-            var res = await _businessLogicOfferManager.GetOfferForEditAsync(transporterId, projectId, getterUserId);
+            var res = await _businessLogicOfferManager.GetOfferForEditAsync(offerId, getterUserId);
             if (!res.Succeeded) return StatusCode(500, res);
             return Ok(res);
         }

@@ -7,7 +7,6 @@ namespace ViewModels
 {
     public abstract class BaseOfferViewModel
     {
-        [Required]
         public int TransporterId { get; set; }
 
         [Required]
@@ -16,8 +15,6 @@ namespace ViewModels
 
     public class AddOfferViewModel : BaseOfferViewModel
     {
-        
-
         [Display(Name = "Description")]
         [DataType(DataType.MultilineText)]
         [Required(ErrorMessage = "please enter {0}")]
@@ -25,18 +22,16 @@ namespace ViewModels
 
         [Display(Name = "Price")]
         [Required(ErrorMessage = "please enter {0}")]
-        [Range(0.0, double.MaxValue)]
-        public double Price { get; set; }
+        [MinLength(0)]
+        public int Price { get; set; }
 
-        [Display(Name = "EstimatedTime")]
+        [Display(Name = "Estimated Time (Days)")]
         [Required(ErrorMessage = "please enter {0}")]
         public int EstimatedTime { get; set; }
     }
 
     public class ListOfferViewModel : BaseOfferViewModel
     {
-        
-
         [Display(Name = "Description")]
         [DataType(DataType.MultilineText)]
         [Required(ErrorMessage = "please enter {0}")]

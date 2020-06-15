@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using MvcWebApi.Provider;
+using ViewModels;
 
 namespace MvcWebApi.Controllers
 {
@@ -30,7 +31,7 @@ namespace MvcWebApi.Controllers
             return Ok(res);
         }
 
-        [HttpGet]
+        [HttpDelete]
         [Authorize]
         public async Task<IActionResult> DeleteUser(int userId)
         {
@@ -39,6 +40,18 @@ namespace MvcWebApi.Controllers
             var res = await _businessLogicUserManager.DeleteUserAsync(userId, deleterUserId);
             if (!res.Succeeded) return StatusCode(500, res);
             return Ok(res);
+        }
+
+        [HttpPut]
+        [Authorize]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> ChangePassword(UserChangePasswordViewModel userChangePasswordViewModel)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var userId = HttpContext.GetCurrentUserId();
+            var res1 = await _businessLogicUserManager.ChangePasswordAsync(userChangePasswordViewModel, userId);
+            if (!res1.Succeeded) return StatusCode(500, res1);
+            return Ok();
         }
     }
 }

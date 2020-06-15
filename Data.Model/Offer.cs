@@ -25,8 +25,8 @@ namespace Data.Model
         public string Description { get; set; }
 
         [Required]
-        [Range(0.0, double.MaxValue)]
-        public double Price { get; set; }
+        [MinLength(0)]
+        public int Price { get; set; }
 
         [Required]
         public int EstimatedTime { get; set; }

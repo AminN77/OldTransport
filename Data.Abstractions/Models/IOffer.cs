@@ -8,7 +8,7 @@ namespace Data.Abstractions.Models
     {
         string Description { get; set; }
 
-        double Price { get; set; }
+        int Price { get; set; }
 
         int EstimatedTime { get; set; }
 
