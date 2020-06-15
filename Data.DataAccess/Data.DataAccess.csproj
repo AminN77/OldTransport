@@ -9,6 +9,8 @@
     <Compile Remove="Migrations\20200610194426_kiri.Designer.cs" />
     <Compile Remove="Migrations\20200614205134_V0.6-AddOfferAndAccept.cs" />
     <Compile Remove="Migrations\20200614205134_V0.6-AddOfferAndAccept.Designer.cs" />
+    <Compile Remove="Migrations\20200615075644_V0.6-OfferAndAccept.cs" />
+    <Compile Remove="Migrations\20200615075644_V0.6-OfferAndAccept.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>

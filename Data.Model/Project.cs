@@ -51,7 +51,7 @@ namespace Data.Model
         public double Weight { get; set; }
 
         [Required]
-        public bool IsDeleted { get; set; }
+        public bool IsEnabled { get; set; }
 
         public virtual Merchant Merchant { get; set; }
 

@@ -20,7 +20,7 @@ namespace Data.Abstractions.Models
 
         DateTime CreateDateTime { get; set; }
 
-        double Budget { get; set; }
+        int Budget { get; set; }
 
         double Weight { get; set; }
 
