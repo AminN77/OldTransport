@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -22,10 +23,12 @@ namespace MvcWebApi
     public class Startup
     {
         private IConfiguration Configuration { get; }
+        private Microsoft.AspNetCore.Hosting.IHostingEnvironment _env;
 
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration configuration, Microsoft.AspNetCore.Hosting.IHostingEnvironment env)
         {
             Configuration = configuration;
+            _env = env;
         }
 
         public void ConfigureServices(IServiceCollection services)
@@ -46,6 +49,7 @@ namespace MvcWebApi
                         .WithOrigins("http://localhost:44338") //Note:  The URL must be specified without a trailing slash (/).
                         .AllowAnyMethod()
                         .AllowAnyHeader()
+                        .WithExposedHeaders("AccessToken")
                         .SetIsOriginAllowed((host) => true)
                         .AllowCredentials());
             });
@@ -124,7 +128,6 @@ namespace MvcWebApi
             services.AddScoped<ITokenFactoryService, TokenFactoryService>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddControllers();
-
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

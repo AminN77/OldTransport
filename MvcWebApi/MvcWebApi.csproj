@@ -5,6 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="countries.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\BusinessLogic.Abstractions\BusinessLogic.Abstractions.csproj" />
     <ProjectReference Include="..\DependencyInjection\DependencyInjection.csproj" />
   </ItemGroup>
@@ -18,6 +22,10 @@
 
   <ItemGroup>
     <Folder Include="Models" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="countries.json" />
   </ItemGroup>
 
 </Project>

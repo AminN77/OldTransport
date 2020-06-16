@@ -83,5 +83,16 @@ namespace MvcWebApi.Controllers
             if (!result.Succeeded) return StatusCode(500, result);
             return Ok(result);
         }
+
+        [HttpGet]
+        [Authorize]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> OfferDetails(int offerId)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var result = await _businessLogicOfferManager.GetOfferDetailsAsync(offerId);
+            if (!result.Succeeded) return StatusCode(500, result);
+            return Ok(result);
+        }
     }
 }

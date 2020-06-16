@@ -22,10 +22,14 @@ namespace BusinessLogic.Abstractions
         Task<IBusinessLogicResult> SendVerificationEmailAsync(EmailViewModel emailViewModel, int activationCode);
         Task<IBusinessLogicResult> VerifyActivationCodeAysnc(ActivationCodeViewModel activationCodeViewModel);
         Task<IBusinessLogicResult<UserSignInViewModel>> UpdateUserRegisterInfoAsync(UserRegisterViewModel userRegisterViewModel);
-        Task<IBusinessLogicResult> AddMerchantAsync(AddMerchantViewModel addMerchantViewModel);
-        Task<IBusinessLogicResult> AddTransporterAsync(AddTransporterViewModel addTransporterViewModel);
+        Task<IBusinessLogicResult<AddMerchantViewModel>> AddMerchantAsync(AddMerchantViewModel addMerchantViewModel);
+        Task<IBusinessLogicResult<AddTransporterViewModel>> AddTransporterAsync(AddTransporterViewModel addTransporterViewModel);
         Task<IBusinessLogicResult> DeactivateUserAsync(int userId, int deactivatorUserId);
         Task<IBusinessLogicResult> ActivateUserAsync(int userId, int activatorUserId);
         Task<IBusinessLogicResult> ForgetPasswordAsync(UserForgetPasswordViewModel userForgetPasswordViewModel);
+        Task<IBusinessLogicResult<SettingsViewModel>> AdminGetSettings();
+        Task<IBusinessLogicResult<SettingsViewModel>> AdminEditSettings(SettingsViewModel settingsViewModel);
+        Task<IBusinessLogicResult> MerchantAuthenticator(int userId);
+        Task<IBusinessLogicResult> TransporterAuthenticator(int userId);
     }
 }

@@ -4,14 +4,16 @@ using Data.DataAccess.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Data.DataAccess.Migrations
 {
     [DbContext(typeof(SqlServerDbContext))]
-    partial class SqlServerDbContextModelSnapshot : ModelSnapshot
+    [Migration("20200616070217_V0.7-Settings")]
+    partial class V07Settings
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -40,41 +42,6 @@ namespace Data.DataAccess.Migrations
                         .IsUnique();
 
                     b.ToTable("Accepts");
-                });
-
-            modelBuilder.Entity("Data.Model.City", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<int>("CountryId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CountryId");
-
-                    b.ToTable("Cities");
-                });
-
-            modelBuilder.Entity("Data.Model.Country", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Countries");
                 });
 
             modelBuilder.Entity("Data.Model.Merchant", b =>
@@ -235,11 +202,6 @@ namespace Data.DataAccess.Migrations
 
             modelBuilder.Entity("Data.Model.Settings", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
                     b.Property<string>("AboutUs")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -256,19 +218,7 @@ namespace Data.DataAccess.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("Id");
-
                     b.ToTable("Settings");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            AboutUs = "We're The Transport Team",
-                            ContactEmail = "abolfazl.sh1374@gmail.com",
-                            ContactNumber = "+98 937 733 9223",
-                            Logo = "abcd"
-                        });
                 });
 
             modelBuilder.Entity("Data.Model.SocialMedia", b =>
@@ -380,15 +330,15 @@ namespace Data.DataAccess.Migrations
                         {
                             Id = 1,
                             ActivationCode = 0,
-                            CreateDateTime = new DateTime(2020, 6, 16, 15, 35, 56, 977, DateTimeKind.Local).AddTicks(5636),
+                            CreateDateTime = new DateTime(2020, 6, 16, 11, 32, 16, 526, DateTimeKind.Local).AddTicks(6822),
                             EmailAddress = "abolfazl.sh1374@gmail.com",
                             IsDeleted = false,
                             IsEnabled = true,
-                            IterationCount = 84929,
+                            IterationCount = 87060,
                             Name = "Developer",
-                            Password = "1B3A5EB00E11506A015FFE16F2CC1CBC0D26D47EAE6E333B9BB51240FF03D503A8B38AFE22E28BD27E7B660F63538A2068090A57E11C977722D8F611BEAD26C4",
-                            Salt = new byte[] { 220, 45, 236, 69, 99, 182, 13, 211, 23, 206, 195, 244, 220, 40, 82, 166, 215, 126, 213, 91, 0, 212, 189, 24, 206, 175, 172, 35, 154, 217, 113, 120 },
-                            SerialNumber = "b3a6906e-4806-4eea-b96c-a776d6165446"
+                            Password = "92C179A686EED816074DBB64608E9ECE1B4C385879FA213374837468BBCB5A711815C5E9EE2E244815A79B4BF3547F528FF2B4236786641A546C4576BEE63262",
+                            Salt = new byte[] { 3, 81, 20, 169, 221, 217, 201, 82, 104, 141, 246, 187, 111, 49, 46, 200, 1, 51, 109, 164, 4, 237, 181, 30, 42, 10, 248, 40, 15, 162, 144, 6 },
+                            SerialNumber = "29ec0518-44cd-4258-a869-ccb5f74f1552"
                         });
                 });
 
@@ -459,15 +409,6 @@ namespace Data.DataAccess.Migrations
                     b.HasOne("Data.Model.Offer", "Offer")
                         .WithMany("Accepts")
                         .HasForeignKey("OfferId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Data.Model.City", b =>
-                {
-                    b.HasOne("Data.Model.Country", "Country")
-                        .WithMany("Cities")
-                        .HasForeignKey("CountryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

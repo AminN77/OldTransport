@@ -21,16 +21,19 @@ namespace BusinessLogic
         private readonly IRepository<Accept> _acceptRepository;
         private readonly IRepository<Role> _roleRepository;
         private readonly IRepository<UserRole> _userRoleRepository;
+        private readonly IRepository<User> _userRepository;
         private readonly BusinessLogicUtility _utility;
 
         public BusinessLogicProjectManager(IRepository<Merchant> merchantRepository, IRepository<Project> projectRepository,
-                BusinessLogicUtility utility, IRepository<Accept> acceptRepository, IRepository<Role> roleRepository, IRepository<UserRole> userRoleRepository)
+                BusinessLogicUtility utility, IRepository<Accept> acceptRepository, IRepository<Role> roleRepository,
+                IRepository<UserRole> userRoleRepository, IRepository<User> userRepository)
         {
             _merchantRepository = merchantRepository;
             _projectRepository = projectRepository;
             _acceptRepository = acceptRepository;
             _userRoleRepository = userRoleRepository;
             _roleRepository = roleRepository;
+            _userRepository = userRepository;
             _utility = utility;
         }
 
@@ -157,7 +160,7 @@ namespace BusinessLogic
                         messages: messages, exception: exception);
                 }
 
-                // User Verification
+                // project Verification
                 if (project == null)
                 {
                     messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.ProjectNotFound,
@@ -361,7 +364,7 @@ namespace BusinessLogic
                         messages: messages, exception: exception);
                 }
 
-                // User Verification
+                // Verification
                 if (project == null)
                 {
                     messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.ProjectNotFound,
@@ -406,6 +409,57 @@ namespace BusinessLogic
                     messages: messages, exception: exception);
             }
 
+        }
+
+        public async Task<IBusinessLogicResult<ProjectDetailsViewModel>> GetProjectDetailsAsync(int projectId)
+        {
+            var messages = new List<IBusinessLogicMessage>();
+            try
+            {
+                Project project;
+                // Critical Database
+                try
+                {
+                    project = await _projectRepository.FindAsync(projectId);
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<ProjectDetailsViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
+
+                // Verification
+                if (project == null)
+                {
+                    messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.ProjectNotFound,
+                        BusinessLogicSetting.UserDisplayName));
+                    return new BusinessLogicResult<ProjectDetailsViewModel>(succeeded: false, result: null,
+                        messages: messages);
+                }
+
+                var projectDetailsViewModel = await _utility.MapAsync<Project, ProjectDetailsViewModel>(project);
+                try
+                {
+                    var merchantUserId = await _merchantRepository.FindAsync(project.MerchantId);
+                    var user = await _userRepository.FindAsync(merchantUserId);
+                    projectDetailsViewModel.MerchantName = user.Name;
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<ProjectDetailsViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
+                return new BusinessLogicResult<ProjectDetailsViewModel>(succeeded: true, result: projectDetailsViewModel,
+                    messages: messages);
+            }
+            catch (Exception exception)
+            {
+                messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                return new BusinessLogicResult<ProjectDetailsViewModel>(succeeded: false, result: null,
+                    messages: messages, exception: exception);
+            }
         }
 
         public async Task<IBusinessLogicResult<ListResultViewModel<ListProjectViewModel>>> GetProjectsAsync(int getterUserId, int page, int pageSize, string search, string sort, string filter)
@@ -530,6 +584,86 @@ namespace BusinessLogic
                 messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
                 return new BusinessLogicResult<AcceptOfferViewModel>(succeeded: false, result: null,
                     messages: messages, exception: exception);
+            }
+        }
+
+        public async Task<IBusinessLogicResult> DeleteAccept(int acceptId, int merchantUserId)
+        {
+            var messages = new List<IBusinessLogicMessage>();
+            try
+            {
+                // Critical Authentication and Authorization
+                try
+                {
+                    var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
+                    var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == merchantUserId && u.RoleId == userRole.Id);
+                    if (!isUserAuthorized)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
+                        return new BusinessLogicResult(succeeded: false, messages: messages);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+                }
+
+                Accept accept;
+                // Critical Database
+                try
+                {
+                    accept = await _acceptRepository.FindAsync(acceptId);
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+                }
+
+                // Verification
+                if (accept == null)
+                {
+                    messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.ProjectNotFound,
+                        BusinessLogicSetting.UserDisplayName));
+                    return new BusinessLogicResult(succeeded: false, messages: messages);
+                }
+
+                Merchant merchant;
+                try
+                {
+                    merchant = await _merchantRepository.DeferredSelectAll().SingleOrDefaultAsync(m => m.Id == accept.MerchantId);
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
+                    return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+                }
+
+                if (merchant.UserId != merchantUserId)
+                {
+                    messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.AccessDenied,
+                        BusinessLogicSetting.UserDisplayName));
+                    return new BusinessLogicResult(succeeded: false, messages: messages);
+                }
+
+                try
+                {
+                    await _acceptRepository.DeleteAsync(accept, true);
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+                }
+
+                messages.Add(new BusinessLogicMessage(type: MessageType.Info, MessageId.EntitySuccessfullyDeleted));
+                return new BusinessLogicResult(succeeded: true, messages: messages);
+            }
+            catch (Exception exception)
+            {
+                messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
             }
         }
 
