@@ -1401,7 +1401,7 @@ namespace BusinessLogic
                 Settings settings;
                 try
                 {
-                    settings = _settingsRepository.DeferredSelectAll().First();
+                    settings = _settingsRepository.DeferredSelectAll().FirstOrDefault();
                 }
                 catch (Exception exception)
                 {
@@ -1427,17 +1427,18 @@ namespace BusinessLogic
                 Settings settings;
                 try
                 {
-                    settings = _settingsRepository.DeferredSelectAll().First();
+                    settings = _settingsRepository.DeferredSelectAll().FirstOrDefault();
                 }
                 catch (Exception exception)
                 {
                     messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
                     return new BusinessLogicResult<SettingsViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
                 }
-                settings.AboutUs = settingsViewModel.AboutUs;
-                settings.ContactEmail = settingsViewModel.ContactEmail;
-                settings.Logo = settings.Logo;
-                settings.ContactNumber = settingsViewModel.ContactNumber;
+                //settings.AboutUs = settingsViewModel.AboutUs;
+                //settings.ContactEmail = settingsViewModel.ContactEmail;
+                //settings.Logo = settings.Logo;
+                //settings.ContactNumber = settingsViewModel.ContactNumber;
+                settings = await _utility.MapAsync<SettingsViewModel, Settings>(settingsViewModel);
 
                 try
                 {
