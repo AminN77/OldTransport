@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Data.Model
@@ -19,5 +20,9 @@ namespace Data.Model
         public string Bio { get; set; }
 
         public virtual User User { get; set; }
+
+        //public virtual Accept Accept { get; set; }
+
+        public virtual ICollection<Offer> Offers { get; set; }
     }
 }

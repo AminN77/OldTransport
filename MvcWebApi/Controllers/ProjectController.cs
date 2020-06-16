@@ -24,19 +24,15 @@ namespace MvcWebApi.Controllers
             _businessLogicProjectManager = businessLogicProjectManager;
         }
 
-
-
         [HttpPost]
         [Authorize]
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> AddProject(AddProjectViewModel addProjectViewModel)
         {
             if (!ModelState.IsValid) return BadRequest();
-
-            var result = await _businessLogicProjectManager.AddProjectAsync(addProjectViewModel, HttpContext.GetCurrentUserId());
-
+            var adderUserId = HttpContext.GetCurrentUserId();
+            var result = await _businessLogicProjectManager.AddProjectAsync(addProjectViewModel, adderUserId);
             if (!result.Succeeded) return StatusCode(500, result);
-
             return Ok(result);
         }
 
@@ -47,13 +43,10 @@ namespace MvcWebApi.Controllers
         public async Task<IActionResult> ProjectsList(int page, int pageSize, string search, string sort, string filter)
         {
             if (!ModelState.IsValid) return BadRequest();
-
-            var result = await _businessLogicProjectManager.GetProjectsAsync(1, page, pageSize, search, sort, filter);
-
+            var getterUserId = HttpContext.GetCurrentUserId();
+            var result = await _businessLogicProjectManager.GetProjectsAsync(getterUserId, page, pageSize, search, sort, filter);
             if (!result.Succeeded) return StatusCode(500, result);
-
             return Ok(result);
-
         }
 
 
@@ -63,46 +56,47 @@ namespace MvcWebApi.Controllers
         public async Task<IActionResult> EditProject(EditProjectViewModel editProjectViewModel)
         {
             if (!ModelState.IsValid) return BadRequest();
-
-            var result = await _businessLogicProjectManager.EditProjectAsync(editProjectViewModel, HttpContext.GetCurrentUserId());
-
+            var editorUserId = HttpContext.GetCurrentUserId();
+            var result = await _businessLogicProjectManager.EditProjectAsync(editProjectViewModel, editorUserId);
             if (!result.Succeeded) return StatusCode(500, result);
-
             return Ok(result);
-
         }
 
         [HttpGet]
         [Authorize]
         [IgnoreAntiforgeryToken]
-        public async Task<IActionResult> EditProject(int Id)
+        public async Task<IActionResult> EditProject(int projectId)
         {
             if (!ModelState.IsValid) return BadRequest();
-
-            var result = await _businessLogicProjectManager.GetProjectForEditAsync(Id,HttpContext.GetCurrentUserId());
-
+            var getterUserId = HttpContext.GetCurrentUserId();
+            var result = await _businessLogicProjectManager.GetProjectForEditAsync(projectId, getterUserId);
             if (!result.Succeeded) return StatusCode(500, result);
-
             return Ok(result);
-
         }
 
 
-        [HttpPost]
+        [HttpDelete]
         [Authorize]
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> DeleteProject(int projectId)
         {
             if (!ModelState.IsValid) return BadRequest();
-
-            var result = await _businessLogicProjectManager.DeleteProjectAsync(projectId,HttpContext.GetCurrentUserId());
-
+            var deleterUserId = HttpContext.GetCurrentUserId();
+            var result = await _businessLogicProjectManager.DeleteProjectAsync(projectId, deleterUserId);
             if (!result.Succeeded) return StatusCode(500, result);
-
             return Ok(result);
-
         }
 
-
+        [HttpPost]
+        [Authorize]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> AcceptOffer(AcceptOfferViewModel acceptOfferViewModel)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var merchantUserId = HttpContext.GetCurrentUserId();
+            var result = await _businessLogicProjectManager.AcceptOffer(acceptOfferViewModel, merchantUserId);
+            if (!result.Succeeded) return StatusCode(500, result);
+            return Ok(result);
+        }
     }
 }

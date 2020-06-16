@@ -43,20 +43,18 @@ namespace Data.Model
         public DateTime CreateDateTime { get; set; }
 
         [Required]
-        [Range(0.0, double.MaxValue)]
-        public double Budget { get; set; }
+        [Range(0, int.MaxValue)]
+        public int Budget { get; set; }
 
         [Required]
         [Range(0.0, double.MaxValue)]
         public double Weight { get; set; }
 
         [Required]
-        public bool IsDeleted { get; set; }
+        public bool IsEnabled { get; set; }
 
         public virtual Merchant Merchant { get; set; }
 
-        //public virtual ICollection<Offer> Offers { get; set; }
-
-
+        public virtual ICollection<Offer> Offers { get; set; }
     }
 }

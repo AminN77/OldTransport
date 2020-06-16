@@ -21,6 +21,7 @@ namespace Data.DataAccess.Context
         public DbSet<Transporter> Transporters { get; set; }
         public DbSet<Project> Projects { get; set; }
         public DbSet<Offer> Offers { get; set; }
+        public DbSet<Accept> Accepts { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -59,13 +60,25 @@ namespace Data.DataAccess.Context
 
             modelBuilder.Entity<Offer>(entity =>
             {
-                entity.HasKey(e => new { e.TransporterId, e.ProjectId });
-                entity.HasIndex(e => e.TransporterId);
-                entity.HasIndex(e => e.ProjectId);
-                entity.Property(e => e.TransporterId);
-                entity.Property(e => e.ProjectId);
-
+                entity.HasIndex(e => new { e.TransporterId, e.ProjectId }).IsUnique(true);
             });
+
+            modelBuilder.Entity<Accept>(entity =>
+            {
+                entity.HasIndex(e => new { e.MerchantId, e.OfferId }).IsUnique(true);
+            });
+
+            modelBuilder.Entity<Project>().HasMany(b => b.Offers).WithOne(u => u.Project)
+                .HasForeignKey(b => b.ProjectId).OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Merchant>().HasMany(b => b.Accepts).WithOne(u => u.Merchant)
+                .HasForeignKey(b => b.MerchantId).OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Transporter>().HasMany(t => t.Offers).WithOne(t => t.Transporter)
+                .HasForeignKey(t => t.TransporterId).OnDelete(DeleteBehavior.Restrict);
+
+            //modelBuilder.Entity<Merchant>().HasMany(m => m.Projects).WithOne(m => m.Merchant)
+            //    .HasForeignKey(m => m.MerchantId).OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Seed();
             base.OnModelCreating(modelBuilder);

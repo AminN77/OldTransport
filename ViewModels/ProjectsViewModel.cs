@@ -30,8 +30,8 @@ namespace ViewModels
 
         [Display(Name = "Budget")]
         [Required(ErrorMessage = "Please enter {0}")]
-        [Range(0.0, double.MaxValue)]
-        public double Budget { get; set; }
+        [Range(0, int.MaxValue)]
+        public int Budget { get; set; }
 
     }
 
@@ -51,13 +51,22 @@ namespace ViewModels
     {
         [Required]
         public int Id { get; set; }
+
+        [Required]
+        public bool IsEnabled{ get; set; }
     }
 
-    public class EditProjectViewModel : ProjectBaseViewModel
+    public class EditProjectViewModel : AddProjectViewModel
     {
         [Required]
         public int Id { get; set; }
     }
 
-  
+    public class AcceptOfferViewModel
+    {
+        public int MerchantId { get; set; }
+
+        [Required]
+        public int OfferId { get; set; }
+    }
 }

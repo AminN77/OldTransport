@@ -2,13 +2,13 @@
 using AutoMapper.QueryableExtensions;
 using BusinessLogic.Abstractions;
 using BusinessLogic.Abstractions.Message;
+using Cross.Abstractions.EntityEnums;
 using Data.Abstractions;
 using Data.Model;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using ViewModels;
 
@@ -18,34 +18,52 @@ namespace BusinessLogic
     {
         private readonly IRepository<Merchant> _merchantRepository;
         private readonly IRepository<Project> _projectRepository;
+        private readonly IRepository<Accept> _acceptRepository;
+        private readonly IRepository<Role> _roleRepository;
+        private readonly IRepository<UserRole> _userRoleRepository;
         private readonly BusinessLogicUtility _utility;
 
-        public BusinessLogicProjectManager(IRepository<Merchant> merchantRepository, IRepository<Project> projectRepository, BusinessLogicUtility utility)
+        public BusinessLogicProjectManager(IRepository<Merchant> merchantRepository, IRepository<Project> projectRepository,
+                BusinessLogicUtility utility, IRepository<Accept> acceptRepository, IRepository<Role> roleRepository, IRepository<UserRole> userRoleRepository)
         {
             _merchantRepository = merchantRepository;
             _projectRepository = projectRepository;
+            _acceptRepository = acceptRepository;
+            _userRoleRepository = userRoleRepository;
+            _roleRepository = roleRepository;
             _utility = utility;
         }
 
-        public async Task<IBusinessLogicResult<AddProjectViewModel>> AddProjectAsync(AddProjectViewModel addProjectViewModel, int AdderId)
+        public async Task<IBusinessLogicResult<AddProjectViewModel>> AddProjectAsync(AddProjectViewModel addProjectViewModel, int AdderUserId)
         {
             var messages = new List<IBusinessLogicMessage>();
 
             try
             {
+                // Critical Authentication and Authorization
+                try
+                {
+                    var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
+                    var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == AdderUserId && u.RoleId == userRole.Id);
+                    if (!isUserAuthorized)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
+                        return new BusinessLogicResult<AddProjectViewModel>(succeeded: false, result: null,
+                            messages: messages);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<AddProjectViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
+
                 Merchant merchant;
 
                 try
                 {
-                    merchant = await _merchantRepository.DeferredSelectAll().SingleOrDefaultAsync(m => m.UserId == AdderId);
-
-                    if (merchant == null)
-                    {
-                        messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.AccessDenied));
-                        return new BusinessLogicResult<AddProjectViewModel>(succeeded: false, result: null,
-                            messages: messages);
-                    }
-
+                    merchant = await _merchantRepository.DeferredSelectAll().SingleOrDefaultAsync(m => m.UserId == AdderUserId);
                 }
 
                 catch (Exception exception)
@@ -55,8 +73,7 @@ namespace BusinessLogic
                         messages: messages, exception: exception);
                 }
 
-                Project project;
-            
+                Project project;        
 
                 try
                 {
@@ -64,14 +81,13 @@ namespace BusinessLogic
                 }
                 catch (Exception exception)
                 {
-
                     messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
                     return new BusinessLogicResult<AddProjectViewModel>(succeeded: false, result: null,
                         messages: messages, exception: exception);
                 }
 
                 project.CreateDateTime = DateTime.Now;
-                project.IsDeleted = false;
+                project.IsEnabled = true;
                 project.MerchantId = merchant.Id;
                 project.Merchant = merchant;
 
@@ -104,15 +120,29 @@ namespace BusinessLogic
 
         }
 
-        public async Task<IBusinessLogicResult<EditProjectViewModel>> DeleteProjectAsync(int projectId,int deleterId)
+        public async Task<IBusinessLogicResult<EditProjectViewModel>> DeleteProjectAsync(int projectId,int deleterUserId)
         {
             var messages = new List<IBusinessLogicMessage>();
             try
             {
-                //// Critical Authentication and Authorization
-                //var isUserInPermission = await IsUserInPermissionAsync<EditUserViewModel>(getterUserId,
-                //    UserManagerPermissions.EditUser.ToString());
-                //if (!isUserInPermission.Succeeded) return isUserInPermission;
+                // Critical Authentication and Authorization
+                try
+                {
+                    var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
+                    var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == deleterUserId && u.RoleId == userRole.Id);
+                    if (!isUserAuthorized)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
+                        return new BusinessLogicResult<EditProjectViewModel>(succeeded: false, result: null,
+                            messages: messages);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<EditProjectViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
 
                 Project project;
                 // Critical Database
@@ -128,7 +158,7 @@ namespace BusinessLogic
                 }
 
                 // User Verification
-                if (project == null || project.IsDeleted)
+                if (project == null)
                 {
                     messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.ProjectNotFound,
                         BusinessLogicSetting.UserDisplayName));
@@ -136,7 +166,19 @@ namespace BusinessLogic
                         messages: messages);
                 }
 
-                if (project.Merchant.UserId != deleterId)
+                Merchant merchant;
+                try
+                {
+                    merchant = await _merchantRepository.DeferredSelectAll().SingleOrDefaultAsync(m => m.Id == project.MerchantId);
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
+                    return new BusinessLogicResult<EditProjectViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
+
+                if (merchant.UserId != deleterUserId)
                 {
                     messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.AccessDenied,
                         BusinessLogicSetting.UserDisplayName));
@@ -144,12 +186,9 @@ namespace BusinessLogic
                         messages: messages);
                 }
 
-
-                project.IsDeleted = true;
-
                 try
                 {
-                    await _projectRepository.UpdateAsync(project, true);
+                    await _projectRepository.DeleteAsync(project, true);
                 }
                 catch (Exception exception)
                 {
@@ -158,8 +197,9 @@ namespace BusinessLogic
                     return new BusinessLogicResult<EditProjectViewModel>(succeeded: false, result: null,
                         messages: messages, exception: exception);
                 }
-
-                return new BusinessLogicResult<EditProjectViewModel>(succeeded: true, result: null,
+                var editProjectViewModel = await _utility.MapAsync<Project, EditProjectViewModel>(project);
+                messages.Add(new BusinessLogicMessage(type: MessageType.Info, MessageId.EntitySuccessfullyDeleted));
+                return new BusinessLogicResult<EditProjectViewModel>(succeeded: true, result:editProjectViewModel ,
                     messages: messages);
             }
             catch (Exception exception)
@@ -170,41 +210,38 @@ namespace BusinessLogic
             }
         }
 
-        public async Task<IBusinessLogicResult<EditProjectViewModel>> EditProjectAsync(EditProjectViewModel editProjectViewModel, int EditorId)
+        public async Task<IBusinessLogicResult<EditProjectViewModel>> EditProjectAsync(EditProjectViewModel editProjectViewModel, int editorUserId)
         {
             var messages = new List<BusinessLogicMessage>();
             try
             {
                 // Critical Authentication and Authorization
-                //                // Critical Database
-                //
-                //                var isUserInPermission = await IsUserInPermissionAsync<EditUserViewModel>(editorUserId,
-                //                    UserManagerPermissions.EditUser.ToString());
-                //                if (!isUserInPermission.Succeeded) return isUserInPermission;
-
-                // Check organization level
-                //                var getterUser = await _userRepository.FindAsync(editorUserId);
-                //                var subLevelsId = await GetSubLevels(getterUser.OrganizationLevelId);
-                //                if (!(subLevelsId.Result.Contains(editUserViewModel.OrganizationLevelId) ||
-                //                      editUserViewModel.Id == editorUserId))
-                //                {
-                //                    messages.Add(new BusinessLogicMessage(type: MessageType.Error,
-                //                        message: MessageId.AccessDenied, BusinessLogicSetting.UserDisplayName));
-                //                    return new BusinessLogicResult<EditUserViewModel>(succeeded: false, result: null,
-                //                        messages: messages);
-                //                }
-
-                // User verification
-                //var isUserNameExisted = await _projectRepository.DeferredSelectAll(u => u.Id != editUserViewModel.Id)
-                //  .AnyAsync(usr => usr.EmailAddress == editUserViewModel.EmailAddress);
+                try
+                {
+                    var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
+                    var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == editorUserId && u.RoleId == userRole.Id);
+                    if (!isUserAuthorized)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
+                        return new BusinessLogicResult<EditProjectViewModel>(succeeded: false, result: null,
+                            messages: messages);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<EditProjectViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
 
                 Project project;
+                Merchant merchant;
 
                 try
                 {
                     project = await _projectRepository.DeferredSelectAll().SingleOrDefaultAsync(p => p.Id == editProjectViewModel.Id);
 
-                    if (project == null || project.IsDeleted)
+                    if (project == null)
                     {
                         messages.Add(new BusinessLogicMessage(type: MessageType.Error,
                                 message: MessageId.ProjectNotFound, BusinessLogicSetting.UserDisplayName));
@@ -212,7 +249,18 @@ namespace BusinessLogic
                            messages: messages);
                     }
 
-                    if (project.Merchant.UserId != EditorId)
+                    try
+                    {
+                        merchant = await _merchantRepository.DeferredSelectAll().SingleOrDefaultAsync(m => m.Id == project.MerchantId);
+                    }
+                    catch (Exception exception)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
+                        return new BusinessLogicResult<EditProjectViewModel>(succeeded: false, result: null,
+                            messages: messages, exception: exception);
+                    }
+
+                    if (merchant.UserId != editorUserId)
                     {
                         messages.Add(new BusinessLogicMessage(type: MessageType.Error,
                                 message: MessageId.AccessDenied, BusinessLogicSetting.UserDisplayName));
@@ -229,88 +277,26 @@ namespace BusinessLogic
 
                 }
 
-                try
-                {
-                    await _utility.MapAsync<EditProjectViewModel, Project>(editProjectViewModel);
-                }
-                catch (Exception exception)
-                {
-                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
-                    return new BusinessLogicResult<EditProjectViewModel>(succeeded: false, result: null,
-                        messages: messages, exception: exception);
-                }
-
-                ////Check developer role
-                //var developerRole = await _userRoleRepository.DeferredSelectAll()
-                //    .SingleOrDefaultAsync(role => role.RoleId == Int32.Parse(RoleTypes.DeveloperSupport.ToString()));
-                //if (editUserViewModel.RoleIds.Contains(developerRole.Id))
-                //{
-                //    messages.Add(new BusinessLogicMessage(type: MessageType.Error,
-                //        message: MessageId.AccessDenied, BusinessLogicSetting.UserDisplayName));
-                //    return new BusinessLogicResult<AddUserViewModel>(succeeded: false, result: null,
-                //        messages: messages);
-                //}
-
-                // Check Username Existed
-                //if (isUserNameExisted)
-                //{
-                //    messages.Add(new BusinessLogicMessage(type: MessageType.Error,
-                //        message: MessageId.UsernameAlreadyExisted,
-                //        viewMessagePlaceHolders: editUserViewModel.EmailAddress));
-                //    return new BusinessLogicResult<EditUserViewModel>(succeeded: false, result: null,
-                //        messages: messages);
-                //}
-
-                //User user;
+                project.Title = editProjectViewModel.Title;
+                project.Description = editProjectViewModel.Description;
+                project.DestinationCity = editProjectViewModel.DestinationCity;
+                project.DestinationCountry = editProjectViewModel.DestinationCountry;
+                project.BeginningCity = editProjectViewModel.BeginningCity;
+                project.BeginningCountry = editProjectViewModel.DestinationCountry;
+                project.Budget = editProjectViewModel.Budget;
+                project.Weight = editProjectViewModel.Weight;
 
                 //try
                 //{
-                //    user = await _userRepository.FindAsync(editUserViewModel.Id);
+                //    project = await _utility.MapAsync<EditProjectViewModel, Project>(editProjectViewModel);
                 //}
                 //catch (Exception exception)
                 //{
                 //    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
-                //    return new BusinessLogicResult<EditUserViewModel>(succeeded: false, result: null,
+                //    return new BusinessLogicResult<EditProjectViewModel>(succeeded: false, result: null,
                 //        messages: messages, exception: exception);
                 //}
-
-                //if (user == null || user.IsDeleted)
-                //{
-                //    messages.Add(new BusinessLogicMessage(type: MessageType.Error,
-                //        message: MessageId.EntityDoesNotExist,
-                //        viewMessagePlaceHolders: BusinessLogicSetting.UserDisplayName));
-                //    return new BusinessLogicResult<EditUserViewModel>(succeeded: false, result: null,
-                //        messages: messages);
-                //}
-
-                //// Safe
-                //user = await _utility.MapAsync(editUserViewModel, user);
-                //var userId = user.Id;
-                //var oldUserRoles = await _userRoleRepository.DeferredWhere(userRole => userRole.UserId == userId)
-                //    .ToListAsync();
-                //var userOldRoleIds = oldUserRoles.Select(userRole => userRole.RoleId).ToList();
-                //if (editUserViewModel.RoleIds != null)
-                //{
-                //    var toBeDeletedUserRoleIds = userOldRoleIds.Except(editUserViewModel.RoleIds);
-                //    var toBeDeletedUserRoles = oldUserRoles
-                //        .Where(userRole => toBeDeletedUserRoleIds.Contains(userRole.RoleId)).ToList();
-                //    await _userRoleRepository.DeleteAllAsync(toBeDeletedUserRoles, false);
-                //    var toBeAddedUserRoleIds = editUserViewModel.RoleIds.Except(userOldRoleIds);
-                //    foreach (var roleId in toBeAddedUserRoleIds)
-                //    {
-                //        var userRole = new UserRole
-                //        {
-                //            RoleId = roleId,
-                //            UserId = user.Id
-                //        };
-                //        await _userRoleRepository.AddOrUpdateAsync(userRole, false);
-                //    }
-                //}
-
-                // Set new serial number
-                //user.SerialNumber = Guid.NewGuid().ToString();
-                //user.Name = editUserViewModel.Name;
-                //user.Picture = editUserViewModel.Picture;
+                //project.MerchantId = merchant.Id;
 
                 try
                 {
@@ -337,16 +323,30 @@ namespace BusinessLogic
             }
         }
 
-        public async Task<IBusinessLogicResult<EditProjectViewModel>> GetProjectForEditAsync(int projectId,int editorId)
+        public async Task<IBusinessLogicResult<EditProjectViewModel>> GetProjectForEditAsync(int projectId,int getterUserId)
         {
 
             var messages = new List<IBusinessLogicMessage>();
             try
             {
-                //// Critical Authentication and Authorization
-                //var isUserInPermission = await IsUserInPermissionAsync<EditUserViewModel>(getterUserId,
-                //    UserManagerPermissions.EditUser.ToString());
-                //if (!isUserInPermission.Succeeded) return isUserInPermission;
+                // Critical Authentication and Authorization
+                try
+                {
+                    var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
+                    var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == getterUserId && u.RoleId == userRole.Id);
+                    if (!isUserAuthorized)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
+                        return new BusinessLogicResult<EditProjectViewModel>(succeeded: false, result: null,
+                            messages: messages);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<EditProjectViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
 
                 Project project;
                 // Critical Database
@@ -362,7 +362,7 @@ namespace BusinessLogic
                 }
 
                 // User Verification
-                if (project == null || project.IsDeleted)
+                if (project == null)
                 {
                     messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.ProjectNotFound,
                         BusinessLogicSetting.UserDisplayName));
@@ -370,7 +370,19 @@ namespace BusinessLogic
                         messages: messages);
                 }
 
-                if(project.Merchant.UserId != editorId)
+                Merchant merchant;
+                try
+                {
+                    merchant = await _merchantRepository.DeferredSelectAll().SingleOrDefaultAsync(m => m.Id == project.MerchantId);
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
+                    return new BusinessLogicResult<EditProjectViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
+
+                if (merchant.UserId != getterUserId)
                 {
                     messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.AccessDenied,
                                             BusinessLogicSetting.UserDisplayName));
@@ -460,6 +472,199 @@ namespace BusinessLogic
                     result: null, messages: messages, exception: exception);
             }
 
+        }
+
+        public async Task<IBusinessLogicResult<AcceptOfferViewModel>> AcceptOffer(AcceptOfferViewModel acceptOfferViewModel, int merchantUserId)
+        {
+            var messages = new List<IBusinessLogicMessage>();
+            try
+            {
+                // Critical Authentication and Authorization
+                try
+                {
+                    var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
+                    var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == merchantUserId && u.RoleId == userRole.Id);
+                    if (!isUserAuthorized)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
+                        return new BusinessLogicResult<AcceptOfferViewModel>(succeeded: false, result: null,
+                            messages: messages);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<AcceptOfferViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
+                Merchant merchant;
+                try
+                {
+                    merchant = await _merchantRepository.DeferredSelectAll().SingleOrDefaultAsync(m => m.UserId == merchantUserId);
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<AcceptOfferViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
+
+                acceptOfferViewModel.MerchantId = merchant.Id;
+                var accept = await _utility.MapAsync<AcceptOfferViewModel, Accept>(acceptOfferViewModel);
+                try
+                {
+                    await _acceptRepository.AddAsync(accept);
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<AcceptOfferViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
+                messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.EntitySuccessfullyAdded));
+                return new BusinessLogicResult<AcceptOfferViewModel>(succeeded: false, result: acceptOfferViewModel,
+                    messages: messages);
+            }
+            catch (Exception exception)
+            {
+                messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                return new BusinessLogicResult<AcceptOfferViewModel>(succeeded: false, result: null,
+                    messages: messages, exception: exception);
+            }
+        }
+
+        public async Task<IBusinessLogicResult> DeactivateProjectAsync(int projectId, int deactivatorUserId)
+        {
+            var messages = new List<IBusinessLogicMessage>();
+            try
+            {
+                // Critical Authentication and Authorization
+                try
+                {
+                    var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.Admin.ToString());
+                    var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == deactivatorUserId && u.RoleId != userRole.Id);
+                    if (!isUserAuthorized)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
+                        return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
+                            messages: messages);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
+
+                Project project;
+                // Critical Database
+                try
+                {
+                    project = await _projectRepository.FindAsync(projectId);
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
+
+                // project Verification
+                if (project == null)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error,
+                        message: MessageId.EntityDoesNotExist,
+                        viewMessagePlaceHolders: BusinessLogicSetting.UserDisplayName));
+                    return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
+                        messages: messages);
+                }
+
+                project.IsEnabled = false;
+                try
+                {
+                    await _projectRepository.UpdateAsync(project);
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                    return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+                }
+                messages.Add(new BusinessLogicMessage(MessageType.Info, MessageId.UserSuccessfullyDeactivated));
+                return new BusinessLogicResult(succeeded: true, messages: messages);
+            }
+            catch (Exception exception)
+            {
+                messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+            }
+        }
+
+        public async Task<IBusinessLogicResult> ActivateProjectAsync(int projectId, int activatorUserId)
+        {
+            var messages = new List<IBusinessLogicMessage>();
+            try
+            {
+                // Critical Authentication and Authorization
+                try
+                {
+                    var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.Admin.ToString());
+                    var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == activatorUserId && u.RoleId != userRole.Id);
+                    if (!isUserAuthorized)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
+                        return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
+                            messages: messages);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
+
+                Project project;
+                // Critical Database
+                try
+                {
+                    project = await _projectRepository.FindAsync(projectId);
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
+
+                // project Verification
+                if (project == null)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error,
+                        message: MessageId.EntityDoesNotExist,
+                        viewMessagePlaceHolders: BusinessLogicSetting.UserDisplayName));
+                    return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
+                        messages: messages);
+                }
+
+                project.IsEnabled = true;
+                try
+                {
+                    await _projectRepository.UpdateAsync(project);
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                    return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+                }
+                messages.Add(new BusinessLogicMessage(MessageType.Info, MessageId.UserSuccessfullyDeactivated));
+                return new BusinessLogicResult(succeeded: true, messages: messages);
+            }
+            catch (Exception exception)
+            {
+                messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+            }
         }
 
         public void Dispose()

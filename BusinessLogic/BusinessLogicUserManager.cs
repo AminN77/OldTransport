@@ -10,6 +10,7 @@ using Cross.Abstractions;
 using Cross.Abstractions.EntityEnums;
 using Data.Abstractions;
 using Data.Model;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ViewModels;
@@ -29,12 +30,13 @@ namespace BusinessLogic
         private readonly IPasswordHasher _passwordHasher;
         private readonly ISecurityProvider _securityProvider;
         private readonly IEmailSender _emailSender;
+        private readonly IFileService _fileService;
 
         // Constructor
         public BusinessLogicUserManager(IRepository<User> userRepository, ILogger<BusinessLogicUserManager> logger,
                 BusinessLogicUtility utility, IRepository<UserRole> userRoleRepository, IRepository<Merchant> merchantRepository,
                 IPasswordHasher passwordHasher, ISecurityProvider securityProvider, IEmailSender emailSender,
-                IRepository<Transporter> transporterRepository, IRepository<Role> roleRepository)
+                IRepository<Transporter> transporterRepository, IRepository<Role> roleRepository, IFileService fileService)
         {
             _userRepository = userRepository;
             _userRoleRepository = userRoleRepository;
@@ -46,6 +48,7 @@ namespace BusinessLogic
             _merchantRepository = merchantRepository;
             _transporterRepository = transporterRepository;
             _roleRepository = roleRepository;
+            _fileService = fileService;
         }
 
         #region User
@@ -192,7 +195,7 @@ namespace BusinessLogic
                 usersQuery = usersQuery.ApplyOrderBy(sort);
                 var userListViewModels = await usersQuery.PaginateAsync(page, pageSize);
                 var recordsCount = await usersQuery.CountAsync();
-                var pageCount = (int) Math.Ceiling(recordsCount / (double) pageSize);
+                var pageCount = (int)Math.Ceiling(recordsCount / (double)pageSize);
                 var result = new ListResultViewModel<ListUserViewModel>
                 {
                     Results = userListViewModels,
@@ -403,207 +406,121 @@ namespace BusinessLogic
         /// <param name="editorUserId"></param>
         /// <returns></returns>
         public async Task<IBusinessLogicResult<EditUserViewModel>> EditUserAsync(EditUserViewModel editUserViewModel,
-            int editorUserId)
+             int editorUserId, IFormFile file)
         {
-            return null;
-//            var messages = new List<BusinessLogicMessage>();
-//            try
-//            {
-//                // Critical Authentication and Authorization
-////                // Critical Database
-////
-////                var isUserInPermission = await IsUserInPermissionAsync<EditUserViewModel>(editorUserId,
-////                    UserManagerPermissions.EditUser.ToString());
-////                if (!isUserInPermission.Succeeded) return isUserInPermission;
-//
-//                // Check organization level
-////                var getterUser = await _userRepository.FindAsync(editorUserId);
-////                var subLevelsId = await GetSubLevels(getterUser.OrganizationLevelId);
-////                if (!(subLevelsId.Result.Contains(editUserViewModel.OrganizationLevelId) ||
-////                      editUserViewModel.Id == editorUserId))
-////                {
-////                    messages.Add(new BusinessLogicMessage(type: MessageType.Error,
-////                        message: MessageId.AccessDenied, BusinessLogicSetting.UserDisplayName));
-////                    return new BusinessLogicResult<EditUserViewModel>(succeeded: false, result: null,
-////                        messages: messages);
-////                }
-//
-//                // User verification
-//                var isUserNameExisted = await _userRepository.DeferredSelectAll(u => u.Id != editUserViewModel.Id)
-//                    .AnyAsync(usr => usr.Username == editUserViewModel.Username);
-//
-//                // Check developer role
-////                var developerRole = await _roleRepository.DeferredSelectAll()
-////                    .SingleOrDefaultAsync(role => role.Name == RoleType.DeveloperSupport.ToString().ToLower());
-////                if (editUserViewModel.RoleIds.Contains(developerRole.Id))
-////                {
-////                    messages.Add(new BusinessLogicMessage(type: MessageType.Error,
-////                        message: MessageId.AccessDenied, BusinessLogicSetting.UserDisplayName));
-////                    return new BusinessLogicResult<AddUserViewModel>(succeeded: false, result: null,
-////                        messages: messages);
-////                }
-//
-//                // Check Username Existed
-//                if (isUserNameExisted)
-//                {
-//                    messages.Add(new BusinessLogicMessage(type: MessageType.Error,
-//                        message: MessageId.UsernameAlreadyExisted,
-//                        viewMessagePlaceHolders: editUserViewModel.Username));
-//                    return new BusinessLogicResult<AddUserViewModel>(succeeded: false, result: null,
-//                        messages: messages);
-//                }
-//
-//                User user;
-//
-//                try
-//                {
-//                    user = await _userRepository.FindAsync(editUserViewModel.Id);
-//                }
-//                catch (Exception exception)
-//                {
-//                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
-//                    return new BusinessLogicResult<EditUserViewModel>(succeeded: false, result: null,
-//                        messages: messages, exception: exception);
-//                }
-//
-//                if (user == null || user.IsDeleted)
-//                {
-//                    messages.Add(new BusinessLogicMessage(type: MessageType.Error,
-//                        message: MessageId.EntityDoesNotExist,
-//                        viewMessagePlaceHolders: BusinessLogicSetting.UserDisplayName));
-//                    return new BusinessLogicResult<EditUserViewModel>(succeeded: false, result: null,
-//                        messages: messages);
-//                }
-//
-//                // Safe
-//                user = await _utility.MapAsync(editUserViewModel, user);
-//                var userId = user.Id;
-//                var oldUserRoles = await _userRoleRepository.DeferredWhere(userRole => userRole.UserId == userId)
-//                    .ToListAsync();
-//                var userOldRoleIds = oldUserRoles.Select(userRole => userRole.RoleId).ToList();
-//                if (editUserViewModel.RoleIds != null)
-//                {
-//                    var toBeDeletedUserRoleIds = userOldRoleIds.Except(editUserViewModel.RoleIds);
-//                    var toBeDeletedUserRoles = oldUserRoles
-//                        .Where(userRole => toBeDeletedUserRoleIds.Contains(userRole.RoleId)).ToList();
-//                    await _userRoleRepository.DeleteAllAsync(toBeDeletedUserRoles, false);
-//                    var toBeAddedUserRoleIds = editUserViewModel.RoleIds.Except(userOldRoleIds);
-//                    foreach (var roleId in toBeAddedUserRoleIds)
-//                    {
-//                        var userRole = new UserRole
-//                        {
-//                            RoleId = roleId,
-//                            UserId = user.Id
-//                        };
-//                        await _userRoleRepository.AddOrUpdateAsync(userRole, false);
-//                    }
-//                }
-//
-//                // Set new serial number
-//                user.SerialNumber = Guid.NewGuid();
-//
-//                try
-//                {
-//                    await _userRepository.UpdateAsync(user, true); //, propertiesToBeUpdate.ToArray()
-//                }
-//                catch (Exception exception)
-//                {
-//                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
-//                    return new BusinessLogicResult<EditUserViewModel>(succeeded: false, result: null,
-//                        messages: messages, exception: exception);
-//                }
-//
-//                messages.Add(
-//                    new BusinessLogicMessage(type: MessageType.Info, message: MessageId.UserSuccessfullyEdited));
-//                return new BusinessLogicResult<EditUserViewModel>(succeeded: true, result: editUserViewModel,
-//                    messages: messages);
-//            }
-//            catch (Exception exception)
-//            {
-//                messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
-//                return new BusinessLogicResult<EditUserViewModel>(succeeded: false, result: null,
-//                    messages: messages, exception: exception);
-//            }
-        }
+            var messages = new List<BusinessLogicMessage>();
+            try
+            {
+                // Critical Authentication and Authorization
+                try
+                {
+                    var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
+                    var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == editorUserId && u.RoleId != userRole.Id);
+                    if (editUserViewModel.Id != editorUserId && !isUserAuthorized)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
+                        return new BusinessLogicResult<EditUserViewModel>(succeeded: false, result: null,
+                            messages: messages);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<EditUserViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
 
-        /// <summary>
-        /// Edit User Is Enable Field Async
-        /// </summary>
-        /// <param name="userId"></param>
-        /// <param name="isEnabled"></param>
-        /// <param name="setterUserId"></param>
-        /// <returns></returns>
-        public async Task<IBusinessLogicResult> EditUserIsEnabledAsync(int userId, bool isEnabled, int setterUserId)
-        {
-            return null;
-//            var messages = new List<BusinessLogicMessage>();
-//            try
-//            {
-//                // Critical Authentication and Authorization
-//                // TODO: view model
-//                var isUserInPermission = await IsUserInPermissionAsync<EditUserViewModel>(setterUserId,
-//                    UserManagerPermissions.EditUser.ToString());
-//                if (!isUserInPermission.Succeeded) return isUserInPermission;
-////                }
-////                catch (Exception exception)
-////                {
-////                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
-////                    return new BusinessLogicResult<AddUserViewModel>(succeeded: false, result: null,
-////                        messages: messages, exception: exception);
-////                }
-//
-//                // User verification
-//                User user;
-//                try
-//                {
-//                    user = await _userRepository.FindAsync(userId);
-//                    if (user == null)
-//                    {
-//                        messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.EntityDoesNotExist,
-//                            BusinessLogicSetting.UserDisplayName));
-//                        return new BusinessLogicResult(succeeded: false, messages: messages);
-//                    }
-//                }
-//                catch (Exception exception)
-//                {
-//                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
-//                    return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
-//                }
-//
-//                // Check organization level
-//                var getterUser = await _userRepository.FindAsync(setterUserId);
-//                var subLevelsId = await GetSubLevels(getterUser.OrganizationLevelId);
-//                if (!subLevelsId.Result.Contains(user.OrganizationLevelId) || user.Id != setterUserId)
-//                {
-//                    messages.Add(new BusinessLogicMessage(type: MessageType.Error,
-//                        message: MessageId.AccessDenied, BusinessLogicSetting.UserDisplayName));
-//                    return new BusinessLogicResult<EditUserViewModel>(succeeded: false, result: null,
-//                        messages: messages);
-//                }
-//
-//                // Critical Database operation
-//                user.IsEnabled = isEnabled;
-//                try
-//                {
-//                    await _userRepository.UpdateAsync(user, true); //, nameof(user.IsEnabled)
-//                    messages.Add(new BusinessLogicMessage(type: MessageType.Info,
-//                        message: MessageId.UserIsEnabledSuccessfullySet,
-//                        viewMessagePlaceHolders: isEnabled ? "فعال" : "غیر فعال"));
-//                    return new BusinessLogicResult(succeeded: true, messages: messages);
-//                }
-//                catch (Exception exception)
-//                {
-//                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
-//                    return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
-//                }
-//            }
-//            catch (Exception exception)
-//            {
-//                messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
-//                return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
-//            }
-        }
+                // User verification
+                var isUserNameExisted = await _userRepository.DeferredSelectAll(u => u.Id != editUserViewModel.Id)
+                    .AnyAsync(usr => usr.EmailAddress == editUserViewModel.EmailAddress);
 
+                // Check developer & admin role
+                var developerRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.DeveloperSupport.ToString());
+                var isUserDeveloper = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == editUserViewModel.Id && u.RoleId == developerRole.Id);
+                var adminRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.Admin.ToString());
+                var isUserAdmin = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == editUserViewModel.Id && u.RoleId == adminRole.Id);
+                if (isUserAdmin || isUserDeveloper)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error,
+                        message: MessageId.AccessDenied, BusinessLogicSetting.UserDisplayName));
+                    return new BusinessLogicResult<EditUserViewModel>(succeeded: false, result: null,
+                        messages: messages);
+                }
+
+                // Check Username Existed
+                if (isUserNameExisted)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error,
+                        message: MessageId.UsernameAlreadyExisted,
+                        viewMessagePlaceHolders: editUserViewModel.EmailAddress));
+                    return new BusinessLogicResult<EditUserViewModel>(succeeded: false, result: null,
+                        messages: messages);
+                }
+
+                var check = _fileService.FileTypeValidator(file, Cross.Abstractions.EntityEnums.FileTypes.ProfilePhoto);
+                if (!check)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InvalidFileType));
+                    return new BusinessLogicResult<EditUserViewModel>(succeeded: false, result: null,
+                        messages: messages);
+                }
+
+                var resizedPhoto = _fileService.PhotoResizer(file);
+                await _fileService.SaveFile(resizedPhoto, Cross.Abstractions.EntityEnums.FileTypes.ProfilePhoto);
+                //new { Size = _fileService.SizeDeterminator(file.Length) };
+
+                User user;
+
+                try
+                {
+                    user = await _userRepository.FindAsync(editUserViewModel.Id);
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<EditUserViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
+
+                if (user == null || user.IsDeleted)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error,
+                        message: MessageId.EntityDoesNotExist,
+                        viewMessagePlaceHolders: BusinessLogicSetting.UserDisplayName));
+                    return new BusinessLogicResult<EditUserViewModel>(succeeded: false, result: null,
+                        messages: messages);
+                }
+
+                // Safe
+                user = await _utility.MapAsync(editUserViewModel, user);
+
+
+                // Set new serial number
+                user.SerialNumber = Guid.NewGuid().ToString();
+
+                try
+                {
+                    await _userRepository.UpdateAsync(user, true); //, propertiesToBeUpdate.ToArray()
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<EditUserViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
+
+                messages.Add(
+                    new BusinessLogicMessage(type: MessageType.Info, message: MessageId.UserSuccessfullyEdited));
+                return new BusinessLogicResult<EditUserViewModel>(succeeded: true, result: editUserViewModel,
+                    messages: messages);
+            }
+            catch (Exception exception)
+            {
+                messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
+                return new BusinessLogicResult<EditUserViewModel>(succeeded: false, result: null,
+                    messages: messages, exception: exception);
+            }
+        }
 
         public async Task<IBusinessLogicResult<DetailUserViewModel>> GetUserDetailsAsync(int userId, int getterUserId)
         {
@@ -668,97 +585,96 @@ namespace BusinessLogic
         public async Task<IBusinessLogicResult<EditUserViewModel>> GetUserForEditAsync(int userId, int getterUserId)
         {
             return null;
-//            var messages = new List<IBusinessLogicMessage>();
-//            try
-//            {
-//                // Critical Authentication and Authorization
-//                var isUserInPermission = await IsUserInPermissionAsync<EditUserViewModel>(getterUserId,
-//                    UserManagerPermissions.EditUser.ToString());
-//                if (!isUserInPermission.Succeeded) return isUserInPermission;
-//
-//                User user;
-//                // Critical Database
-//                try
-//                {
-//                    user = await _userRepository.FindAsync(userId);
-//                }
-//                catch (Exception exception)
-//                {
-//                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
-//                    return new BusinessLogicResult<EditUserViewModel>(succeeded: false, result: null,
-//                        messages: messages, exception: exception);
-//                }
-//
-//                // User Verification
-//                if (user == null || user.IsDeleted)
-//                {
-//                    messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.EntityDoesNotExist,
-//                        BusinessLogicSetting.UserDisplayName));
-//                    return new BusinessLogicResult<EditUserViewModel>(succeeded: false, result: null,
-//                        messages: messages);
-//                }
-//
-//                // Check organization level
-//                var getterUser = await _userRepository.FindAsync(getterUserId);
-//                var subLevelsId = await GetSubLevels(getterUser.OrganizationLevelId);
-//                if (!(subLevelsId.Result.Contains(user.OrganizationLevelId) || user.Id == getterUserId))
-//                {
-//                    messages.Add(new BusinessLogicMessage(type: MessageType.Error,
-//                        message: MessageId.AccessDenied, BusinessLogicSetting.UserDisplayName));
-//                    return new BusinessLogicResult<EditUserViewModel>(succeeded: false, result: null,
-//                        messages: messages);
-//                }
-//
-//                // Safe Map
-//                var userViewModel = await _utility.MapAsync<User, EditUserViewModel>(user);
-//                if (userId != getterUserId)
-//                    userViewModel.RoleIds = await _userRoleRepository
-//                        .DeferredWhere(userRole => userRole.UserId == userId).Select(userRole => userRole.RoleId)
-//                        .ToArrayAsync();
-//                return new BusinessLogicResult<EditUserViewModel>(succeeded: true, result: userViewModel,
-//                    messages: messages);
-//            }
-//            catch (Exception exception)
-//            {
-//                messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
-//                return new BusinessLogicResult<EditUserViewModel>(succeeded: false, result: null,
-//                    messages: messages, exception: exception);
-//            }
+            //            var messages = new List<IBusinessLogicMessage>();
+            //            try
+            //            {
+            //                // Critical Authentication and Authorization
+            //                var isUserInPermission = await IsUserInPermissionAsync<EditUserViewModel>(getterUserId,
+            //                    UserManagerPermissions.EditUser.ToString());
+            //                if (!isUserInPermission.Succeeded) return isUserInPermission;
+            //
+            //                User user;
+            //                // Critical Database
+            //                try
+            //                {
+            //                    user = await _userRepository.FindAsync(userId);
+            //                }
+            //                catch (Exception exception)
+            //                {
+            //                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+            //                    return new BusinessLogicResult<EditUserViewModel>(succeeded: false, result: null,
+            //                        messages: messages, exception: exception);
+            //                }
+            //
+            //                // User Verification
+            //                if (user == null || user.IsDeleted)
+            //                {
+            //                    messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.EntityDoesNotExist,
+            //                        BusinessLogicSetting.UserDisplayName));
+            //                    return new BusinessLogicResult<EditUserViewModel>(succeeded: false, result: null,
+            //                        messages: messages);
+            //                }
+            //
+            //                // Check organization level
+            //                var getterUser = await _userRepository.FindAsync(getterUserId);
+            //                var subLevelsId = await GetSubLevels(getterUser.OrganizationLevelId);
+            //                if (!(subLevelsId.Result.Contains(user.OrganizationLevelId) || user.Id == getterUserId))
+            //                {
+            //                    messages.Add(new BusinessLogicMessage(type: MessageType.Error,
+            //                        message: MessageId.AccessDenied, BusinessLogicSetting.UserDisplayName));
+            //                    return new BusinessLogicResult<EditUserViewModel>(succeeded: false, result: null,
+            //                        messages: messages);
+            //                }
+            //
+            //                // Safe Map
+            //                var userViewModel = await _utility.MapAsync<User, EditUserViewModel>(user);
+            //                if (userId != getterUserId)
+            //                    userViewModel.RoleIds = await _userRoleRepository
+            //                        .DeferredWhere(userRole => userRole.UserId == userId).Select(userRole => userRole.RoleId)
+            //                        .ToArrayAsync();
+            //                return new BusinessLogicResult<EditUserViewModel>(succeeded: true, result: userViewModel,
+            //                    messages: messages);
+            //            }
+            //            catch (Exception exception)
+            //            {
+            //                messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
+            //                return new BusinessLogicResult<EditUserViewModel>(succeeded: false, result: null,
+            //                    messages: messages, exception: exception);
+            //            }
         }
-
 
         public async Task<IBusinessLogicResult> IsUserNameAvailableAsync(string userName, int getterUserId)
         {
             return null;
-//            var messages = new List<IBusinessLogicMessage>();
-//            try
-//            {
-//                // Critical Authentication and Authorization
-//                var isUserInPermission = await IsUserInOneOfPermissionsAsync(getterUserId,
-//                    UserManagerPermissions.EditUser.ToString(), UserManagerPermissions.AddUser.ToString());
-//                if (!isUserInPermission.Succeeded) return isUserInPermission;
-//
-//                bool isUserNameAvailable;
-//                try
-//                {
-//                    isUserNameAvailable =
-//                        !await _userRepository.DeferredSelectAll().AnyAsync(usr => usr.Username == userName);
-//                }
-//                catch (Exception exception)
-//                {
-//                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
-//                    return new BusinessLogicResult(succeeded: false, messages: messages,
-//                        exception: exception);
-//                }
-//
-//                return new BusinessLogicResult(succeeded: isUserNameAvailable, messages: messages);
-//            }
-//            catch (Exception exception)
-//            {
-//                messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
-//                return new BusinessLogicResult(succeeded: false, messages: messages,
-//                    exception: exception);
-//            }
+            //            var messages = new List<IBusinessLogicMessage>();
+            //            try
+            //            {
+            //                // Critical Authentication and Authorization
+            //                var isUserInPermission = await IsUserInOneOfPermissionsAsync(getterUserId,
+            //                    UserManagerPermissions.EditUser.ToString(), UserManagerPermissions.AddUser.ToString());
+            //                if (!isUserInPermission.Succeeded) return isUserInPermission;
+            //
+            //                bool isUserNameAvailable;
+            //                try
+            //                {
+            //                    isUserNameAvailable =
+            //                        !await _userRepository.DeferredSelectAll().AnyAsync(usr => usr.Username == userName);
+            //                }
+            //                catch (Exception exception)
+            //                {
+            //                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+            //                    return new BusinessLogicResult(succeeded: false, messages: messages,
+            //                        exception: exception);
+            //                }
+            //
+            //                return new BusinessLogicResult(succeeded: isUserNameAvailable, messages: messages);
+            //            }
+            //            catch (Exception exception)
+            //            {
+            //                messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
+            //                return new BusinessLogicResult(succeeded: false, messages: messages,
+            //                    exception: exception);
+            //            }
         }
 
 
@@ -766,78 +682,78 @@ namespace BusinessLogic
         //    int reSetterUserId)
         //{
         //    return null;
-//            var messages = new List<BusinessLogicMessage>();
-//            try
-//            {
-//                // Critical Authentication and Authorization
-//                var isUserInPermission = await IsUserInPermissionAsync<EditUserViewModel>(reseterUserId,
-//                    UserManagerPermissions.EditUser.ToString());
-//                if (!isUserInPermission.Succeeded) return isUserInPermission;
-//
-//                // user verification
-//                User user;
-//                try
-//                {
-//                    user = await _userRepository.FindAsync(userSetPasswordViewModel.Id);
-//                    if (user == null)
-//                    {
-//                        messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.EntityDoesNotExist,
-//                            BusinessLogicSetting.UserDisplayName));
-//                        return new BusinessLogicResult<UserSetPasswordViewModel>(succeeded: false, result: null,
-//                            messages: messages);
-//                    }
-//                }
-//                catch (Exception exception)
-//                {
-//                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
-//                    return new BusinessLogicResult<UserSetPasswordViewModel>(succeeded: false, result: null,
-//                        messages: messages, exception: exception);
-//                }
-//
-//                // Validation Password
-//                if (userSetPasswordViewModel.NewPassword != userSetPasswordViewModel.PasswordConfirm)
-//                {
-//                    messages.Add(new BusinessLogicMessage(type: MessageType.Error,
-//                        message: MessageId.PasswordAndPasswordConfirmAreNotMached));
-//                    return new BusinessLogicResult<AddUserViewModel>(succeeded: false, result: null,
-//                        messages: messages);
-//                }
-//
-//                // Create password hash
-//                //user.Salt = await _securityProvider.GenerateRandomSaltAsync(BusinessLogicSetting.DefaultSaltCount);
-//                //user.IterationCount = new Random().Next(BusinessLogicSetting.DefaultMinIterations,
-//                //    BusinessLogicSetting.DefaultMaxIterations);
-//                user.Password = await _securityProvider.PasswordHasher.HashPasswordAsync(
-//                    userSetPasswordViewModel.NewPassword, user.Salt, user.IterationCount,
-//                    BusinessLogicSetting.DefaultPassworHashCount);
-//                // Critical Database operation
-//                try
-//                {
-//                    //await _userRepository.UpdateAsync(user, true, nameof(user.PasswordHash), nameof(user.Salt),
-//                    //  nameof(user.IterationCount));
-//                    messages.Add(new BusinessLogicMessage(type: MessageType.Info,
-//                        message: MessageId.PasswordSuccessfullyReseted));
-//                    return new BusinessLogicResult<UserSetPasswordViewModel>(succeeded: true,
-//                        result: userSetPasswordViewModel, messages: messages);
-//                }
-//                catch (Exception exception)
-//                {
-//                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
-//                    return new BusinessLogicResult<UserSetPasswordViewModel>(succeeded: false, result: null,
-//                        messages: messages, exception: exception);
-//                }
-//            }
-//            catch (Exception exception)
-//            {
-//                messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
-//                return new BusinessLogicResult<UserSetPasswordViewModel>(succeeded: false, result: null,
-//                    messages: messages, exception: exception);
-//            }
+        //            var messages = new List<BusinessLogicMessage>();
+        //            try
+        //            {
+        //                // Critical Authentication and Authorization
+        //                var isUserInPermission = await IsUserInPermissionAsync<EditUserViewModel>(reseterUserId,
+        //                    UserManagerPermissions.EditUser.ToString());
+        //                if (!isUserInPermission.Succeeded) return isUserInPermission;
+        //
+        //                // user verification
+        //                User user;
+        //                try
+        //                {
+        //                    user = await _userRepository.FindAsync(userSetPasswordViewModel.Id);
+        //                    if (user == null)
+        //                    {
+        //                        messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.EntityDoesNotExist,
+        //                            BusinessLogicSetting.UserDisplayName));
+        //                        return new BusinessLogicResult<UserSetPasswordViewModel>(succeeded: false, result: null,
+        //                            messages: messages);
+        //                    }
+        //                }
+        //                catch (Exception exception)
+        //                {
+        //                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+        //                    return new BusinessLogicResult<UserSetPasswordViewModel>(succeeded: false, result: null,
+        //                        messages: messages, exception: exception);
+        //                }
+        //
+        //                // Validation Password
+        //                if (userSetPasswordViewModel.NewPassword != userSetPasswordViewModel.PasswordConfirm)
+        //                {
+        //                    messages.Add(new BusinessLogicMessage(type: MessageType.Error,
+        //                        message: MessageId.PasswordAndPasswordConfirmAreNotMached));
+        //                    return new BusinessLogicResult<AddUserViewModel>(succeeded: false, result: null,
+        //                        messages: messages);
+        //                }
+        //
+        //                // Create password hash
+        //                //user.Salt = await _securityProvider.GenerateRandomSaltAsync(BusinessLogicSetting.DefaultSaltCount);
+        //                //user.IterationCount = new Random().Next(BusinessLogicSetting.DefaultMinIterations,
+        //                //    BusinessLogicSetting.DefaultMaxIterations);
+        //                user.Password = await _securityProvider.PasswordHasher.HashPasswordAsync(
+        //                    userSetPasswordViewModel.NewPassword, user.Salt, user.IterationCount,
+        //                    BusinessLogicSetting.DefaultPassworHashCount);
+        //                // Critical Database operation
+        //                try
+        //                {
+        //                    //await _userRepository.UpdateAsync(user, true, nameof(user.PasswordHash), nameof(user.Salt),
+        //                    //  nameof(user.IterationCount));
+        //                    messages.Add(new BusinessLogicMessage(type: MessageType.Info,
+        //                        message: MessageId.PasswordSuccessfullyReseted));
+        //                    return new BusinessLogicResult<UserSetPasswordViewModel>(succeeded: true,
+        //                        result: userSetPasswordViewModel, messages: messages);
+        //                }
+        //                catch (Exception exception)
+        //                {
+        //                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+        //                    return new BusinessLogicResult<UserSetPasswordViewModel>(succeeded: false, result: null,
+        //                        messages: messages, exception: exception);
+        //                }
+        //            }
+        //            catch (Exception exception)
+        //            {
+        //                messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
+        //                return new BusinessLogicResult<UserSetPasswordViewModel>(succeeded: false, result: null,
+        //                    messages: messages, exception: exception);
+        //            }
         //}
 
 
-         public async Task<IBusinessLogicResult<UserSignInViewModel>> IsUserAuthenticateAsync(
-            SignInInfoViewModel signInInfoViewModel)
+        public async Task<IBusinessLogicResult<UserSignInViewModel>> IsUserAuthenticateAsync(
+           SignInInfoViewModel signInInfoViewModel)
         {
             var messages = new List<IBusinessLogicMessage>();
             try
@@ -900,7 +816,7 @@ namespace BusinessLogic
         }
 
 
-         public async Task<IBusinessLogicResult<UserSignInViewModel>> FindUserAsync(int userId)
+        public async Task<IBusinessLogicResult<UserSignInViewModel>> FindUserAsync(int userId)
         {
             var messages = new List<IBusinessLogicMessage>();
             try
@@ -1026,7 +942,7 @@ namespace BusinessLogic
                     {
                         Exception exception = new Exception("DeactivatedUser");
                         messages.Add(new BusinessLogicMessage(MessageType.Info, MessageId.DeactivatedUser));
-                        return new BusinessLogicResult(succeeded: false, messages: messages, exception:exception );
+                        return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
                     }
                 }
                 catch (Exception exception)
@@ -1148,14 +1064,19 @@ namespace BusinessLogic
                     return new BusinessLogicResult<UserSignInViewModel>(succeeded: false, result: null, messages: messages, exception: exception);
                 }
 
-                var userIdViewModel = new UserIdViewModel()
+                var addMerchantViewModel = new AddMerchantViewModel()
+                {
+                    UserId = user.Id
+                };                
+                
+                var addTransporterViewModel = new AddTransporterViewModel()
                 {
                     UserId = user.Id
                 };
 
                 if (userRegisterViewModel.Role)
                 {
-                    var res = await AddMerchantAsync(userIdViewModel);
+                    var res = await AddMerchantAsync(addMerchantViewModel);
                     if (!res.Succeeded)
                     {
                         messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
@@ -1164,7 +1085,7 @@ namespace BusinessLogic
                 }
                 else
                 {
-                    var res = await AddTransporterAsync(userIdViewModel);
+                    var res = await AddTransporterAsync(addTransporterViewModel);
                     if (!res.Succeeded)
                     {
                         messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
@@ -1186,12 +1107,12 @@ namespace BusinessLogic
 
         }
 
-        public async Task<IBusinessLogicResult> AddMerchantAsync(UserIdViewModel userIdViewModel)
+        public async Task<IBusinessLogicResult> AddMerchantAsync(AddMerchantViewModel addMerchantViewModel)
         {
             var messages = new List<IBusinessLogicMessage>();
             try
             {
-                var merchant = await _utility.MapAsync<UserIdViewModel, Merchant>(userIdViewModel);
+                var merchant = await _utility.MapAsync<AddMerchantViewModel, Merchant>(addMerchantViewModel);
                 try
                 {
                     await _merchantRepository.AddAsync(merchant);
@@ -1211,12 +1132,12 @@ namespace BusinessLogic
             }
         }
 
-        public async Task<IBusinessLogicResult> AddTransporterAsync(UserIdViewModel userIdViewModel)
+        public async Task<IBusinessLogicResult> AddTransporterAsync(AddTransporterViewModel addTransporterViewModel)
         {
             var messages = new List<IBusinessLogicMessage>();
             try
             {
-                var transporter = await _utility.MapAsync<UserIdViewModel, Transporter>(userIdViewModel);
+                var transporter = await _utility.MapAsync<AddTransporterViewModel, Transporter>(addTransporterViewModel);
                 try
                 {
                     await _transporterRepository.AddAsync(transporter);
@@ -1480,6 +1401,6 @@ namespace BusinessLogic
             _transporterRepository.Dispose();
         }
 
-        
+
     }
 }

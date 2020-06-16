@@ -72,7 +72,7 @@ namespace MvcWebApi.Controllers
             return Ok(res);
         }
 
-        [HttpPost]
+        [HttpPut]
         [AllowAnonymous]
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> Register(UserRegisterViewModel userRegisterViewModel)
@@ -88,20 +88,6 @@ namespace MvcWebApi.Controllers
             return Ok(res);
         }
 
-        [HttpPost]
-        [Authorize]
-        [IgnoreAntiforgeryToken]
-        public async Task<IActionResult> ChangePassword(UserChangePasswordViewModel userChangePasswordViewModel)
-        {
-            if (!ModelState.IsValid) return BadRequest();
-            var res1 = await _businessLogicUserManager.ChangePasswordAsync(userChangePasswordViewModel, HttpContext.GetCurrentUserId());
-            if (!res1.Succeeded)
-            {
-                return StatusCode(500, res1);
-            }
-            return Ok();
-        }
-
 
         [HttpPost]
         [AllowAnonymous]
@@ -110,10 +96,7 @@ namespace MvcWebApi.Controllers
         {
             if (!ModelState.IsValid) return BadRequest();
             var res = await _businessLogicUserManager.ForgetPasswordAsync(userForgetPasswordViewModel);
-            if (!res.Succeeded)
-            {
-                return StatusCode(500, res);
-            }
+            if (!res.Succeeded) return StatusCode(500, res);
             return Ok(res);
         }
     }

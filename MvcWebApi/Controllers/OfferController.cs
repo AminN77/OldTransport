@@ -12,7 +12,7 @@ using ViewModels;
 
 namespace MvcWebApi.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/[controller]/[action]")]
     [ApiController]
     [EnableCors("CorsPolicy")]
     public class OfferController : ControllerBase
@@ -24,33 +24,26 @@ namespace MvcWebApi.Controllers
             _businessLogicOfferManager = businessLogicOfferManager;
         }
 
-
-
         [HttpPost]
         [Authorize]
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> AddOffer(AddOfferViewModel addOfferViewModel)
         {
             if (!ModelState.IsValid) return BadRequest();
-
-            var result = await _businessLogicOfferManager.AddOfferAsync(addOfferViewModel,HttpContext.GetCurrentUserId());
-
+            var adderUserId = HttpContext.GetCurrentUserId();
+            var result = await _businessLogicOfferManager.AddOfferAsync(addOfferViewModel, adderUserId);
             if (!result.Succeeded) return StatusCode(500, result);
-
             return Ok(result);
         }
 
         [HttpGet]
         [Authorize]
-        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> OffersList(int page, int pageSize, string search, string sort, string filter)
         {
             if (!ModelState.IsValid) return BadRequest();
-
-            var result = await _businessLogicOfferManager.GetOfferAsync(1, page, pageSize, search, sort, filter);
-
+            var getterUserId = HttpContext.GetCurrentUserId();
+            var result = await _businessLogicOfferManager.GetOfferAsync(getterUserId, page, pageSize, search, sort, filter);
             if (!result.Succeeded) return StatusCode(500, result);
-
             return Ok(result);
 
         }
@@ -58,48 +51,37 @@ namespace MvcWebApi.Controllers
         [HttpPut]
         [Authorize]
         [IgnoreAntiforgeryToken]
-        public async Task<IActionResult> EditProject(EditOfferViewModel editOfferViewModel)
+        public async Task<IActionResult> EditOffer(EditOfferViewModel editOfferViewModel)
         {
             if (!ModelState.IsValid) return BadRequest();
-
-            var result = await _businessLogicOfferManager.EditOfferAsync(editOfferViewModel, HttpContext.GetCurrentUserId());
-
+            var editorUserId = HttpContext.GetCurrentUserId();
+            var result = await _businessLogicOfferManager.EditOfferAsync(editOfferViewModel, editorUserId);
             if (!result.Succeeded) return StatusCode(500, result);
-
-            return Ok();
+            return Ok(result);
 
         }
 
         [HttpGet]
         [Authorize]
-        [IgnoreAntiforgeryToken]
-        public async Task<IActionResult> EditProject(int transporterId, int projectId)
+        public async Task<IActionResult> EditOffer(int offerId)
         {
             if (!ModelState.IsValid) return BadRequest();
-
-            var res = await _businessLogicOfferManager.GetOfferForEditAsync(transporterId, projectId ,HttpContext.GetCurrentUserId());
-
+            var getterUserId = HttpContext.GetCurrentUserId();
+            var res = await _businessLogicOfferManager.GetOfferForEditAsync(offerId, getterUserId);
             if (!res.Succeeded) return StatusCode(500, res);
-
             return Ok(res);
-
         }
 
-        [HttpPost]
+        [HttpDelete]
         [Authorize]
         [IgnoreAntiforgeryToken]
-        public async Task<IActionResult> DeleteProject(int transporterId, int projectId)
+        public async Task<IActionResult> DeleteOffer(int offerId)
         {
             if (!ModelState.IsValid) return BadRequest();
-
-            var result = await _businessLogicOfferManager.DeleteOfferAsync(transporterId,projectId , HttpContext.GetCurrentUserId());
-
+            var deleterUserId = HttpContext.GetCurrentUserId();
+            var result = await _businessLogicOfferManager.DeleteOfferAsync(offerId, deleterUserId);
             if (!result.Succeeded) return StatusCode(500, result);
-
             return Ok(result);
-
         }
-
-
     }
 }

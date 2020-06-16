@@ -152,7 +152,14 @@ namespace ViewModels
         public bool Role { get; set; }
     }
 
-    public class UserIdViewModel
+    public class AddMerchantViewModel
+    {
+        [Required(ErrorMessage = "Please enter {0}")]
+        [Display(Name = "User Id")]
+        public int UserId { get; set; }
+    }    
+    
+    public class AddTransporterViewModel
     {
         [Required(ErrorMessage = "Please enter {0}")]
         [Display(Name = "User Id")]

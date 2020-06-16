@@ -14,10 +14,12 @@ namespace MvcWebApi.Controllers
     public class AdminController : ControllerBase
     {
         private readonly IBusinessLogicUserManager _businessLogicUserManager;
+        private readonly IBusinessLogicProjectManager _businessLogicProjectManager;
 
-        public AdminController(IBusinessLogicUserManager businessLogicUserManager)
+        public AdminController(IBusinessLogicUserManager businessLogicUserManager, IBusinessLogicProjectManager businessLogicProjectManager)
         {
             _businessLogicUserManager = businessLogicUserManager;
+            _businessLogicProjectManager = businessLogicProjectManager;
         }
 
         [HttpGet]
@@ -49,6 +51,28 @@ namespace MvcWebApi.Controllers
             if (!ModelState.IsValid) return BadRequest();
             var activatorUserId = HttpContext.GetCurrentUserId();
             var res = await _businessLogicUserManager.ActivateUserAsync(userId, activatorUserId);
+            if (!res.Succeeded) return StatusCode(500, res);
+            return Ok(res);
+        }
+
+        [HttpGet]
+        [Authorize(Policy = CustomRoles.DeveloperSupport)]
+        public async Task<IActionResult> DeactivateProject(int projectId)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var deactivatorUserId = HttpContext.GetCurrentUserId();
+            var res = await _businessLogicProjectManager.DeactivateProjectAsync(projectId, deactivatorUserId);
+            if (!res.Succeeded) return StatusCode(500, res);
+            return Ok(res);
+        }
+
+        [HttpGet]
+        [Authorize(Policy = CustomRoles.DeveloperSupport)]
+        public async Task<IActionResult> ActivateProject(int projectId)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var activatorUserId = HttpContext.GetCurrentUserId();
+            var res = await _businessLogicProjectManager.ActivateProjectAsync(projectId, activatorUserId);
             if (!res.Succeeded) return StatusCode(500, res);
             return Ok(res);
         }
