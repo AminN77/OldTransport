@@ -91,5 +91,27 @@ namespace MvcWebApi.Controllers
             if (!res.Succeeded) return NotFound(res);
             return Ok(res);
         }
+
+        [HttpGet]
+        [Authorize]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> AddTransporter(AddTransporterViewModel addTransporterViewModel)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var res = await _businessLogicUserManager.AddTransporterAsync(addTransporterViewModel);
+            if (!res.Succeeded) return NotFound(res);
+            return Ok(res);
+        }
+
+        [HttpGet]
+        [Authorize]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> AddMerchant(AddMerchantViewModel addMerchantViewModel)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var res = await _businessLogicUserManager.AddMerchantAsync(addMerchantViewModel);
+            if (!res.Succeeded) return NotFound(res);
+            return Ok(res);
+        }
     }
 }

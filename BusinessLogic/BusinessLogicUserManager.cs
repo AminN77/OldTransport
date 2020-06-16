@@ -1107,7 +1107,7 @@ namespace BusinessLogic
 
         }
 
-        public async Task<IBusinessLogicResult> AddMerchantAsync(AddMerchantViewModel addMerchantViewModel)
+        public async Task<IBusinessLogicResult<AddMerchantViewModel>> AddMerchantAsync(AddMerchantViewModel addMerchantViewModel)
         {
             var messages = new List<IBusinessLogicMessage>();
             try
@@ -1117,22 +1117,22 @@ namespace BusinessLogic
                 {
                     await _merchantRepository.AddAsync(merchant);
                     messages.Add(new BusinessLogicMessage(MessageType.Info, MessageId.EntitySuccessfullyAdded));
-                    return new BusinessLogicResult(succeeded: true, messages: messages);
+                    return new BusinessLogicResult<AddMerchantViewModel>(succeeded: true, messages: messages, result:addMerchantViewModel);
                 }
                 catch (Exception exception)
                 {
                     messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
-                    return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+                    return new BusinessLogicResult<AddMerchantViewModel>(succeeded: false, messages: messages, exception: exception, result:null);
                 }
             }
             catch (Exception exception)
             {
                 messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
-                return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+                return new BusinessLogicResult<AddMerchantViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
             }
         }
 
-        public async Task<IBusinessLogicResult> AddTransporterAsync(AddTransporterViewModel addTransporterViewModel)
+        public async Task<IBusinessLogicResult<AddTransporterViewModel>> AddTransporterAsync(AddTransporterViewModel addTransporterViewModel)
         {
             var messages = new List<IBusinessLogicMessage>();
             try
@@ -1142,18 +1142,18 @@ namespace BusinessLogic
                 {
                     await _transporterRepository.AddAsync(transporter);
                     messages.Add(new BusinessLogicMessage(MessageType.Info, MessageId.EntitySuccessfullyAdded));
-                    return new BusinessLogicResult(succeeded: true, messages: messages);
+                    return new BusinessLogicResult<AddTransporterViewModel>(succeeded: true, messages: messages, result: addTransporterViewModel);
                 }
                 catch (Exception exception)
                 {
                     messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
-                    return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+                    return new BusinessLogicResult<AddTransporterViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
                 }
             }
             catch (Exception exception)
             {
                 messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
-                return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+                return new BusinessLogicResult<AddTransporterViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
             }
         }
 
