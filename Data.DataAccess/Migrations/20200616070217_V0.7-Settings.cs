@@ -11,10 +11,10 @@ namespace Data.DataAccess.Migrations
                 name: "Settings",
                 columns: table => new
                 {
-                    ContactEmail = table.Column<string>(nullable: true),
-                    AboutUs = table.Column<string>(nullable: true),
-                    Logo = table.Column<string>(nullable: true),
-                    ContactNumber = table.Column<string>(nullable: true)
+                    ContactEmail = table.Column<string>(nullable: false),
+                    AboutUs = table.Column<string>(nullable: false),
+                    Logo = table.Column<string>(nullable: false),
+                    ContactNumber = table.Column<string>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -24,11 +24,14 @@ namespace Data.DataAccess.Migrations
                 name: "SocialMedias",
                 columns: table => new
                 {
-                    Name = table.Column<string>(nullable: true),
-                    Link = table.Column<string>(nullable: true)
+                    Id = table.Column<int>(nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(nullable: false),
+                    Link = table.Column<string>(nullable: false)
                 },
                 constraints: table =>
                 {
+                    table.PrimaryKey("PK_SocialMedias", x => x.Id);
                 });
 
             migrationBuilder.UpdateData(
@@ -36,7 +39,7 @@ namespace Data.DataAccess.Migrations
                 keyColumn: "Id",
                 keyValue: 1,
                 columns: new[] { "CreateDateTime", "IterationCount", "Password", "Salt", "SerialNumber" },
-                values: new object[] { new DateTime(2020, 6, 16, 10, 55, 43, 153, DateTimeKind.Local).AddTicks(6922), 37779, "34A447FF8C91BCE0BA3F777FCC3EC1DB7497DCA389603151FC0769D0AC605A43533160C5CCA111A51C327AE7C0F25480942542FAAC377E3BA374DC496950E872", new byte[] { 100, 207, 220, 35, 3, 99, 98, 243, 231, 80, 103, 208, 91, 247, 114, 10, 7, 251, 128, 8, 59, 87, 46, 49, 234, 10, 7, 154, 136, 102, 133, 244 }, "6b9af8a8-255a-45b8-9888-5d7b5c208889" });
+                values: new object[] { new DateTime(2020, 6, 16, 11, 32, 16, 526, DateTimeKind.Local).AddTicks(6822), 87060, "92C179A686EED816074DBB64608E9ECE1B4C385879FA213374837468BBCB5A711815C5E9EE2E244815A79B4BF3547F528FF2B4236786641A546C4576BEE63262", new byte[] { 3, 81, 20, 169, 221, 217, 201, 82, 104, 141, 246, 187, 111, 49, 46, 200, 1, 51, 109, 164, 4, 237, 181, 30, 42, 10, 248, 40, 15, 162, 144, 6 }, "29ec0518-44cd-4258-a869-ccb5f74f1552" });
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

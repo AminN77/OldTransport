@@ -34,6 +34,16 @@ namespace Data.DataAccess.Context
 
             modelBuilder.Entity<Role>().HasData(role);
 
+            //var settings = new Settings()
+            //{
+            //    ContactEmail = "abolfazl.sh1374@gmail.com",
+            //    AboutUs = "We're The Transport Team",
+            //    ContactNumber = "+98 937 733 9223",
+            //    Logo = "abcd"
+            //};
+
+            //modelBuilder.Entity<Settings>().HasData(settings);
+
             var salt = new byte[32];
             var iterations = new Random().Next(1000, 100000);
             byte[] hashByteArray;

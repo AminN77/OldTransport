@@ -201,15 +201,19 @@ namespace Data.DataAccess.Migrations
             modelBuilder.Entity("Data.Model.Settings", b =>
                 {
                     b.Property<string>("AboutUs")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ContactEmail")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ContactNumber")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Logo")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.ToTable("Settings");
@@ -217,11 +221,20 @@ namespace Data.DataAccess.Migrations
 
             modelBuilder.Entity("Data.Model.SocialMedia", b =>
                 {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
                     b.Property<string>("Link")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
 
                     b.ToTable("SocialMedias");
                 });
@@ -315,15 +328,15 @@ namespace Data.DataAccess.Migrations
                         {
                             Id = 1,
                             ActivationCode = 0,
-                            CreateDateTime = new DateTime(2020, 6, 16, 10, 55, 43, 153, DateTimeKind.Local).AddTicks(6922),
+                            CreateDateTime = new DateTime(2020, 6, 16, 11, 32, 16, 526, DateTimeKind.Local).AddTicks(6822),
                             EmailAddress = "abolfazl.sh1374@gmail.com",
                             IsDeleted = false,
                             IsEnabled = true,
-                            IterationCount = 37779,
+                            IterationCount = 87060,
                             Name = "Developer",
-                            Password = "34A447FF8C91BCE0BA3F777FCC3EC1DB7497DCA389603151FC0769D0AC605A43533160C5CCA111A51C327AE7C0F25480942542FAAC377E3BA374DC496950E872",
-                            Salt = new byte[] { 100, 207, 220, 35, 3, 99, 98, 243, 231, 80, 103, 208, 91, 247, 114, 10, 7, 251, 128, 8, 59, 87, 46, 49, 234, 10, 7, 154, 136, 102, 133, 244 },
-                            SerialNumber = "6b9af8a8-255a-45b8-9888-5d7b5c208889"
+                            Password = "92C179A686EED816074DBB64608E9ECE1B4C385879FA213374837468BBCB5A711815C5E9EE2E244815A79B4BF3547F528FF2B4236786641A546C4576BEE63262",
+                            Salt = new byte[] { 3, 81, 20, 169, 221, 217, 201, 82, 104, 141, 246, 187, 111, 49, 46, 200, 1, 51, 109, 164, 4, 237, 181, 30, 42, 10, 248, 40, 15, 162, 144, 6 },
+                            SerialNumber = "29ec0518-44cd-4258-a869-ccb5f74f1552"
                         });
                 });
 

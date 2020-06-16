@@ -15,6 +15,10 @@
     <Compile Remove="Migrations\20200615083828_V0.6-OfferAndAccept.Designer.cs" />
     <Compile Remove="Migrations\20200615091251_V0.6-OfferAndAccept.cs" />
     <Compile Remove="Migrations\20200615091251_V0.6-OfferAndAccept.Designer.cs" />
+    <Compile Remove="Migrations\20200616062544_V0.7-Settings.cs" />
+    <Compile Remove="Migrations\20200616062544_V0.7-Settings.Designer.cs" />
+    <Compile Remove="Migrations\20200616065938_V0.7-Settings.cs" />
+    <Compile Remove="Migrations\20200616065938_V0.7-Settings.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>

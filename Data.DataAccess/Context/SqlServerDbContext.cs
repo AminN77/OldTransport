@@ -82,7 +82,6 @@ namespace Data.DataAccess.Context
             //    .HasForeignKey(m => m.MerchantId).OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Settings>().HasNoKey();
-            modelBuilder.Entity<SocialMedia>().HasNoKey();
 
             modelBuilder.Seed();
             base.OnModelCreating(modelBuilder);
