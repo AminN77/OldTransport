@@ -24,6 +24,8 @@ namespace Data.DataAccess.Context
         public DbSet<Accept> Accepts { get; set; }
         public DbSet<Settings> Settings { get; set; }
         public DbSet<SocialMedia> SocialMedias { get; set; }
+        public DbSet<Country> Countries { get; set; }
+        public DbSet<City> Cities { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
