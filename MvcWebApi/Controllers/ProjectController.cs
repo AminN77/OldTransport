@@ -36,7 +36,6 @@ namespace MvcWebApi.Controllers
             return Ok(result);
         }
 
-
         [HttpGet]
         [Authorize]
         [IgnoreAntiforgeryToken]

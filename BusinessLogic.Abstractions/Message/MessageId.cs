@@ -97,6 +97,8 @@ namespace BusinessLogic.Abstractions.Message
         [Display(Name = "This User Is Not Active")]
         DeactivatedUser,
         [Display(Name = "Invalid File Type")]
-        InvalidFileType
+        InvalidFileType,
+        [Display(Name = "Merchant Exists")]
+        MerchantExists
     }
 }

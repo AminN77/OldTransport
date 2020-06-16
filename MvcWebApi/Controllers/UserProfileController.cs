@@ -67,5 +67,17 @@ namespace MvcWebApi.Controllers
             if (!res.Succeeded) return StatusCode(500, res);
             return Ok(res);
         }
+
+        [HttpGet]
+        [Authorize]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> IsUserMerchant()
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var userId = HttpContext.GetCurrentUserId();
+            var res = await _businessLogicUserManager.MerchantAuthenticator(userId);
+            if (!res.Succeeded) return StatusCode(500, res);
+            return Ok(res);
+        }
     }
 }

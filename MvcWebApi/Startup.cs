@@ -49,6 +49,7 @@ namespace MvcWebApi
                         .WithOrigins("http://localhost:44338") //Note:  The URL must be specified without a trailing slash (/).
                         .AllowAnyMethod()
                         .AllowAnyHeader()
+                        .WithExposedHeaders("AccessToken")
                         .SetIsOriginAllowed((host) => true)
                         .AllowCredentials());
             });
