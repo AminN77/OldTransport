@@ -49,10 +49,15 @@ namespace Data.DataAccess.Migrations
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
+                    b.Property<int>("CountryId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CountryId");
 
                     b.ToTable("Cities");
                 });
@@ -230,6 +235,11 @@ namespace Data.DataAccess.Migrations
 
             modelBuilder.Entity("Data.Model.Settings", b =>
                 {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
                     b.Property<string>("AboutUs")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -246,7 +256,19 @@ namespace Data.DataAccess.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.HasKey("Id");
+
                     b.ToTable("Settings");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            AboutUs = "We're The Transport Team",
+                            ContactEmail = "abolfazl.sh1374@gmail.com",
+                            ContactNumber = "+98 937 733 9223",
+                            Logo = "abcd"
+                        });
                 });
 
             modelBuilder.Entity("Data.Model.SocialMedia", b =>
@@ -358,15 +380,15 @@ namespace Data.DataAccess.Migrations
                         {
                             Id = 1,
                             ActivationCode = 0,
-                            CreateDateTime = new DateTime(2020, 6, 16, 12, 3, 34, 846, DateTimeKind.Local).AddTicks(3184),
+                            CreateDateTime = new DateTime(2020, 6, 16, 15, 35, 56, 977, DateTimeKind.Local).AddTicks(5636),
                             EmailAddress = "abolfazl.sh1374@gmail.com",
                             IsDeleted = false,
                             IsEnabled = true,
-                            IterationCount = 82416,
+                            IterationCount = 84929,
                             Name = "Developer",
-                            Password = "A3794BD92C0ED2DB0C6B4CBCBC14AAFAA8C92C99BD71E58E577F39AA04BCEE328E2FC2722F7ED332B0CDD5BB4CF248F2BF8A495EBA728E7891EBDA35166C4B74",
-                            Salt = new byte[] { 13, 141, 160, 138, 248, 93, 90, 101, 18, 7, 152, 13, 131, 71, 112, 125, 3, 111, 12, 87, 54, 165, 248, 126, 47, 208, 141, 235, 236, 31, 254, 148 },
-                            SerialNumber = "588b17fe-1c74-455b-8902-e497554a84de"
+                            Password = "1B3A5EB00E11506A015FFE16F2CC1CBC0D26D47EAE6E333B9BB51240FF03D503A8B38AFE22E28BD27E7B660F63538A2068090A57E11C977722D8F611BEAD26C4",
+                            Salt = new byte[] { 220, 45, 236, 69, 99, 182, 13, 211, 23, 206, 195, 244, 220, 40, 82, 166, 215, 126, 213, 91, 0, 212, 189, 24, 206, 175, 172, 35, 154, 217, 113, 120 },
+                            SerialNumber = "b3a6906e-4806-4eea-b96c-a776d6165446"
                         });
                 });
 
@@ -437,6 +459,15 @@ namespace Data.DataAccess.Migrations
                     b.HasOne("Data.Model.Offer", "Offer")
                         .WithMany("Accepts")
                         .HasForeignKey("OfferId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Data.Model.City", b =>
+                {
+                    b.HasOne("Data.Model.Country", "Country")
+                        .WithMany("Cities")
+                        .HasForeignKey("CountryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

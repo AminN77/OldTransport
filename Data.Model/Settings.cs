@@ -1,11 +1,14 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Data.Abstractions.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace Data.Model
 {
-    public class Settings
+    public class Settings: IEntity<int>
     {
+        [Key]
+        public int Id { get; set; }
+
         [Required]
-        [EmailAddress]
         public string ContactEmail { get; set; }
 
         [Required]

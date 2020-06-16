@@ -83,8 +83,6 @@ namespace Data.DataAccess.Context
             //modelBuilder.Entity<Merchant>().HasMany(m => m.Projects).WithOne(m => m.Merchant)
             //    .HasForeignKey(m => m.MerchantId).OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<Settings>().HasNoKey();
-
             modelBuilder.Seed();
             base.OnModelCreating(modelBuilder);
         }
