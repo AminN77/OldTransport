@@ -411,7 +411,7 @@ namespace BusinessLogic
 
         }
 
-        public async Task<IBusinessLogicResult<ProjectDetailsViewModel>> GetProjectDetailsAsync(int projectId, int getterUserId)
+        public async Task<IBusinessLogicResult<ProjectDetailsViewModel>> GetProjectDetailsAsync(int projectId)
         {
             var messages = new List<IBusinessLogicMessage>();
             try
@@ -660,7 +660,7 @@ namespace BusinessLogic
                 messages.Add(new BusinessLogicMessage(type: MessageType.Info, MessageId.EntitySuccessfullyDeleted));
                 return new BusinessLogicResult(succeeded: true, messages: messages);
             }
-            catch (Exception)
+            catch (Exception exception)
             {
                 messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
                 return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);

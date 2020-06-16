@@ -23,16 +23,19 @@ namespace BusinessLogic
         private readonly IRepository<Project> _projectRepository;
         private readonly IRepository<Role> _roleRepository;
         private readonly IRepository<UserRole> _userRoleRepository;
+        private readonly IRepository<User> _userRepository;
         private readonly BusinessLogicUtility _utility;
 
-        public BusinessLogicOfferManager(IRepository<Offer> offerRepository, IRepository<Transporter> transporterRepository
-            , BusinessLogicUtility utility, IRepository<Project> projectRepository, IRepository<Role> roleRepository, IRepository<UserRole> userRoleRepository)
+        public BusinessLogicOfferManager(IRepository<Offer> offerRepository, IRepository<Transporter> transporterRepository,
+                BusinessLogicUtility utility, IRepository<Project> projectRepository, IRepository<Role> roleRepository,
+                IRepository<UserRole> userRoleRepository, IRepository<User> userRepository)
         {
             _transporterRepository = transporterRepository;
             _offerRepository = offerRepository;
             _projectRepository = projectRepository;
             _userRoleRepository = userRoleRepository;
             _roleRepository = roleRepository;
+            _userRepository = userRepository;
             _utility = utility;
         }
 
@@ -530,6 +533,57 @@ namespace BusinessLogic
                     messages: messages, exception: exception);
             }
 
+        }
+
+        public async Task<IBusinessLogicResult<OfferDetailsViewModel>> GetOfferDetailsAsync(int offerId)
+        {
+            var messages = new List<IBusinessLogicMessage>();
+            try
+            {
+                Offer  offer;
+                // Critical Database
+                try
+                {
+                    offer = await _offerRepository.FindAsync(offerId);
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<OfferDetailsViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
+
+                // Verification
+                if (offer == null)
+                {
+                    messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.ProjectNotFound,
+                        BusinessLogicSetting.UserDisplayName));
+                    return new BusinessLogicResult<OfferDetailsViewModel>(succeeded: false, result: null,
+                        messages: messages);
+                }
+
+                var offerDetailsViewModel = await _utility.MapAsync<Offer, OfferDetailsViewModel>(offer);
+                try
+                {
+                    var merchantUserId = await _offerRepository.FindAsync(offer.TransporterId);
+                    var user = await _userRepository.FindAsync(merchantUserId);
+                    offerDetailsViewModel.TransporterName = user.Name;
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<OfferDetailsViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
+                return new BusinessLogicResult<OfferDetailsViewModel>(succeeded: true, result: offerDetailsViewModel,
+                    messages: messages);
+            }
+            catch (Exception exception)
+            {
+                messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                return new BusinessLogicResult<OfferDetailsViewModel>(succeeded: false, result: null,
+                    messages: messages, exception: exception);
+            }
         }
 
         public void Dispose()

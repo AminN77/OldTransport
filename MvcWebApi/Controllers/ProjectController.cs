@@ -117,8 +117,7 @@ namespace MvcWebApi.Controllers
         public async Task<IActionResult> ProjectDetails(int projectId)
         {
             if (!ModelState.IsValid) return BadRequest();
-            var getterUserId = HttpContext.GetCurrentUserId();
-            var result = await _businessLogicProjectManager.(projectId, getterUserId);
+            var result = await _businessLogicProjectManager.GetProjectDetailsAsync(projectId);
             if (!result.Succeeded) return StatusCode(500, result);
             return Ok(result);
         }
