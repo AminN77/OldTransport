@@ -1511,6 +1511,59 @@ namespace BusinessLogic
             }
         }
 
+        public async Task<IBusinessLogicResult> TransporterAuthenticator(int userId)
+        {
+            var messages = new List<IBusinessLogicMessage>();
+            try
+            {
+                // Critical Authentication and Authorization
+                try
+                {
+                    var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
+                    var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == userId && u.RoleId == userRole.Id);
+                    if (!isUserAuthorized)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
+                        return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
+                            messages: messages);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
+
+                bool isUserTransporter;
+                try
+                {
+                    isUserTransporter = _transporterRepository.DeferredSelectAll().Any(u => u.UserId == userId);
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                    return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+                }
+
+                if (isUserTransporter)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Info, message: MessageId.TransporterExists));
+                    return new BusinessLogicResult(succeeded: true, messages: messages);
+                }
+                else
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.EntityDoesNotExist));
+                    return new BusinessLogicResult(succeeded: false, messages: messages);
+                }
+            }
+            catch (Exception exception)
+            {
+                messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+            }
+        }
+
         public void Dispose()
         {
             _userRepository.Dispose();

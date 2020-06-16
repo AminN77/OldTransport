@@ -99,6 +99,8 @@ namespace BusinessLogic.Abstractions.Message
         [Display(Name = "Invalid File Type")]
         InvalidFileType,
         [Display(Name = "Merchant Exists")]
-        MerchantExists
+        MerchantExists,
+        [Display(Name = "Transporter Exists")]
+        TransporterExists
     }
 }

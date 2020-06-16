@@ -76,7 +76,19 @@ namespace MvcWebApi.Controllers
             if (!ModelState.IsValid) return BadRequest();
             var userId = HttpContext.GetCurrentUserId();
             var res = await _businessLogicUserManager.MerchantAuthenticator(userId);
-            if (!res.Succeeded) return StatusCode(500, res);
+            if (!res.Succeeded) return NotFound(res);
+            return Ok(res);
+        }
+
+        [HttpGet]
+        [Authorize]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> IsUserTransporter()
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var userId = HttpContext.GetCurrentUserId();
+            var res = await _businessLogicUserManager.TransporterAuthenticator(userId);
+            if (!res.Succeeded) return NotFound(res);
             return Ok(res);
         }
     }

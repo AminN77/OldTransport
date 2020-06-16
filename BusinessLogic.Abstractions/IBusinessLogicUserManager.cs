@@ -30,5 +30,6 @@ namespace BusinessLogic.Abstractions
         Task<IBusinessLogicResult<SettingsViewModel>> AdminGetSettings();
         Task<IBusinessLogicResult<SettingsViewModel>> AdminEditSettings(SettingsViewModel settingsViewModel);
         Task<IBusinessLogicResult> MerchantAuthenticator(int userId);
+        Task<IBusinessLogicResult> TransporterAuthenticator(int userId);
     }
 }
