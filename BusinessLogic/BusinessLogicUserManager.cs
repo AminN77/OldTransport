@@ -25,6 +25,7 @@ namespace BusinessLogic
         private readonly IRepository<UserRole> _userRoleRepository;
         private readonly IRepository<Merchant> _merchantRepository;
         private readonly IRepository<Transporter> _transporterRepository;
+        private readonly IRepository<Settings> _settingsRepository;
         private readonly BusinessLogicUtility _utility;
         private readonly ILogger<BusinessLogicUserManager> _logger;
         private readonly IPasswordHasher _passwordHasher;
@@ -35,7 +36,7 @@ namespace BusinessLogic
         // Constructor
         public BusinessLogicUserManager(IRepository<User> userRepository, ILogger<BusinessLogicUserManager> logger,
                 BusinessLogicUtility utility, IRepository<UserRole> userRoleRepository, IRepository<Merchant> merchantRepository,
-                IPasswordHasher passwordHasher, ISecurityProvider securityProvider, IEmailSender emailSender,
+                IPasswordHasher passwordHasher, ISecurityProvider securityProvider, IEmailSender emailSender, IRepository<Settings> settingsRepository,
                 IRepository<Transporter> transporterRepository, IRepository<Role> roleRepository, IFileService fileService)
         {
             _userRepository = userRepository;
@@ -49,6 +50,7 @@ namespace BusinessLogic
             _transporterRepository = transporterRepository;
             _roleRepository = roleRepository;
             _fileService = fileService;
+            _settingsRepository = settingsRepository;
         }
 
         #region User
@@ -815,7 +817,6 @@ namespace BusinessLogic
             }
         }
 
-
         public async Task<IBusinessLogicResult<UserSignInViewModel>> FindUserAsync(int userId)
         {
             var messages = new List<IBusinessLogicMessage>();
@@ -856,7 +857,6 @@ namespace BusinessLogic
                     messages: messages, exception: exception);
             }
         }
-
 
         public async Task<IBusinessLogicResult> UpdateUserLastActivityDateAsync(int userId)
         {
@@ -1393,6 +1393,71 @@ namespace BusinessLogic
 
         }
 
+        public async Task<IBusinessLogicResult<SettingsViewModel>> AdminGetSettings()
+        {
+            var messages = new List<IBusinessLogicMessage>();
+            try
+            {
+                Settings settings;
+                try
+                {
+                    settings = _settingsRepository.DeferredSelectAll().First();
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                    return new BusinessLogicResult<SettingsViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
+                }
+                SettingsViewModel settingsViewModel = await _utility.MapAsync<Settings, SettingsViewModel>(settings);
+                messages.Add(new BusinessLogicMessage(type: MessageType.Info, message: MessageId.Successed));
+                return new BusinessLogicResult<SettingsViewModel>(succeeded: true, messages: messages, result: settingsViewModel);
+            }
+            catch (Exception exception)
+            {
+                messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                return new BusinessLogicResult<SettingsViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
+            }
+        }
+
+        public async Task<IBusinessLogicResult<SettingsViewModel>> AdminEditSettings(SettingsViewModel settingsViewModel)
+        {
+            var messages = new List<IBusinessLogicMessage>();
+            try
+            {
+                Settings settings;
+                try
+                {
+                    settings = _settingsRepository.DeferredSelectAll().First();
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                    return new BusinessLogicResult<SettingsViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
+                }
+                settings.AboutUs = settingsViewModel.AboutUs;
+                settings.ContactEmail = settingsViewModel.ContactEmail;
+                settings.Logo = settings.Logo;
+                settings.ContactNumber = settingsViewModel.ContactNumber;
+
+                try
+                {
+                    await _settingsRepository.UpdateAsync(settings, true);
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                    return new BusinessLogicResult<SettingsViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
+                }
+                messages.Add(new BusinessLogicMessage(type: MessageType.Info, message: MessageId.SettingSuccessfullySaved));
+                return new BusinessLogicResult<SettingsViewModel>(succeeded: true, messages: messages, result: settingsViewModel);
+            }
+            catch (Exception exception)
+            {
+                messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                return new BusinessLogicResult<SettingsViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
+            }
+        }
+
         public void Dispose()
         {
             _userRepository.Dispose();
@@ -1400,7 +1465,5 @@ namespace BusinessLogic
             _merchantRepository.Dispose();
             _transporterRepository.Dispose();
         }
-
-
     }
 }
