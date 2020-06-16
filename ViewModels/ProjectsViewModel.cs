@@ -69,4 +69,17 @@ namespace ViewModels
         [Required]
         public int OfferId { get; set; }
     }
+
+    public class ProjectDetailsViewModel : ListProjectViewModel
+    {
+        [DataType(DataType.MultilineText)]
+        public string Description { get; set; }
+
+        [Display(Name = "Weight")]
+        [Required(ErrorMessage = "Please enter {0}")]
+        [Range(0.0, double.MaxValue)]
+        public double Weight { get; set; }
+
+        public string MerchantName { get; set; }
+    }
 }
