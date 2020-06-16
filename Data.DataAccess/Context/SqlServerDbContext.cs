@@ -22,10 +22,11 @@ namespace Data.DataAccess.Context
         public DbSet<Project> Projects { get; set; }
         public DbSet<Offer> Offers { get; set; }
         public DbSet<Accept> Accepts { get; set; }
+        public DbSet<Settings> Settings { get; set; }
+        public DbSet<SocialMedia> SocialMedias { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-
             modelBuilder.Entity<User>(entity =>
             {
                 entity.HasIndex(e => e.Name);
@@ -79,6 +80,9 @@ namespace Data.DataAccess.Context
 
             //modelBuilder.Entity<Merchant>().HasMany(m => m.Projects).WithOne(m => m.Merchant)
             //    .HasForeignKey(m => m.MerchantId).OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Settings>().HasNoKey();
+            modelBuilder.Entity<SocialMedia>().HasNoKey();
 
             modelBuilder.Seed();
             base.OnModelCreating(modelBuilder);
