@@ -110,7 +110,7 @@ namespace BusinessLogic
                 try
                 {
                     DuplicateOffer = await _offerRepository.DeferredSelectAll().SingleOrDefaultAsync(
-                        o => o.ProjectId == addOfferViewModel.ProjectId && o.TransporterId == addOfferViewModel.TransporterId);
+                        o => o.ProjectId == addOfferViewModel.ProjectId && o.TransporterId == transporter.Id);
                 }
 
                 catch (Exception exception)
