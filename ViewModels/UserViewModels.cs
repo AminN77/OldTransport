@@ -79,6 +79,10 @@ namespace ViewModels
         [Required(ErrorMessage = "لطفا {0} را وارد کنید.")]
         [Display(Name = "تاریخ ثبت")]
         public DateTime CreateDateTime { get; set; }
+
+        [Display(Name = "Bio")]
+        [DataType(DataType.MultilineText)]
+        public string Bio { get; set; }
     }
 
     public class UserResetPasswordViewModel

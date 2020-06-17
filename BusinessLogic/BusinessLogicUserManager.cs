@@ -583,8 +583,44 @@ namespace BusinessLogic
                 }
 
                 //safe Map
-                var userViewModel = await _utility.MapAsync<User, DetailUserViewModel>(user);
-                return new BusinessLogicResult<DetailUserViewModel>(succeeded: true, result: userViewModel,
+                var userDetailsViewModel = await _utility.MapAsync<User, DetailUserViewModel>(user);
+
+                try
+                {
+                    if (userId != null)
+                    {
+                        var merchant = await _merchantRepository.DeferredSelectAll().SingleOrDefaultAsync(m => m.UserId == userId);
+                        if (merchant == null)
+                        {
+                            var transporter = await _transporterRepository.DeferredSelectAll().SingleOrDefaultAsync(t => t.UserId == userId);
+                            userDetailsViewModel.Bio = transporter.Bio;
+                        }
+                        else
+                        {
+                            userDetailsViewModel.Bio = merchant.Bio;
+                        }
+                    }
+                    else
+                    {
+                        var merchant = await _merchantRepository.DeferredSelectAll().SingleOrDefaultAsync(m => m.UserId == getterUserId);
+                        if (merchant == null)
+                        {
+                            var transporter = await _transporterRepository.DeferredSelectAll().SingleOrDefaultAsync(t => t.UserId == getterUserId);
+                            userDetailsViewModel.Bio = transporter.Bio;
+                        }
+                        else
+                        {
+                            userDetailsViewModel.Bio = merchant.Bio;
+                        }
+                    }
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
+                    return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
+                return new BusinessLogicResult<DetailUserViewModel>(succeeded: true, result: userDetailsViewModel,
                     messages: messages);
             }
             catch (Exception exception)
