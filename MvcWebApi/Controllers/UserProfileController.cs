@@ -56,14 +56,26 @@ namespace MvcWebApi.Controllers
             return Ok();
         }
 
+        [HttpGet]
+        [Authorize]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> EditUser()
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var getterUserId = HttpContext.GetCurrentUserId();
+            var res = await _businessLogicUserManager.GetUserForEditAsync(getterUserId);
+            if (!res.Succeeded) return StatusCode(500, res);
+            return Ok(res);
+        }
+
         [HttpPost]
         [Authorize]
         [IgnoreAntiforgeryToken]
-        public async Task<IActionResult> EditUser(EditUserViewModel editUserViewModel, IFormFile file)
+        public async Task<IActionResult> EditUser(EditUserViewModel editUserViewModel)
         {
             if (!ModelState.IsValid) return BadRequest();
             var editorUserId = HttpContext.GetCurrentUserId();
-            var res = await _businessLogicUserManager.EditUserAsync(editUserViewModel, editorUserId, file);
+            var res = await _businessLogicUserManager.EditUserAsync(editUserViewModel, editorUserId);
             if (!res.Succeeded) return StatusCode(500, res);
             return Ok(res);
         }

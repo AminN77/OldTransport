@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace ViewModels
@@ -32,8 +33,9 @@ namespace ViewModels
         public string Token { get; set; }
     }
 
-    public class EditUserViewModel : UserBaseViewModel
+    public class EditUserViewModel
     {
+        [Required]
         public int Id { get; set; }
 
         [Required(ErrorMessage = "Please enter {0}")]
@@ -49,6 +51,8 @@ namespace ViewModels
         [Display(Name = "Bio")]
         [DataType(DataType.MultilineText)]
         public string Bio { get; set; }
+
+        public IFormFile file { get; set; }
     }
 
     public class ListUserViewModel : UserBaseViewModel
