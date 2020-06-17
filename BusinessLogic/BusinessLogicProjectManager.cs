@@ -443,8 +443,8 @@ namespace BusinessLogic
                 var projectDetailsViewModel = await _utility.MapAsync<Project, ProjectDetailsViewModel>(project);
                 try
                 {
-                    var merchantUserId = await _merchantRepository.FindAsync(project.MerchantId);
-                    var user = await _userRepository.FindAsync(merchantUserId);
+                    var merchant = await _merchantRepository.FindAsync(project.MerchantId);
+                    var user = await _userRepository.FindAsync(merchant.Id);
                     projectDetailsViewModel.MerchantName = user.Name;
                 }
                 catch (Exception exception)
