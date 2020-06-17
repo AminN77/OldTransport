@@ -185,19 +185,19 @@ namespace BusinessLogic
                         .Join(_transporterRepository.DeferredSelectAll(),
                         o => o.Id,
                         t => t.Id,
-                        (o, t) => o)
+                        (o, t) => new { o, t })
                             .Join(_userRepository.DeferredSelectAll(),
-                            o => o.Id,
+                            c => c.o.Id,
                             u => u.Id,
-                            (o, u) => new ListOfferViewModel()
+                            (c, u) => new ListOfferViewModel()
                             {
-                                Id = o.Id,
-                                Description = o.Description,
+                                Id = c.o.Id,
+                                Description = c.o.Description,
                                 TransporterName = u.Name,
-                                EstimatedTime = o.EstimatedTime,
-                                Price = o.Price,
-                                TransporterId = o.TransporterId,
-                                ProjectId = o.ProjectId
+                                EstimatedTime = c.o.EstimatedTime,
+                                Price = c.o.Price,
+                                TransporterId = c.o.TransporterId,
+                                ProjectId = c.o.ProjectId
                             });
 
                 //_offerRepository.DeferredWhere(u =>
@@ -585,7 +585,7 @@ namespace BusinessLogic
                 try
                 {
                     var transporter = await _transporterRepository.FindAsync(offer.TransporterId);
-                    var user = await _userRepository.FindAsync(transporter.Id);
+                    var user = await _userRepository.FindAsync(transporter.UserId);
                     offerDetailsViewModel.TransporterName = user.Name;
                 }
                 catch (Exception exception)

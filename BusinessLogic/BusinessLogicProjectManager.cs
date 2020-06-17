@@ -444,7 +444,7 @@ namespace BusinessLogic
                 try
                 {
                     var merchant = await _merchantRepository.FindAsync(project.MerchantId);
-                    var user = await _userRepository.FindAsync(merchant.Id);
+                    var user = await _userRepository.FindAsync(merchant.UserId);
                     projectDetailsViewModel.MerchantName = user.Name;
                 }
                 catch (Exception exception)
