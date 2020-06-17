@@ -5,6 +5,7 @@ namespace ViewModels
 {
     public abstract class BaseOfferViewModel
     {
+        public int Id { get; set; }
         public int TransporterId { get; set; }
 
         [Required]
@@ -29,15 +30,14 @@ namespace ViewModels
     {
     }
 
-    public class ListOfferViewModel : EditOfferViewModel
+    public class ListOfferViewModel : BaseOfferViewModel
     {
         public string TransporterName { get; set; }
     }
 
     public class EditOfferViewModel : BaseOfferViewModel
     {
-        [Required]
-        public int offerId { get; set; }
+
     }
 
     public class OfferDetailsViewModel : ListOfferViewModel

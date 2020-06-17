@@ -9,7 +9,7 @@ namespace BusinessLogic.Abstractions
     public interface IBusinessLogicOfferManager : IDisposable
     {
         Task<IBusinessLogicResult<AddOfferViewModel>> AddOfferAsync(AddOfferViewModel addProjectViewModel, int AdderUserId);
-        Task<IBusinessLogicResult<ListResultViewModel<ListOfferViewModel>>> GetOfferAsync(int getterUserId, int page,
+        Task<IBusinessLogicResult<ListResultViewModel<ListOfferViewModel>>> GetOfferAsync(int page,
            int pageSize, string search, string sort, string filter);
         Task<IBusinessLogicResult<EditOfferViewModel>> EditOfferAsync(EditOfferViewModel editOfferViewModel, int editorUserId);
         Task<IBusinessLogicResult<EditOfferViewModel>> GetOfferForEditAsync(int offerId, int getterUserId);

@@ -81,5 +81,7 @@ namespace ViewModels
         public double Weight { get; set; }
 
         public string MerchantName { get; set; }
+
+        public int count { get; set; }
     }
 }

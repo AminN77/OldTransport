@@ -453,6 +453,18 @@ namespace BusinessLogic
                     return new BusinessLogicResult<ProjectDetailsViewModel>(succeeded: false, result: null,
                         messages: messages, exception: exception);
                 }
+                try
+                {
+                    var count = _offerRepository.DeferredWhere(o => o.ProjectId == project.Id).Count();
+                    projectDetailsViewModel.count = count;
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<ProjectDetailsViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
+
                 return new BusinessLogicResult<ProjectDetailsViewModel>(succeeded: true, result: projectDetailsViewModel,
                     messages: messages);
             }

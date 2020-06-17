@@ -174,27 +174,42 @@ namespace BusinessLogic
             }
         }
 
-        public async Task<IBusinessLogicResult<ListResultViewModel<ListOfferViewModel>>> GetOfferAsync(int getterUserId,
+        public async Task<IBusinessLogicResult<ListResultViewModel<ListOfferViewModel>>> GetOfferAsync(
             int page, int pageSize, string search, string sort, string filter)
         {
             var messages = new List<IBusinessLogicMessage>();
 
             try
             {
-                var getterUser = await _offerRepository.FindAsync(getterUserId);
-                // Solution 1:
-                // Todo: Abolfazl -> set developer role type. (Abolfazl)
-                const bool developerUser = true; // RoleType.DeveloperSupport;
-                var usersQuery = _offerRepository.DeferredWhere(u =>
-                        (!u.Transporter.User.IsDeleted && !developerUser) || developerUser
-                    )
-                    .ProjectTo<ListOfferViewModel>(new MapperConfiguration(config =>
-                        config.CreateMap<Offer, ListOfferViewModel>()));
+                var usersQuery = _offerRepository.DeferredWhere(o => !o.IsDeleted)
+                        .Join(_transporterRepository.DeferredSelectAll(),
+                        o => o.Id,
+                        t => t.Id,
+                        (o, t) => o)
+                            .Join(_userRepository.DeferredSelectAll(),
+                            o => o.Id,
+                            u => u.Id,
+                            (o, u) => new ListOfferViewModel()
+                            {
+                                Id = o.Id,
+                                Description = o.Description,
+                                TransporterName = u.Name,
+                                EstimatedTime = o.EstimatedTime,
+                                Price = o.Price,
+                                TransporterId = o.TransporterId,
+                                ProjectId = o.ProjectId
+                            });
+
+                //_offerRepository.DeferredWhere(u =>
+                //    (!u.IsDeleted)
+                //)
+                //.ProjectTo<ListOfferViewModel>(new MapperConfiguration(config =>
+                //    config.CreateMap<Offer, ListOfferViewModel>().ForMember(o => o.TransporterName, o => o.MapFrom(l => l.Transporter))));
+
                 if (!string.IsNullOrEmpty(search))
                 {
                     usersQuery = usersQuery.Where(offer =>
                         offer.Description.Contains(search));
-
                 }
 
                 //TODO : isDeleted must add
@@ -446,7 +461,7 @@ namespace BusinessLogic
                 {
                     try
                     {
-                        offer = await _offerRepository.DeferredSelectAll().SingleOrDefaultAsync(o => o.Id == editOfferViewModel.offerId);
+                        offer = await _offerRepository.DeferredSelectAll().SingleOrDefaultAsync(o => o.Id == editOfferViewModel.Id);
                     }
                     catch (Exception exception)
                     {

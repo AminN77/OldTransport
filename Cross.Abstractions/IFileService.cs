@@ -10,11 +10,8 @@ namespace Cross.Abstractions
     public interface IFileService
     {
         Task SaveFile(IFormFile file, FileTypes fileType);
-
         bool FileTypeValidator(IFormFile file, FileTypes fileType);
-
         IFormFile PhotoResizer(IFormFile file);
-
         string SizeDeterminator(long bytes);
     }
 }

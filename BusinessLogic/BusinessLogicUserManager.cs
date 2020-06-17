@@ -161,11 +161,15 @@ namespace BusinessLogic
             var messages = new List<IBusinessLogicMessage>();
             try
             {
-
                 var getterUser = await _userRepository.FindAsync(getterUserId);
                 // Solution 1:
-                // Todo: Abolfazl -> set developer role type. (Abolfazl)
-                const bool developerUser = true; // RoleType.DeveloperSupport;
+                var developerUser = await _userRepository
+                    .DeferredWhere(user => user.Id == getterUserId && user.IsEnabled)
+                    .Join(_userRoleRepository.DeferredSelectAll(), user => user.Id, userRole => userRole.UserId,
+                        (user, userRole) => userRole)
+                    .Join(_roleRepository.DeferredSelectAll(), userRole => userRole.RoleId, role => role.Id,
+                        (userRole, role) => role).AnyAsync(role => role.Name == RoleTypes.DeveloperSupport.ToString());
+
                 var usersQuery = _userRepository.DeferredWhere(u =>
                         (!u.IsDeleted && !developerUser) || developerUser
                     )
