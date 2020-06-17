@@ -92,7 +92,7 @@ namespace MvcWebApi.Controllers
             return Ok(res);
         }
 
-        [HttpGet]
+        [HttpPost]
         [Authorize]
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> AddTransporter(AddTransporterViewModel addTransporterViewModel)
@@ -103,7 +103,7 @@ namespace MvcWebApi.Controllers
             return Ok(res);
         }
 
-        [HttpGet]
+        [HttpPost]
         [Authorize]
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> AddMerchant(AddMerchantViewModel addMerchantViewModel)

@@ -1113,6 +1113,21 @@ namespace BusinessLogic
             var messages = new List<IBusinessLogicMessage>();
             try
             {
+                bool doesExist;
+                try
+                {
+                    doesExist = _merchantRepository.DeferredSelectAll().Any(t => t.UserId == addMerchantViewModel.UserId);
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                    return new BusinessLogicResult<AddMerchantViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
+                }
+                if (doesExist)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.EntitiesFieldsValueAlreadyExisted));
+                    return new BusinessLogicResult<AddMerchantViewModel>(succeeded: false, messages: messages, result: null);
+                }
                 var merchant = await _utility.MapAsync<AddMerchantViewModel, Merchant>(addMerchantViewModel);
                 try
                 {
@@ -1138,6 +1153,21 @@ namespace BusinessLogic
             var messages = new List<IBusinessLogicMessage>();
             try
             {
+                bool doesExist;
+                try
+                {
+                    doesExist = _transporterRepository.DeferredSelectAll().Any(t => t.UserId == addTransporterViewModel.UserId);
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                    return new BusinessLogicResult<AddTransporterViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
+                }
+                if (doesExist)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.EntitiesFieldsValueAlreadyExisted));
+                    return new BusinessLogicResult<AddTransporterViewModel>(succeeded: false, messages: messages, result: null);
+                }
                 var transporter = await _utility.MapAsync<AddTransporterViewModel, Transporter>(addTransporterViewModel);
                 try
                 {
