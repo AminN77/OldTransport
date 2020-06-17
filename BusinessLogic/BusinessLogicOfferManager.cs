@@ -569,8 +569,8 @@ namespace BusinessLogic
                 var offerDetailsViewModel = await _utility.MapAsync<Offer, OfferDetailsViewModel>(offer);
                 try
                 {
-                    var merchantUserId = await _offerRepository.FindAsync(offer.TransporterId);
-                    var user = await _userRepository.FindAsync(merchantUserId);
+                    var transporter = await _transporterRepository.FindAsync(offer.TransporterId);
+                    var user = await _userRepository.FindAsync(transporter.Id);
                     offerDetailsViewModel.TransporterName = user.Name;
                 }
                 catch (Exception exception)
