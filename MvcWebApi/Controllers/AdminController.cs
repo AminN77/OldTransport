@@ -89,6 +89,7 @@ namespace MvcWebApi.Controllers
         }
 
         [HttpPut]
+        [IgnoreAntiforgeryToken]
         [Authorize(Policy = CustomRoles.Admin)]
         public async Task<IActionResult> Settings(SettingsViewModel settingsViewModel)
         {

@@ -484,6 +484,9 @@ namespace BusinessLogic
                            messages: messages);
                     }
 
+                    editOfferViewModel.TransporterId = transporter.Id;
+                    editOfferViewModel.ProjectId = offer.ProjectId;
+
                 }
                 catch (Exception exception)
                 {
@@ -493,21 +496,22 @@ namespace BusinessLogic
 
                 }
 
-                offer.Price = editOfferViewModel.Price;
-                offer.EstimatedTime = editOfferViewModel.EstimatedTime;
-                offer.Description = editOfferViewModel.Description;
+                //offer.Price = editOfferViewModel.Price;
+                //offer.EstimatedTime = editOfferViewModel.EstimatedTime;
+                //offer.Description = editOfferViewModel.Description;
 
-                //try
-                //{
-                //    await _utility.MapAsync(editOfferViewModel,offer);
 
-                //}
-                //catch (Exception exception)
-                //{
-                //    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
-                //    return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
-                //        messages: messages, exception: exception);
-                //}
+                try
+                {
+                    await _utility.MapAsync(editOfferViewModel, offer);
+
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
 
                 try
                 {

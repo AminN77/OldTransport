@@ -1465,12 +1465,7 @@ namespace BusinessLogic
                     messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
                     return new BusinessLogicResult<SettingsViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
                 }
-                //settings.AboutUs = settingsViewModel.AboutUs;
-                //settings.ContactEmail = settingsViewModel.ContactEmail;
-                //settings.Logo = settings.Logo;
-                //settings.ContactNumber = settingsViewModel.ContactNumber;
-                settings = await _utility.MapAsync<SettingsViewModel, Settings>(settingsViewModel);
-
+                await _utility.MapAsync(settingsViewModel, settings);
                 try
                 {
                     await _settingsRepository.UpdateAsync(settings, true);
