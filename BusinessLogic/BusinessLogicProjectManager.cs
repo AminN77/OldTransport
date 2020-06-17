@@ -22,11 +22,12 @@ namespace BusinessLogic
         private readonly IRepository<Role> _roleRepository;
         private readonly IRepository<UserRole> _userRoleRepository;
         private readonly IRepository<User> _userRepository;
+        private readonly IRepository<Offer> _offerRepository;
         private readonly BusinessLogicUtility _utility;
 
         public BusinessLogicProjectManager(IRepository<Merchant> merchantRepository, IRepository<Project> projectRepository,
                 BusinessLogicUtility utility, IRepository<Accept> acceptRepository, IRepository<Role> roleRepository,
-                IRepository<UserRole> userRoleRepository, IRepository<User> userRepository)
+                IRepository<UserRole> userRoleRepository, IRepository<User> userRepository, IRepository<Offer> offerRepository)
         {
             _merchantRepository = merchantRepository;
             _projectRepository = projectRepository;
@@ -34,6 +35,7 @@ namespace BusinessLogic
             _userRoleRepository = userRoleRepository;
             _roleRepository = roleRepository;
             _userRepository = userRepository;
+            _offerRepository = offerRepository;
             _utility = utility;
         }
 
@@ -562,6 +564,26 @@ namespace BusinessLogic
                     return new BusinessLogicResult<AcceptOfferViewModel>(succeeded: false, result: null,
                         messages: messages, exception: exception);
                 }
+                try
+                {
+                    var projectMerchant = await _offerRepository.DeferredWhere(o => o.Id == acceptOfferViewModel.OfferId)
+                        .Join(_projectRepository.DeferredSelectAll(),
+                        o => o.Id,
+                        p => p.Id,
+                        (o, p) => p).SingleOrDefaultAsync(p => p.MerchantId == merchant.Id);
+                    if (projectMerchant == null)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
+                        return new BusinessLogicResult<AcceptOfferViewModel>(succeeded: false, result: null,
+                            messages: messages);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<AcceptOfferViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
 
                 acceptOfferViewModel.MerchantId = merchant.Id;
                 var accept = await _utility.MapAsync<AcceptOfferViewModel, Accept>(acceptOfferViewModel);
@@ -608,7 +630,6 @@ namespace BusinessLogic
                     messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
                     return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
                 }
-
                 Accept accept;
                 // Critical Database
                 try
@@ -675,7 +696,7 @@ namespace BusinessLogic
                 // Critical Authentication and Authorization
                 try
                 {
-                    var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.Admin.ToString());
+                    var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
                     var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == deactivatorUserId && u.RoleId != userRole.Id);
                     if (!isUserAuthorized)
                     {
