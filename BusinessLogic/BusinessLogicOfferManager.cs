@@ -183,11 +183,11 @@ namespace BusinessLogic
             {
                 var usersQuery = _offerRepository.DeferredWhere(o => !o.IsDeleted)
                         .Join(_transporterRepository.DeferredSelectAll(),
-                        o => o.Id,
+                        o => o.TransporterId,
                         t => t.Id,
                         (o, t) => new { o, t })
                             .Join(_userRepository.DeferredSelectAll(),
-                            c => c.o.Id,
+                            c => c.t.UserId,
                             u => u.Id,
                             (c, u) => new ListOfferViewModel()
                             {
