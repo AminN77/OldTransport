@@ -24,7 +24,7 @@ namespace MvcWebApi.Controllers
 
         [HttpGet]
         [Authorize]
-        public async Task<IActionResult> UserDetails(int userId)
+        public async Task<IActionResult> UserDetails(int? userId)
         {
             if (!ModelState.IsValid) return BadRequest();
             var getterUserId = HttpContext.GetCurrentUserId();

@@ -524,7 +524,7 @@ namespace BusinessLogic
             }
         }
 
-        public async Task<IBusinessLogicResult<DetailUserViewModel>> GetUserDetailsAsync(int userId, int getterUserId)
+        public async Task<IBusinessLogicResult<DetailUserViewModel>> GetUserDetailsAsync(int? userId, int getterUserId)
         {
             var messages = new List<IBusinessLogicMessage>();
             try
@@ -532,13 +532,17 @@ namespace BusinessLogic
                 // Critical Authentication and Authorization
                 try
                 {
-                    var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
-                    var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == getterUserId && u.RoleId != userRole.Id);
-                    if (userId != getterUserId && !isUserAuthorized)
+                    if (userId != null)
                     {
-                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
-                        return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
-                            messages: messages);
+                        var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
+                        var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == getterUserId && u.RoleId != userRole.Id);
+
+                        if (userId != getterUserId && !isUserAuthorized)
+                        {
+                            messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
+                            return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
+                                messages: messages);
+                        }
                     }
                 }
                 catch (Exception exception)
@@ -552,7 +556,14 @@ namespace BusinessLogic
                 // Critical Database
                 try
                 {
-                    user = await _userRepository.FindAsync(userId);
+                    if (userId != null)
+                    {
+                        user = await _userRepository.FindAsync(userId);
+                    }
+                    else
+                    {
+                        user = await _userRepository.FindAsync(getterUserId);
+                    }
                 }
                 catch (Exception exception)
                 {
