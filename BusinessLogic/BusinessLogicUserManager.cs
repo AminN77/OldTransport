@@ -1010,6 +1010,7 @@ namespace BusinessLogic
                         messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
                         return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
                     }
+                    user.ActivationCode = new Random().Next(10001, 99999);
                     try
                     {
                         await _userRepository.UpdateAsync(user);
@@ -1067,8 +1068,8 @@ namespace BusinessLogic
                 var addMerchantViewModel = new AddMerchantViewModel()
                 {
                     UserId = user.Id
-                };                
-                
+                };
+
                 var addTransporterViewModel = new AddTransporterViewModel()
                 {
                     UserId = user.Id
@@ -1117,12 +1118,12 @@ namespace BusinessLogic
                 {
                     await _merchantRepository.AddAsync(merchant);
                     messages.Add(new BusinessLogicMessage(MessageType.Info, MessageId.EntitySuccessfullyAdded));
-                    return new BusinessLogicResult<AddMerchantViewModel>(succeeded: true, messages: messages, result:addMerchantViewModel);
+                    return new BusinessLogicResult<AddMerchantViewModel>(succeeded: true, messages: messages, result: addMerchantViewModel);
                 }
                 catch (Exception exception)
                 {
                     messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
-                    return new BusinessLogicResult<AddMerchantViewModel>(succeeded: false, messages: messages, exception: exception, result:null);
+                    return new BusinessLogicResult<AddMerchantViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
                 }
             }
             catch (Exception exception)
