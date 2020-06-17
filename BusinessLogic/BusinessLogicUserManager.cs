@@ -421,7 +421,7 @@ namespace BusinessLogic
                 try
                 {
                     var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
-                    var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == editorUserId && u.RoleId != userRole.Id);
+                    var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == editorUserId && u.RoleId == userRole.Id);
                     if (editUserViewModel.Id != editorUserId && !isUserAuthorized)
                     {
                         messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
@@ -436,10 +436,6 @@ namespace BusinessLogic
                         messages: messages, exception: exception);
                 }
 
-                // User verification
-                //var isUserNameExisted = await _userRepository.DeferredSelectAll(u => u.Id != editUserViewModel.Id)
-                //    .AnyAsync(usr => usr.EmailAddress == editUserViewModel.EmailAddress);
-
                 // Check developer & admin role
                 var developerRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.DeveloperSupport.ToString());
                 var isUserDeveloper = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == editUserViewModel.Id && u.RoleId == developerRole.Id);
@@ -453,27 +449,18 @@ namespace BusinessLogic
                         messages: messages);
                 }
 
-                // Check Username Existed
-                //if (isUserNameExisted)
-                //{
-                //    messages.Add(new BusinessLogicMessage(type: MessageType.Error,
-                //        message: MessageId.UsernameAlreadyExisted,
-                //        viewMessagePlaceHolders: editUserViewModel.EmailAddress));
-                //    return new BusinessLogicResult<EditUserViewModel>(succeeded: false, result: null,
-                //        messages: messages);
-                //}
-
-                //var check = _fileService.FileTypeValidator(file, Cross.Abstractions.EntityEnums.FileTypes.ProfilePhoto);
-                //if (!check)
-                //{
-                //    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InvalidFileType));
-                //    return new BusinessLogicResult<EditUserViewModel>(succeeded: false, result: null,
-                //        messages: messages);
-                //}
-
-                //var resizedPhoto = _fileService.PhotoResizer(file);
-                //await _fileService.SaveFile(resizedPhoto, Cross.Abstractions.EntityEnums.FileTypes.ProfilePhoto);
-                //new { Size = _fileService.SizeDeterminator(file.Length) };
+                if (editUserViewModel.file != null)
+                {
+                    var check = _fileService.FileTypeValidator(editUserViewModel.file, Cross.Abstractions.EntityEnums.FileTypes.ProfilePhoto);
+                    if (!check)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InvalidFileType));
+                        return new BusinessLogicResult<EditUserViewModel>(succeeded: false, result: null,
+                            messages: messages);
+                    }
+                    //var resizedPhoto = _fileService.PhotoResizer(file);
+                    editUserViewModel.Picture = await _fileService.SaveFile(editUserViewModel.file, Cross.Abstractions.EntityEnums.FileTypes.ProfilePhoto);
+                }
 
                 User user;
 
