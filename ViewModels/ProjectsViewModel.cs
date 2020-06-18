@@ -53,7 +53,9 @@ namespace ViewModels
         public int Id { get; set; }
 
         [Required]
-        public bool IsEnabled{ get; set; }
+        public bool IsEnabled { get; set; }
+
+        public int AcceptedOfferId { get; set; }
     }
 
     public class EditProjectViewModel : AddProjectViewModel

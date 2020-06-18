@@ -43,7 +43,7 @@ namespace MvcWebApi.Controllers
         {
             if (!ModelState.IsValid) return BadRequest();
             var getterUserId = HttpContext.GetCurrentUserId();
-            var result = await _businessLogicProjectManager.GetProjectsAsync(getterUserId, page, pageSize, search, sort, filter);
+            var result = await _businessLogicProjectManager.GetProjectsAsync(page, pageSize, search, sort, filter);
             if (!result.Succeeded) return StatusCode(500, result);
             return Ok(result);
         }

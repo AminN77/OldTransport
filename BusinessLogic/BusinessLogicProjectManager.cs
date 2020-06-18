@@ -476,19 +476,13 @@ namespace BusinessLogic
             }
         }
 
-        public async Task<IBusinessLogicResult<ListResultViewModel<ListProjectViewModel>>> GetProjectsAsync(int getterUserId, int page, int pageSize, string search, string sort, string filter)
+        public async Task<IBusinessLogicResult<ListResultViewModel<ListProjectViewModel>>> GetProjectsAsync(int page, int pageSize, string search, string sort, string filter)
         {
             var messages = new List<IBusinessLogicMessage>();
 
             try
             {
-                var getterUser = await _projectRepository.FindAsync(getterUserId);
-                // Solution 1:
-                // Todo: Abolfazl -> set developer role type. (Abolfazl)
-                const bool developerUser = true; // RoleType.DeveloperSupport;
-                var usersQuery = _projectRepository.DeferredWhere(u =>
-                        (!u.Merchant.User.IsDeleted && !developerUser) || developerUser
-                    )
+                var usersQuery = _projectRepository.DeferredSelectAll()
                     .ProjectTo<ListProjectViewModel>(new MapperConfiguration(config =>
                         config.CreateMap<Project, ListProjectViewModel>()));
                 if (!string.IsNullOrEmpty(search))
@@ -530,6 +524,16 @@ namespace BusinessLogic
                     TotalEntitiesCount = recordsCount,
                     TotalPagesCount = pageCount
                 };
+                foreach (var item in projectListViewModels)
+                {
+                    var acceptedOffer = await _offerRepository.DeferredWhere(o => o.ProjectId == item.Id)
+                        .Join(_acceptRepository.DeferredSelectAll(),
+                        o => o.Id,
+                        a => a.OfferId,
+                        (o, a) => o).Distinct().SingleOrDefaultAsync();
+                    if(acceptedOffer != null) item.AcceptedOfferId = acceptedOffer.Id;
+                }
+
                 return new BusinessLogicResult<ListResultViewModel<ListProjectViewModel>>(succeeded: true,
                     result: result, messages: messages);
             }
