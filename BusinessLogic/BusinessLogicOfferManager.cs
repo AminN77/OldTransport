@@ -21,11 +21,12 @@ namespace BusinessLogic
         private readonly IRepository<Role> _roleRepository;
         private readonly IRepository<UserRole> _userRoleRepository;
         private readonly IRepository<User> _userRepository;
+        private readonly IRepository<Accept> _acceptRepository;
         private readonly BusinessLogicUtility _utility;
 
         public BusinessLogicOfferManager(IRepository<Offer> offerRepository, IRepository<Transporter> transporterRepository,
                 BusinessLogicUtility utility, IRepository<Project> projectRepository, IRepository<Role> roleRepository,
-                IRepository<UserRole> userRoleRepository, IRepository<User> userRepository)
+                IRepository<UserRole> userRoleRepository, IRepository<User> userRepository, IRepository<Accept> acceptRepository)
         {
             _transporterRepository = transporterRepository;
             _offerRepository = offerRepository;
@@ -33,6 +34,7 @@ namespace BusinessLogic
             _userRoleRepository = userRoleRepository;
             _roleRepository = roleRepository;
             _userRepository = userRepository;
+            _acceptRepository = acceptRepository;
             _utility = utility;
         }
 
@@ -186,21 +188,21 @@ namespace BusinessLogic
                             .Join(_userRepository.DeferredSelectAll(),
                             c => c.t.UserId,
                             u => u.Id,
-                            (c, u) => new {c, u})
-                            .Join(_projectRepository.DeferredSelectAll(),
-                            d => d.c.o.ProjectId,
-                            p => p.Id,
-                            (d, p) => new ListOfferViewModel()
-                            {
-                                Id = d.c.o.Id,
-                                Description = d.c.o.Description,
-                                TransporterName = d.u.Name,
-                                EstimatedTime = d.c.o.EstimatedTime,
-                                Price = d.c.o.Price,
-                                TransporterId = d.c.o.TransporterId,
-                                ProjectId = d.c.o.ProjectId,
-                                ProjectName = p.Title
-                            });
+                            (c, u) => new { c, u })
+                                .Join(_projectRepository.DeferredSelectAll(),
+                                d => d.c.o.ProjectId,
+                                p => p.Id,
+                                (d, p) => new ListOfferViewModel()
+                                {
+                                    Id = d.c.o.Id,
+                                    Description = d.c.o.Description,
+                                    TransporterName = d.u.Name,
+                                    EstimatedTime = d.c.o.EstimatedTime,
+                                    Price = d.c.o.Price,
+                                    TransporterId = d.c.o.TransporterId,
+                                    ProjectId = d.c.o.ProjectId,
+                                    ProjectName = p.Title
+                                });
 
                 //_offerRepository.DeferredWhere(u =>
                 //    (!u.IsDeleted)
@@ -245,6 +247,11 @@ namespace BusinessLogic
                     TotalEntitiesCount = recordsCount,
                     TotalPagesCount = pageCount
                 };
+                foreach (var item in offerListViewModels)
+                {
+                    item.IsAccepted = _acceptRepository.DeferredWhere(a => a.OfferId == item.Id).Any();
+                }
+
                 return new BusinessLogicResult<ListResultViewModel<ListOfferViewModel>>(succeeded: true,
                     result: result, messages: messages);
             }
@@ -257,7 +264,7 @@ namespace BusinessLogic
 
         }
 
-        public async Task<IBusinessLogicResult<EditOfferViewModel>> GetOfferForEditAsync(int offerId , int getterUserId)
+        public async Task<IBusinessLogicResult<EditOfferViewModel>> GetOfferForEditAsync(int offerId, int getterUserId)
         {
             var messages = new List<IBusinessLogicMessage>();
             try
@@ -561,7 +568,7 @@ namespace BusinessLogic
             var messages = new List<IBusinessLogicMessage>();
             try
             {
-                Offer  offer;
+                Offer offer;
                 // Critical Database
                 try
                 {

@@ -34,6 +34,7 @@ namespace ViewModels
     {
         public string TransporterName { get; set; }
         public string ProjectName { get; set; }
+        public bool IsAccepted { get; set; }
     }
 
     public class EditOfferViewModel : BaseOfferViewModel

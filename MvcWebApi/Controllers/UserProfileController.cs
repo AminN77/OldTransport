@@ -37,6 +37,7 @@ namespace MvcWebApi.Controllers
 
         [HttpDelete]
         [Authorize]
+        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> DeleteUser(int? userId)
         {
             if (!ModelState.IsValid) return BadRequest();
