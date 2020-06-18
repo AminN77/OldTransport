@@ -91,8 +91,6 @@ namespace ViewModels
 
     public class UserResetPasswordViewModel
     {
-        public int Id { get; set; }
-
         [Required(ErrorMessage = "لطفا {0} را وارد کنید.")]
         [Display(Name = "کلمه عبور جدید")]
         [DataType(DataType.Password)]

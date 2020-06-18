@@ -234,16 +234,8 @@ namespace BusinessLogic
             var messages = new List<BusinessLogicMessage>();
             try
             {
-                if (userChangePasswordViewModel.Id != changerUserId)
-                {
-                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
-                    return new BusinessLogicResult<UserChangePasswordViewModel>(succeeded: false, result: null,
-                        messages: messages);
-                }
-
-                // Critical Authentication and Authorization
                 User user;
-                // user verification
+                // Verification
                 try
                 {
                     user = await _userRepository.FindAsync(changerUserId);
