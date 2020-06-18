@@ -33,6 +33,7 @@ namespace ViewModels
     public class ListOfferViewModel : BaseOfferViewModel
     {
         public string TransporterName { get; set; }
+        public string ProjectName { get; set; }
     }
 
     public class EditOfferViewModel : BaseOfferViewModel

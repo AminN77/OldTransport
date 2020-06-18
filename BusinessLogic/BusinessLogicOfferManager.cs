@@ -1,6 +1,4 @@
-﻿using AutoMapper;
-using AutoMapper.QueryableExtensions;
-using BusinessLogic.Abstractions;
+﻿using BusinessLogic.Abstractions;
 using BusinessLogic.Abstractions.Message;
 using Cross.Abstractions.EntityEnums;
 using Data.Abstractions;
@@ -9,7 +7,6 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using ViewModels;
 
@@ -189,15 +186,20 @@ namespace BusinessLogic
                             .Join(_userRepository.DeferredSelectAll(),
                             c => c.t.UserId,
                             u => u.Id,
-                            (c, u) => new ListOfferViewModel()
+                            (c, u) => new {c, u})
+                            .Join(_projectRepository.DeferredSelectAll(),
+                            d => d.c.o.ProjectId,
+                            p => p.Id,
+                            (d, p) => new ListOfferViewModel()
                             {
-                                Id = c.o.Id,
-                                Description = c.o.Description,
-                                TransporterName = u.Name,
-                                EstimatedTime = c.o.EstimatedTime,
-                                Price = c.o.Price,
-                                TransporterId = c.o.TransporterId,
-                                ProjectId = c.o.ProjectId
+                                Id = d.c.o.Id,
+                                Description = d.c.o.Description,
+                                TransporterName = d.u.Name,
+                                EstimatedTime = d.c.o.EstimatedTime,
+                                Price = d.c.o.Price,
+                                TransporterId = d.c.o.TransporterId,
+                                ProjectId = d.c.o.ProjectId,
+                                ProjectName = p.Title
                             });
 
                 //_offerRepository.DeferredWhere(u =>
@@ -587,6 +589,18 @@ namespace BusinessLogic
                     var transporter = await _transporterRepository.FindAsync(offer.TransporterId);
                     var user = await _userRepository.FindAsync(transporter.UserId);
                     offerDetailsViewModel.TransporterName = user.Name;
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<OfferDetailsViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
+
+                try
+                {
+                    var project = await _projectRepository.FindAsync(offer.ProjectId);
+                    offerDetailsViewModel.ProjectName = project.Title;
                 }
                 catch (Exception exception)
                 {
