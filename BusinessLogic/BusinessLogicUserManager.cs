@@ -316,7 +316,7 @@ namespace BusinessLogic
         /// <param name="userId"></param>
         /// <param name="deleterUserId"></param>
         /// <returns></returns>
-        public async Task<IBusinessLogicResult> DeleteUserAsync(int userId, int deleterUserId)
+        public async Task<IBusinessLogicResult> DeleteUserAsync(int? userId, int deleterUserId)
         {
             var messages = new List<BusinessLogicMessage>();
             try
@@ -324,13 +324,26 @@ namespace BusinessLogic
                 // Critical Authentication and Authorization
                 try
                 {
-                    var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
-                    var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == deleterUserId && u.RoleId != userRole.Id);
-                    if (userId != deleterUserId && !isUserAuthorized)
+                    if (userId != null)
                     {
-                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
-                        return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
-                            messages: messages);
+                        var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
+                        var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == deleterUserId && u.RoleId != userRole.Id);
+                        if (userId != deleterUserId && !isUserAuthorized)
+                        {
+                            messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
+                            return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
+                                messages: messages);
+                        }
+                    }
+                    else {
+                        var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
+                        var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == deleterUserId && u.RoleId == userRole.Id);
+                        if (!isUserAuthorized)
+                        {
+                            messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
+                            return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
+                                messages: messages);
+                        }
                     }
                 }
                 catch (Exception exception)
@@ -344,12 +357,25 @@ namespace BusinessLogic
                 User user;
                 try
                 {
-                    user = await _userRepository.FindAsync(userId);
-                    if (user == null || user.IsDeleted)
+                    if (userId != null)
                     {
-                        messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.EntityDoesNotExist,
-                            BusinessLogicSetting.UserDisplayName));
-                        return new BusinessLogicResult(succeeded: false, messages: messages);
+                        user = await _userRepository.FindAsync(userId);
+                        if (user == null || user.IsDeleted)
+                        {
+                            messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.EntityDoesNotExist,
+                                BusinessLogicSetting.UserDisplayName));
+                            return new BusinessLogicResult(succeeded: false, messages: messages);
+                        }
+                    }
+                    else
+                    {
+                        user = await _userRepository.FindAsync(deleterUserId);
+                        if (user == null || user.IsDeleted)
+                        {
+                            messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.EntityDoesNotExist,
+                                BusinessLogicSetting.UserDisplayName));
+                            return new BusinessLogicResult(succeeded: false, messages: messages);
+                        }
                     }
                 }
                 catch (Exception exception)
@@ -360,9 +386,19 @@ namespace BusinessLogic
 
                 // Check developer & admin role
                 var developerRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.DeveloperSupport.ToString());
-                var isUserDeveloper = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == userId && u.RoleId == developerRole.Id);
                 var adminRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.Admin.ToString());
-                var isUserAdmin = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == userId && u.RoleId == adminRole.Id);
+                bool isUserDeveloper;
+                bool isUserAdmin;
+                if (userId != null)
+                {
+                    isUserDeveloper = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == userId && u.RoleId == developerRole.Id);
+                    isUserAdmin = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == userId && u.RoleId == adminRole.Id);
+                }
+                else
+                {
+                    isUserDeveloper = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == deleterUserId && u.RoleId == developerRole.Id);
+                    isUserAdmin = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == deleterUserId && u.RoleId == adminRole.Id);
+                }
                 if (isUserAdmin || isUserDeveloper)
                 {
                     messages.Add(new BusinessLogicMessage(type: MessageType.Error,

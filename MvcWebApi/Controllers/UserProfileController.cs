@@ -28,18 +28,18 @@ namespace MvcWebApi.Controllers
         {
             if (!ModelState.IsValid) return BadRequest();
             var getterUserId = HttpContext.GetCurrentUserId();
-            var res = await _businessLogicUserManager.GetUserDetailsAsync(userId, getterUserId);
+            var res = await _businessLogicUserManager.GetUserDetailsAsync(userId.Value, getterUserId);
             if (!res.Succeeded) return StatusCode(500, res);
             return Ok(res);
         }
 
         [HttpDelete]
         [Authorize]
-        public async Task<IActionResult> DeleteUser(int userId)
+        public async Task<IActionResult> DeleteUser(int? userId)
         {
             if (!ModelState.IsValid) return BadRequest();
             var deleterUserId = HttpContext.GetCurrentUserId();
-            var res = await _businessLogicUserManager.DeleteUserAsync(userId, deleterUserId);
+            var res = await _businessLogicUserManager.DeleteUserAsync(userId.Value, deleterUserId);
             if (!res.Succeeded) return StatusCode(500, res);
             return Ok(res);
         }
