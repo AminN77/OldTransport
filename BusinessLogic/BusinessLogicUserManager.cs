@@ -170,11 +170,32 @@ namespace BusinessLogic
                     .Join(_roleRepository.DeferredSelectAll(), userRole => userRole.RoleId, role => role.Id,
                         (userRole, role) => role).AnyAsync(role => role.Name == RoleTypes.DeveloperSupport.ToString());
 
-                var usersQuery = _userRepository.DeferredWhere(u =>
-                        (!u.IsDeleted && !developerUser) || developerUser
-                    )
-                    .ProjectTo<ListUserViewModel>(new MapperConfiguration(config =>
-                        config.CreateMap<User, ListUserViewModel>()));
+                var usersQuery = _userRepository.DeferredWhere(u => (!u.IsDeleted && !developerUser) || developerUser)
+                    .Join(_userRoleRepository.DeferredSelectAll(),
+                    user => user.Id,
+                    userRole => userRole.UserId,
+                    (user, userRole) => new { user, userRole })
+                        .Join(_roleRepository.DeferredSelectAll(),
+                        c => c.userRole.RoleId,
+                        role => role.Id,
+                        (c, role) => new ListUserViewModel()
+                        {
+                            Name = c.user.Name,
+                            IsEnabled = c.user.IsEnabled,
+                            Picture = c.user.Picture,
+                            LastLoggedIn = c.user.LastLoggedIn,
+                            EmailAddress = c.user.EmailAddress,
+                            Id = c.user.Id,
+                            Role = role.Name
+                        });
+
+
+                    //_userRepository.DeferredWhere(u =>
+                    //    (!u.IsDeleted && !developerUser) || developerUser
+                    //)
+                    //.ProjectTo<ListUserViewModel>(new MapperConfiguration(config =>
+                    //    config.CreateMap<User, ListUserViewModel>().ForMember(u => u.IsAdmin, o => o.MapFrom(l => l.UserRoles))));
+
                 if (!string.IsNullOrEmpty(search))
                 {
                     usersQuery = usersQuery.Where(user =>

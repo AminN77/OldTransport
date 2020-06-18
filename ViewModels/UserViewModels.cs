@@ -29,8 +29,7 @@ namespace ViewModels
 
     public class UserSignInViewModel : ListUserViewModel
     {
-        [Required]
-        public string Token { get; set; }
+        public string SerialNumber { get; set; }
     }
 
     public class EditUserViewModel
@@ -75,7 +74,7 @@ namespace ViewModels
 
         public DateTimeOffset? LastLoggedIn { get; set; }
 
-        public string SerialNumber { get; set; }
+        public string Role { get; set; }
     }
 
     public class DetailUserViewModel : ListUserViewModel

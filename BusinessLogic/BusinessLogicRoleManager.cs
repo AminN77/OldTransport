@@ -81,7 +81,6 @@ namespace BusinessLogic
                         IsEnabled = user.IsEnabled,
                         LastLoggedIn = user.LastLoggedIn,
                         Name = user.Name,
-                        SerialNumber = user.SerialNumber,
                         Picture = user.Picture
                     }).ToListAsync();
 

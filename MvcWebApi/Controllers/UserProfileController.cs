@@ -16,10 +16,12 @@ namespace MvcWebApi.Controllers
     public class UserProfileController : ControllerBase
     {
         private readonly IBusinessLogicUserManager _businessLogicUserManager;
+        private readonly IBusinessLogicRoleManager _businessLogicRoleManager;
 
-        public UserProfileController(IBusinessLogicUserManager businessLogicUserManager)
+        public UserProfileController(IBusinessLogicUserManager businessLogicUserManager, IBusinessLogicRoleManager businessLogicRoleManager)
         {
             _businessLogicUserManager = businessLogicUserManager;
+            _businessLogicRoleManager = businessLogicRoleManager;
         }
 
         [HttpGet]
@@ -124,6 +126,18 @@ namespace MvcWebApi.Controllers
             if (!ModelState.IsValid) return BadRequest();
             var userId = HttpContext.GetCurrentUserId();
             var res = await _businessLogicUserManager.AddMerchantAsync(userId, addMerchantViewModel);
+            if (!res.Succeeded) return NotFound(res);
+            return Ok(res);
+        }
+
+        [HttpGet]
+        [Authorize]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> UserRole()
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var userId = HttpContext.GetCurrentUserId();
+            var res = await _businessLogicRoleManager.FindUserRolesAsync(userId);
             if (!res.Succeeded) return NotFound(res);
             return Ok(res);
         }
