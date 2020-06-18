@@ -582,12 +582,12 @@ namespace BusinessLogic
                 }
                 try
                 {
-                    var projectMerchant = await _offerRepository.DeferredWhere(o => o.Id == acceptOfferViewModel.OfferId)
+                    var offerProject = await _offerRepository.DeferredWhere(o => o.Id == acceptOfferViewModel.OfferId)
                         .Join(_projectRepository.DeferredSelectAll(),
-                        o => o.Id,
+                        o => o.ProjectId,
                         p => p.Id,
-                        (o, p) => p).SingleOrDefaultAsync(p => p.MerchantId == merchant.Id);
-                    if (projectMerchant == null)
+                        (o, p) => p).SingleOrDefaultAsync();
+                    if (offerProject.MerchantId != merchant.Id)
                     {
                         messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
                         return new BusinessLogicResult<AcceptOfferViewModel>(succeeded: false, result: null,
