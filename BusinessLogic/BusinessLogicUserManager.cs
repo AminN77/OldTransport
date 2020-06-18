@@ -186,7 +186,8 @@ namespace BusinessLogic
                             LastLoggedIn = c.user.LastLoggedIn,
                             EmailAddress = c.user.EmailAddress,
                             Id = c.user.Id,
-                            Role = role.Name
+                            Role = role.Name,
+                            PhoneNumber = c.user.PhoneNumber
                         });
 
 

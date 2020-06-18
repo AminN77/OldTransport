@@ -52,6 +52,8 @@ namespace ViewModels
         public string Bio { get; set; }
 
         public IFormFile file { get; set; }
+
+        public string PhoneNumber { get; set; }
     }
 
     public class ListUserViewModel : UserBaseViewModel
@@ -75,6 +77,8 @@ namespace ViewModels
         public DateTimeOffset? LastLoggedIn { get; set; }
 
         public string Role { get; set; }
+
+        public string PhoneNumber { get; set; }
     }
 
     public class DetailUserViewModel : ListUserViewModel

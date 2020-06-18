@@ -85,5 +85,7 @@ namespace ViewModels
         public string MerchantName { get; set; }
 
         public int count { get; set; }
+
+        public bool IsMerchatOwner { get; set; }
     }
 }

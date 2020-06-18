@@ -42,7 +42,6 @@ namespace MvcWebApi.Controllers
         public async Task<IActionResult> ProjectsList(int page, int pageSize, string search, string sort, string filter)
         {
             if (!ModelState.IsValid) return BadRequest();
-            var getterUserId = HttpContext.GetCurrentUserId();
             var result = await _businessLogicProjectManager.GetProjectsAsync(page, pageSize, search, sort, filter);
             if (!result.Succeeded) return StatusCode(500, result);
             return Ok(result);
@@ -116,7 +115,8 @@ namespace MvcWebApi.Controllers
         public async Task<IActionResult> ProjectDetails(int projectId)
         {
             if (!ModelState.IsValid) return BadRequest();
-            var result = await _businessLogicProjectManager.GetProjectDetailsAsync(projectId);
+            var getterUserId = HttpContext.GetCurrentUserId();
+            var result = await _businessLogicProjectManager.GetProjectDetailsAsync(projectId, getterUserId);
             if (!result.Succeeded) return StatusCode(500, result);
             return Ok(result);
         }

@@ -413,7 +413,7 @@ namespace BusinessLogic
 
         }
 
-        public async Task<IBusinessLogicResult<ProjectDetailsViewModel>> GetProjectDetailsAsync(int projectId)
+        public async Task<IBusinessLogicResult<ProjectDetailsViewModel>> GetProjectDetailsAsync(int projectId, int getterUserId)
         {
             var messages = new List<IBusinessLogicMessage>();
             try
@@ -439,8 +439,21 @@ namespace BusinessLogic
                     return new BusinessLogicResult<ProjectDetailsViewModel>(succeeded: false, result: null,
                         messages: messages);
                 }
-
                 var projectDetailsViewModel = await _utility.MapAsync<Project, ProjectDetailsViewModel>(project);
+                try
+                {
+                    var isGetterMerchant = _merchantRepository.DeferredWhere(m => m.Id == getterUserId).Any();
+                    if (isGetterMerchant)
+                    {
+                        projectDetailsViewModel.IsMerchatOwner = true;
+                    }
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<ProjectDetailsViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
                 try
                 {
                     var merchant = await _merchantRepository.FindAsync(project.MerchantId);
