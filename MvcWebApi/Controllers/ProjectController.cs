@@ -120,5 +120,14 @@ namespace MvcWebApi.Controllers
             if (!result.Succeeded) return StatusCode(500, result);
             return Ok(result);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> ProjectsCount()
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var result = await _businessLogicProjectManager.CountProjectsAsync();
+            if (!result.Succeeded) return StatusCode(500, result);
+            return Ok(result);
+        }
     }
 }

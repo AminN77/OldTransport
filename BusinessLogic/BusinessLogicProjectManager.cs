@@ -851,6 +851,22 @@ namespace BusinessLogic
             }
         }
 
+        public async Task<IBusinessLogicResult<int?>> CountProjectsAsync()
+        {
+            var messages = new List<IBusinessLogicMessage>();
+            try
+            {
+                var projects = _projectRepository.DeferredSelectAll().Count();
+                messages.Add(new BusinessLogicMessage(type: MessageType.Info, message: MessageId.Successed));
+                return new BusinessLogicResult<int?>(succeeded: true, messages: messages, result: projects);
+            }
+            catch (Exception exception)
+            {
+                messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                return new BusinessLogicResult<int?>(succeeded: false, messages: messages, exception: exception, result: null);
+            }
+        }
+
         public void Dispose()
         {
             _projectRepository.Dispose();

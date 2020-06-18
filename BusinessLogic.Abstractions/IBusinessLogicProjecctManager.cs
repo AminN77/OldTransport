@@ -19,5 +19,6 @@ namespace BusinessLogic.Abstractions
         Task<IBusinessLogicResult> DeleteAccept (int acceptId, int merchantUserId);
         Task<IBusinessLogicResult> DeactivateProjectAsync(int projectId, int deactivatorUsertId);
         Task<IBusinessLogicResult> ActivateProjectAsync(int projectId, int activatorUserId);
+        Task<IBusinessLogicResult<int?>> CountProjectsAsync();
     }
 }
