@@ -1159,19 +1159,13 @@ namespace BusinessLogic
                     return new BusinessLogicResult<UserSignInViewModel>(succeeded: false, result: null, messages: messages, exception: exception);
                 }
 
-                var addMerchantViewModel = new AddMerchantViewModel()
-                {
-                    UserId = user.Id
-                };
+                var addMerchantViewModel = new AddMerchantViewModel();
 
-                var addTransporterViewModel = new AddTransporterViewModel()
-                {
-                    UserId = user.Id
-                };
+                var addTransporterViewModel = new AddTransporterViewModel();
 
                 if (userRegisterViewModel.Role)
                 {
-                    var res = await AddMerchantAsync(addMerchantViewModel);
+                    var res = await AddMerchantAsync(user.Id, addMerchantViewModel);
                     if (!res.Succeeded)
                     {
                         messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
@@ -1180,7 +1174,7 @@ namespace BusinessLogic
                 }
                 else
                 {
-                    var res = await AddTransporterAsync(addTransporterViewModel);
+                    var res = await AddTransporterAsync(user.Id, addTransporterViewModel);
                     if (!res.Succeeded)
                     {
                         messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
@@ -1202,7 +1196,7 @@ namespace BusinessLogic
 
         }
 
-        public async Task<IBusinessLogicResult<AddMerchantViewModel>> AddMerchantAsync(AddMerchantViewModel addMerchantViewModel)
+        public async Task<IBusinessLogicResult<AddMerchantViewModel>> AddMerchantAsync(int userId, AddMerchantViewModel addMerchantViewModel)
         {
             var messages = new List<IBusinessLogicMessage>();
             try
@@ -1210,7 +1204,7 @@ namespace BusinessLogic
                 bool doesExist;
                 try
                 {
-                    doesExist = _merchantRepository.DeferredSelectAll().Any(t => t.UserId == addMerchantViewModel.UserId);
+                    doesExist = _merchantRepository.DeferredSelectAll().Any(t => t.UserId == userId);
                 }
                 catch (Exception exception)
                 {
@@ -1222,7 +1216,11 @@ namespace BusinessLogic
                     messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.EntitiesFieldsValueAlreadyExisted));
                     return new BusinessLogicResult<AddMerchantViewModel>(succeeded: false, messages: messages, result: null);
                 }
-                var merchant = await _utility.MapAsync<AddMerchantViewModel, Merchant>(addMerchantViewModel);
+                //var merchant = await _utility.MapAsync<AddMerchantViewModel, Merchant>(addMerchantViewModel);
+                Merchant merchant = new Merchant()
+                {
+                    UserId = userId
+                };
                 try
                 {
                     await _merchantRepository.AddAsync(merchant);
@@ -1242,7 +1240,7 @@ namespace BusinessLogic
             }
         }
 
-        public async Task<IBusinessLogicResult<AddTransporterViewModel>> AddTransporterAsync(AddTransporterViewModel addTransporterViewModel)
+        public async Task<IBusinessLogicResult<AddTransporterViewModel>> AddTransporterAsync(int userId, AddTransporterViewModel addTransporterViewModel)
         {
             var messages = new List<IBusinessLogicMessage>();
             try
@@ -1250,7 +1248,7 @@ namespace BusinessLogic
                 bool doesExist;
                 try
                 {
-                    doesExist = _transporterRepository.DeferredSelectAll().Any(t => t.UserId == addTransporterViewModel.UserId);
+                    doesExist = _transporterRepository.DeferredSelectAll().Any(t => t.UserId == userId);
                 }
                 catch (Exception exception)
                 {
@@ -1262,7 +1260,11 @@ namespace BusinessLogic
                     messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.EntitiesFieldsValueAlreadyExisted));
                     return new BusinessLogicResult<AddTransporterViewModel>(succeeded: false, messages: messages, result: null);
                 }
-                var transporter = await _utility.MapAsync<AddTransporterViewModel, Transporter>(addTransporterViewModel);
+                //var transporter = await _utility.MapAsync<AddTransporterViewModel, Transporter>(addTransporterViewModel);
+                Transporter transporter = new Transporter()
+                {
+                    UserId = userId
+                };
                 try
                 {
                     await _transporterRepository.AddAsync(transporter);

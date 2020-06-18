@@ -162,16 +162,10 @@ namespace ViewModels
 
     public class AddMerchantViewModel
     {
-        [Required(ErrorMessage = "Please enter {0}")]
-        [Display(Name = "User Id")]
-        public int UserId { get; set; }
     }    
     
     public class AddTransporterViewModel
     {
-        [Required(ErrorMessage = "Please enter {0}")]
-        [Display(Name = "User Id")]
-        public int UserId { get; set; }
     }
 
     public class UserForgetPasswordViewModel : EmailViewModel { }

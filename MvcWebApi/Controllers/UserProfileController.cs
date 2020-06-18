@@ -28,7 +28,7 @@ namespace MvcWebApi.Controllers
         {
             if (!ModelState.IsValid) return BadRequest();
             var getterUserId = HttpContext.GetCurrentUserId();
-            var res = await _businessLogicUserManager.GetUserDetailsAsync(userId.Value, getterUserId);
+            var res = await _businessLogicUserManager.GetUserDetailsAsync(userId, getterUserId);
             if (!res.Succeeded) return StatusCode(500, res);
             return Ok(res);
         }
@@ -39,7 +39,7 @@ namespace MvcWebApi.Controllers
         {
             if (!ModelState.IsValid) return BadRequest();
             var deleterUserId = HttpContext.GetCurrentUserId();
-            var res = await _businessLogicUserManager.DeleteUserAsync(userId.Value, deleterUserId);
+            var res = await _businessLogicUserManager.DeleteUserAsync(userId, deleterUserId);
             if (!res.Succeeded) return StatusCode(500, res);
             return Ok(res);
         }
@@ -110,7 +110,8 @@ namespace MvcWebApi.Controllers
         public async Task<IActionResult> AddTransporter(AddTransporterViewModel addTransporterViewModel)
         {
             if (!ModelState.IsValid) return BadRequest();
-            var res = await _businessLogicUserManager.AddTransporterAsync(addTransporterViewModel);
+            var userId = HttpContext.GetCurrentUserId();
+            var res = await _businessLogicUserManager.AddTransporterAsync(userId, addTransporterViewModel);
             if (!res.Succeeded) return NotFound(res);
             return Ok(res);
         }
@@ -121,7 +122,8 @@ namespace MvcWebApi.Controllers
         public async Task<IActionResult> AddMerchant(AddMerchantViewModel addMerchantViewModel)
         {
             if (!ModelState.IsValid) return BadRequest();
-            var res = await _businessLogicUserManager.AddMerchantAsync(addMerchantViewModel);
+            var userId = HttpContext.GetCurrentUserId();
+            var res = await _businessLogicUserManager.AddMerchantAsync(userId, addMerchantViewModel);
             if (!res.Succeeded) return NotFound(res);
             return Ok(res);
         }
