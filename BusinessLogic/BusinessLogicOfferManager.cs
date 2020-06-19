@@ -22,11 +22,13 @@ namespace BusinessLogic
         private readonly IRepository<UserRole> _userRoleRepository;
         private readonly IRepository<User> _userRepository;
         private readonly IRepository<Accept> _acceptRepository;
+        private readonly IRepository<Merchant> _merchantRepository;
         private readonly BusinessLogicUtility _utility;
 
         public BusinessLogicOfferManager(IRepository<Offer> offerRepository, IRepository<Transporter> transporterRepository,
                 BusinessLogicUtility utility, IRepository<Project> projectRepository, IRepository<Role> roleRepository,
-                IRepository<UserRole> userRoleRepository, IRepository<User> userRepository, IRepository<Accept> acceptRepository)
+                IRepository<UserRole> userRoleRepository, IRepository<User> userRepository, IRepository<Accept> acceptRepository
+                IRepository<Merchant> merchantRepository)
         {
             _transporterRepository = transporterRepository;
             _offerRepository = offerRepository;
@@ -35,6 +37,7 @@ namespace BusinessLogic
             _roleRepository = roleRepository;
             _userRepository = userRepository;
             _acceptRepository = acceptRepository;
+            _merchantRepository = merchantRepository;
             _utility = utility;
         }
 
@@ -607,7 +610,9 @@ namespace BusinessLogic
                 try
                 {
                     var project = await _projectRepository.FindAsync(offer.ProjectId);
+                    var merchant = _merchantRepository.FindAsync(project.MerchantId);
                     offerDetailsViewModel.ProjectName = project.Title;
+                    offerDetailsViewModel.MerchantId = merchant.Id;
                 }
                 catch (Exception exception)
                 {
