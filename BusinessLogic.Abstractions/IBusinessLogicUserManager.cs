@@ -28,7 +28,7 @@ namespace BusinessLogic.Abstractions
         Task<IBusinessLogicResult> ForgetPasswordAsync(UserForgetPasswordViewModel userForgetPasswordViewModel);
         Task<IBusinessLogicResult<SettingsViewModel>> AdminGetSettings();
         Task<IBusinessLogicResult<SettingsViewModel>> AdminEditSettings(SettingsViewModel settingsViewModel);
-        Task<IBusinessLogicResult> MerchantAuthenticator(int userId);
-        Task<IBusinessLogicResult> TransporterAuthenticator(int userId);
+        Task<IBusinessLogicResult<int?>> MerchantAuthenticator(int userId);
+        Task<IBusinessLogicResult<int?>> TransporterAuthenticator(int userId);
     }
 }

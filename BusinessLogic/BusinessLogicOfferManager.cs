@@ -121,7 +121,7 @@ namespace BusinessLogic
 
                 if (DuplicateOffer != null)
                 {
-                    messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.AccessDenied));
+                    messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.DuplicatedOffer));
                     return new BusinessLogicResult<AddOfferViewModel>(succeeded: false, result: null,
                         messages: messages);
                 }

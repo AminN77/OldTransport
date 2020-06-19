@@ -88,10 +88,9 @@ namespace MvcWebApi.Controllers
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> IsUserMerchant()
         {
-            if (!ModelState.IsValid) return BadRequest();
             var userId = HttpContext.GetCurrentUserId();
             var res = await _businessLogicUserManager.MerchantAuthenticator(userId);
-            if (!res.Succeeded) return NotFound(res);
+            if (!res.Succeeded) return StatusCode(204, res);
             return Ok(res);
         }
 
@@ -100,10 +99,9 @@ namespace MvcWebApi.Controllers
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> IsUserTransporter()
         {
-            if (!ModelState.IsValid) return BadRequest();
             var userId = HttpContext.GetCurrentUserId();
             var res = await _businessLogicUserManager.TransporterAuthenticator(userId);
-            if (!res.Succeeded) return NotFound(res);
+            if (!res.Succeeded) return StatusCode(204, res);
             return Ok(res);
         }
 

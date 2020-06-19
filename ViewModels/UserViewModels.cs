@@ -163,10 +163,12 @@ namespace ViewModels
 
     public class AddMerchantViewModel
     {
+        public int MerchantId { get; set; }
     }    
     
     public class AddTransporterViewModel
     {
+        public int TransporterId { get; set; }
     }
 
     public class UserForgetPasswordViewModel : EmailViewModel { }

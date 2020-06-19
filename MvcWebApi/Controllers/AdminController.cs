@@ -79,7 +79,6 @@ namespace MvcWebApi.Controllers
         }
 
         [HttpGet]
-        [Authorize(Policy = CustomRoles.Admin)]
         public async Task<IActionResult> Settings()
         {
             if (!ModelState.IsValid) return BadRequest();

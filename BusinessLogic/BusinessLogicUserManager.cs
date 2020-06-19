@@ -1238,6 +1238,16 @@ namespace BusinessLogic
                 try
                 {
                     await _merchantRepository.AddAsync(merchant);
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                    return new BusinessLogicResult<AddMerchantViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
+                }
+                try
+                {
+                    merchant = await _merchantRepository.DeferredSelectAll().SingleOrDefaultAsync(m => m.UserId == userId);
+                    addMerchantViewModel.MerchantId = merchant.Id;
                     messages.Add(new BusinessLogicMessage(MessageType.Info, MessageId.EntitySuccessfullyAdded));
                     return new BusinessLogicResult<AddMerchantViewModel>(succeeded: true, messages: messages, result: addMerchantViewModel);
                 }
@@ -1282,6 +1292,16 @@ namespace BusinessLogic
                 try
                 {
                     await _transporterRepository.AddAsync(transporter);
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                    return new BusinessLogicResult<AddTransporterViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
+                }
+                try
+                {
+                    transporter = await _transporterRepository.DeferredSelectAll().SingleOrDefaultAsync(t => t.UserId == userId);
+                    addTransporterViewModel.TransporterId = transporter.Id;
                     messages.Add(new BusinessLogicMessage(MessageType.Info, MessageId.EntitySuccessfullyAdded));
                     return new BusinessLogicResult<AddTransporterViewModel>(succeeded: true, messages: messages, result: addTransporterViewModel);
                 }
@@ -1595,7 +1615,7 @@ namespace BusinessLogic
             }
         }
 
-        public async Task<IBusinessLogicResult> MerchantAuthenticator(int userId)
+        public async Task<IBusinessLogicResult<int?>> MerchantAuthenticator(int userId)
         {
             var messages = new List<IBusinessLogicMessage>();
             try
@@ -1608,47 +1628,48 @@ namespace BusinessLogic
                     if (!isUserAuthorized)
                     {
                         messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
-                        return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
+                        return new BusinessLogicResult<int?>(succeeded: false, result: null,
                             messages: messages);
                     }
                 }
                 catch (Exception exception)
                 {
                     messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
-                    return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
+                    return new BusinessLogicResult<int?>(succeeded: false, result: null,
                         messages: messages, exception: exception);
                 }
 
-                bool isUserMerchant;
+                Merchant merchant;
                 try
                 {
-                    isUserMerchant = _merchantRepository.DeferredSelectAll().Any(u => u.UserId == userId);
+                    merchant = await _merchantRepository.DeferredSelectAll().SingleOrDefaultAsync(u => u.UserId == userId);
                 }
                 catch (Exception exception)
                 {
                     messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
-                    return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+                    return new BusinessLogicResult<int?>(succeeded: false, messages: messages, exception: exception, result: null);
                 }
 
-                if (isUserMerchant)
+                if (merchant != null)
                 {
+                    int merchantId = merchant.Id;
                     messages.Add(new BusinessLogicMessage(type: MessageType.Info, message: MessageId.MerchantExists));
-                    return new BusinessLogicResult(succeeded: true, messages: messages);
+                    return new BusinessLogicResult<int?>(succeeded: true, messages: messages, result: merchantId);
                 }
                 else
                 {
                     messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.EntityDoesNotExist));
-                    return new BusinessLogicResult(succeeded: false, messages: messages);
+                    return new BusinessLogicResult<int?>(succeeded: false, messages: messages, result: null);
                 }
             }
             catch (Exception exception)
             {
                 messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
-                return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+                return new BusinessLogicResult<int?>(succeeded: false, messages: messages, exception: exception, result: null);
             }
         }
 
-        public async Task<IBusinessLogicResult> TransporterAuthenticator(int userId)
+        public async Task<IBusinessLogicResult<int?>> TransporterAuthenticator(int userId)
         {
             var messages = new List<IBusinessLogicMessage>();
             try
@@ -1661,43 +1682,44 @@ namespace BusinessLogic
                     if (!isUserAuthorized)
                     {
                         messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
-                        return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
+                        return new BusinessLogicResult<int?>(succeeded: false, result: null,
                             messages: messages);
                     }
                 }
                 catch (Exception exception)
                 {
                     messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
-                    return new BusinessLogicResult<DetailUserViewModel>(succeeded: false, result: null,
+                    return new BusinessLogicResult<int?>(succeeded: false, result: null,
                         messages: messages, exception: exception);
                 }
 
-                bool isUserTransporter;
+                Transporter transporter;
                 try
                 {
-                    isUserTransporter = _transporterRepository.DeferredSelectAll().Any(u => u.UserId == userId);
+                    transporter = await _transporterRepository.DeferredSelectAll().SingleOrDefaultAsync(u => u.UserId == userId);
                 }
                 catch (Exception exception)
                 {
                     messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
-                    return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+                    return new BusinessLogicResult<int?>(succeeded: false, messages: messages, exception: exception, result: null);
                 }
 
-                if (isUserTransporter)
+                if (transporter != null)
                 {
+                    var transporterId = transporter.Id;
                     messages.Add(new BusinessLogicMessage(type: MessageType.Info, message: MessageId.TransporterExists));
-                    return new BusinessLogicResult(succeeded: true, messages: messages);
+                    return new BusinessLogicResult<int?>(succeeded: true, messages: messages, result: transporterId);
                 }
                 else
                 {
                     messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.EntityDoesNotExist));
-                    return new BusinessLogicResult(succeeded: false, messages: messages);
+                    return new BusinessLogicResult<int?>(succeeded: false, messages: messages, result: null);
                 }
             }
             catch (Exception exception)
             {
                 messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
-                return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+                return new BusinessLogicResult<int?>(succeeded: false, messages: messages, exception: exception, result: null);
             }
         }
 

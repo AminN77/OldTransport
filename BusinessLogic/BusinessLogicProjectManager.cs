@@ -442,22 +442,12 @@ namespace BusinessLogic
                 var projectDetailsViewModel = await _utility.MapAsync<Project, ProjectDetailsViewModel>(project);
                 try
                 {
-                    var isGetterMerchant = _merchantRepository.DeferredWhere(m => m.Id == getterUserId).Any();
-                    if (isGetterMerchant)
+                    var merchant = await _merchantRepository.FindAsync(project.MerchantId);
+                    var user = await _userRepository.FindAsync(merchant.UserId);
+                    if (merchant.UserId == getterUserId)
                     {
                         projectDetailsViewModel.IsMerchatOwner = true;
                     }
-                }
-                catch (Exception exception)
-                {
-                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
-                    return new BusinessLogicResult<ProjectDetailsViewModel>(succeeded: false, result: null,
-                        messages: messages, exception: exception);
-                }
-                try
-                {
-                    var merchant = await _merchantRepository.FindAsync(project.MerchantId);
-                    var user = await _userRepository.FindAsync(merchant.UserId);
                     projectDetailsViewModel.MerchantName = user.Name;
                 }
                 catch (Exception exception)
@@ -627,7 +617,7 @@ namespace BusinessLogic
                         messages: messages, exception: exception);
                 }
                 messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.EntitySuccessfullyAdded));
-                return new BusinessLogicResult<AcceptOfferViewModel>(succeeded: false, result: acceptOfferViewModel,
+                return new BusinessLogicResult<AcceptOfferViewModel>(succeeded: true, result: acceptOfferViewModel,
                     messages: messages);
             }
             catch (Exception exception)
