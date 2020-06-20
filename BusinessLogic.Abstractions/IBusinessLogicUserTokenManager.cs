@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using ViewModels;
 
 namespace BusinessLogic.Abstractions
 {
-    public interface IBusinessLogicUserTokenManager
+    public interface IBusinessLogicUserTokenManager:IDisposable
     {
         //Task<IBusinessLogicResult<AddUserTokenViewModel>> AddUserTokenAsync(AddUserTokenViewModel addTokenViewModel, int adderUserId);
         Task<IBusinessLogicResult<AddUserTokenViewModel>> AddUserTokenAsync(AddUserTokenViewModel addTokenViewModel, int adderUserId);

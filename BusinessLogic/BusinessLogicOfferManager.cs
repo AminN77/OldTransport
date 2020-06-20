@@ -610,9 +610,15 @@ namespace BusinessLogic
                 try
                 {
                     var project = await _projectRepository.FindAsync(offer.ProjectId);
-                    var merchant = _merchantRepository.FindAsync(project.MerchantId);
+                    var merchant = await _merchantRepository.DeferredSelectAll().SingleOrDefaultAsync(m => m.Id == project.MerchantId);
+                    var accept = await _acceptRepository.DeferredSelectAll().SingleOrDefaultAsync(a => a.OfferId == offer.Id);
+                    if(accept!= null)
+                    {
+                        offerDetailsViewModel.AcceptId = accept.Id;
+                    }
                     offerDetailsViewModel.ProjectName = project.Title;
                     offerDetailsViewModel.MerchantId = merchant.Id;
+                    
                 }
                 catch (Exception exception)
                 {
@@ -633,9 +639,14 @@ namespace BusinessLogic
 
         public void Dispose()
         {
-            _projectRepository.Dispose();
-            _transporterRepository.Dispose();
-            _offerRepository.Dispose();
-        }
+             _projectRepository.Dispose();
+             _transporterRepository.Dispose();
+             _offerRepository.Dispose();
+             _merchantRepository.Dispose();
+             _roleRepository.Dispose();
+             _userRoleRepository.Dispose();
+             _userRepository.Dispose();
+             _acceptRepository.Dispose();
     }
+}
 }

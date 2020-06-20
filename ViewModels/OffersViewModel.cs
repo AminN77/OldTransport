@@ -45,5 +45,7 @@ namespace ViewModels
     public class OfferDetailsViewModel : ListOfferViewModel
     {
         public int MerchantId { get; set; }
+
+        public int AcceptId { get; set; }
     }
 }

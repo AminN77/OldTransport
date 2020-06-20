@@ -861,6 +861,11 @@ namespace BusinessLogic
         {
             _projectRepository.Dispose();
             _merchantRepository.Dispose();
+            _offerRepository.Dispose();           
+            _roleRepository.Dispose();
+            _userRoleRepository.Dispose();
+            _userRepository.Dispose();
+            _acceptRepository.Dispose();
         }
     }
 }

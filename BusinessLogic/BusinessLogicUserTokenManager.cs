@@ -197,6 +197,8 @@ namespace BusinessLogic
             }
         }
 
+       
+
         public async Task<IBusinessLogicResult<ListUserTokenViewModel>> FindTokenAsync(string refreshTokenId)
         {
               var messages = new List<BusinessLogicMessage>();
@@ -346,6 +348,11 @@ namespace BusinessLogic
                 return new BusinessLogicResult(succeeded: false,
                     messages: messages, exception: exception);
             }
+        }
+
+        public void Dispose()
+        {
+            _userTokenRepository.Dispose();
         }
     }
 }

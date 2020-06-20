@@ -1725,10 +1725,14 @@ namespace BusinessLogic
 
         public void Dispose()
         {
-            _userRepository.Dispose();
-            _userRoleRepository.Dispose();
+            
             _merchantRepository.Dispose();
+            _roleRepository.Dispose();
+            _userRoleRepository.Dispose();
+            _userRepository.Dispose();
+            _settingsRepository.Dispose();
             _transporterRepository.Dispose();
+
         }
     }
 }
