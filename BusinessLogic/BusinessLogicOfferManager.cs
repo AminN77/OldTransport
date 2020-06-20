@@ -27,7 +27,7 @@ namespace BusinessLogic
 
         public BusinessLogicOfferManager(IRepository<Offer> offerRepository, IRepository<Transporter> transporterRepository,
                 BusinessLogicUtility utility, IRepository<Project> projectRepository, IRepository<Role> roleRepository,
-                IRepository<UserRole> userRoleRepository, IRepository<User> userRepository, IRepository<Accept> acceptRepository
+                IRepository<UserRole> userRoleRepository, IRepository<User> userRepository, IRepository<Accept> acceptRepository,
                 IRepository<Merchant> merchantRepository)
         {
             _transporterRepository = transporterRepository;
