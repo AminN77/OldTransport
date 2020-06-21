@@ -615,6 +615,7 @@ namespace BusinessLogic
                     if(accept!= null)
                     {
                         offerDetailsViewModel.AcceptId = accept.Id;
+                        offerDetailsViewModel.IsAccepted = true;
                     }
                     offerDetailsViewModel.ProjectName = project.Title;
                     offerDetailsViewModel.MerchantId = merchant.Id;
