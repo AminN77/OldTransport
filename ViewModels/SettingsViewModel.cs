@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Text;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace ViewModels
 {
@@ -21,5 +18,17 @@ namespace ViewModels
 
         [Required]
         public string ContactNumber { get; set; }
+    }
+
+    public class UserGuideViewModel
+    {
+        [DataType(DataType.MultilineText)]
+        public string UserGuide { get; set; }
+    }
+
+    public class TermsAndConditionsViewModel
+    {
+        [DataType(DataType.MultilineText)]
+        public string TermsAndConditions { get; set; }
     }
 }
