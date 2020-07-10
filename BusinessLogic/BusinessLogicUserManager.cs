@@ -1724,8 +1724,7 @@ namespace BusinessLogic
         }
 
         public void Dispose()
-        {
-            
+        {          
             _merchantRepository.Dispose();
             _roleRepository.Dispose();
             _userRoleRepository.Dispose();
