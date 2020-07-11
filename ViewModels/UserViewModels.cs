@@ -81,6 +81,8 @@ namespace ViewModels
         public string PhoneNumber { get; set; }
     }
 
+    public class ListMerchantViewModel : ListUserViewModel { }
+
     public class DetailUserViewModel : ListUserViewModel
     {
         [Required(ErrorMessage = "لطفا {0} را وارد کنید.")]

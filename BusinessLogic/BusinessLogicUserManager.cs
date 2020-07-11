@@ -2,15 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using BusinessLogic.Abstractions;
 using BusinessLogic.Abstractions.Message;
 using Cross.Abstractions;
 using Cross.Abstractions.EntityEnums;
 using Data.Abstractions;
 using Data.Model;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ViewModels;
@@ -191,11 +188,11 @@ namespace BusinessLogic
                         });
 
 
-                    //_userRepository.DeferredWhere(u =>
-                    //    (!u.IsDeleted && !developerUser) || developerUser
-                    //)
-                    //.ProjectTo<ListUserViewModel>(new MapperConfiguration(config =>
-                    //    config.CreateMap<User, ListUserViewModel>().ForMember(u => u.IsAdmin, o => o.MapFrom(l => l.UserRoles))));
+                //_userRepository.DeferredWhere(u =>
+                //    (!u.IsDeleted && !developerUser) || developerUser
+                //)
+                //.ProjectTo<ListUserViewModel>(new MapperConfiguration(config =>
+                //    config.CreateMap<User, ListUserViewModel>().ForMember(u => u.IsAdmin, o => o.MapFrom(l => l.UserRoles))));
 
                 if (!string.IsNullOrEmpty(search))
                 {
@@ -239,6 +236,100 @@ namespace BusinessLogic
             {
                 messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
                 return new BusinessLogicResult<ListResultViewModel<ListUserViewModel>>(succeeded: false,
+                    result: null, messages: messages, exception: exception);
+            }
+        }
+
+        public async Task<IBusinessLogicResult<ListResultViewModel<ListMerchantViewModel>>> GetMerchantsAsync(int getterUserId,
+            int page = 1,
+            int pageSize = BusinessLogicSetting.MediumDefaultPageSize, string search = null,
+            string sort = nameof(ListUserViewModel.Name) + ":Asc", string filter = null)
+        {
+            var messages = new List<IBusinessLogicMessage>();
+            try
+            {
+                var getterUser = await _userRepository.FindAsync(getterUserId);
+                // Solution 1:
+                var developerUser = await _userRepository
+                    .DeferredWhere(user => user.Id == getterUserId && user.IsEnabled)
+                    .Join(_userRoleRepository.DeferredSelectAll(), user => user.Id, userRole => userRole.UserId,
+                        (user, userRole) => userRole)
+                    .Join(_roleRepository.DeferredSelectAll(), userRole => userRole.RoleId, role => role.Id,
+                        (userRole, role) => role).AnyAsync(role => role.Name == RoleTypes.DeveloperSupport.ToString());
+
+                var usersQuery = _userRepository.DeferredWhere(u => (!u.IsDeleted && !developerUser) || developerUser)
+                    .Join(_userRoleRepository.DeferredSelectAll(),
+                    user => user.Id,
+                    userRole => userRole.UserId,
+                    (user, userRole) => new { user, userRole })
+                        .Join(_roleRepository.DeferredSelectAll(),
+                        c => c.userRole.RoleId,
+                        role => role.Id,
+                        (c, role) => new { c, role })
+                            .Join(_merchantRepository.DeferredSelectAll(),
+                            d => d.c.user.Id,
+                            merchant => merchant.UserId,
+                            (d, merchant) => new ListMerchantViewModel()
+                            {
+                                Name = d.c.user.Name,
+                                IsEnabled = d.c.user.IsEnabled,
+                                Picture = d.c.user.Picture,
+                                LastLoggedIn = d.c.user.LastLoggedIn,
+                                EmailAddress = d.c.user.EmailAddress,
+                                Id = d.c.user.Id,
+                                Role = d.role.Name,
+                                PhoneNumber = d.c.user.PhoneNumber
+                            });
+
+
+                //_userRepository.DeferredWhere(u =>
+                //    (!u.IsDeleted && !developerUser) || developerUser
+                //)
+                //.ProjectTo<ListUserViewModel>(new MapperConfiguration(config =>
+                //    config.CreateMap<User, ListUserViewModel>().ForMember(u => u.IsAdmin, o => o.MapFrom(l => l.UserRoles))));
+
+                if (!string.IsNullOrEmpty(search))
+                {
+                    usersQuery = usersQuery.Where(user =>
+                        user.Name.Contains(search) || user.EmailAddress.Contains(search));
+                }
+
+                if (!string.IsNullOrWhiteSpace(filter))
+                {
+                    usersQuery = usersQuery.ApplyFilter(filter);
+                }
+
+                if (string.IsNullOrWhiteSpace(sort))
+                {
+                    sort = nameof(ListUserViewModel.Name) + ":Asc";
+                }
+                else
+                {
+                    var propertyName = sort.Split(':')[0];
+                    var propertyInfo = typeof(ListUserViewModel).GetProperties().SingleOrDefault(p =>
+                        p.Name.Equals(propertyName, StringComparison.InvariantCultureIgnoreCase));
+                    if (propertyInfo == null) sort = nameof(ListUserViewModel.Name) + ":Asc";
+                }
+
+                usersQuery = usersQuery.ApplyOrderBy(sort);
+                var userListViewModels = await usersQuery.PaginateAsync(page, pageSize);
+                var recordsCount = await usersQuery.CountAsync();
+                var pageCount = (int)Math.Ceiling(recordsCount / (double)pageSize);
+                var result = new ListResultViewModel<ListMerchantViewModel>
+                {
+                    Results = userListViewModels,
+                    Page = page,
+                    PageSize = pageSize,
+                    TotalEntitiesCount = recordsCount,
+                    TotalPagesCount = pageCount
+                };
+                return new BusinessLogicResult<ListResultViewModel<ListMerchantViewModel>>(succeeded: true,
+                    result: result, messages: messages);
+            }
+            catch (Exception exception)
+            {
+                messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
+                return new BusinessLogicResult<ListResultViewModel<ListMerchantViewModel>>(succeeded: false,
                     result: null, messages: messages, exception: exception);
             }
         }
@@ -349,7 +440,8 @@ namespace BusinessLogic
                                 messages: messages);
                         }
                     }
-                    else {
+                    else
+                    {
                         var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
                         var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == deleterUserId && u.RoleId == userRole.Id);
                         if (!isUserAuthorized)
@@ -751,40 +843,6 @@ namespace BusinessLogic
                 return new BusinessLogicResult<EditUserViewModel>(succeeded: false, result: null,
                     messages: messages, exception: exception);
             }
-        }
-
-        public async Task<IBusinessLogicResult> IsUserNameAvailableAsync(string userName, int getterUserId)
-        {
-            return null;
-            //            var messages = new List<IBusinessLogicMessage>();
-            //            try
-            //            {
-            //                // Critical Authentication and Authorization
-            //                var isUserInPermission = await IsUserInOneOfPermissionsAsync(getterUserId,
-            //                    UserManagerPermissions.EditUser.ToString(), UserManagerPermissions.AddUser.ToString());
-            //                if (!isUserInPermission.Succeeded) return isUserInPermission;
-            //
-            //                bool isUserNameAvailable;
-            //                try
-            //                {
-            //                    isUserNameAvailable =
-            //                        !await _userRepository.DeferredSelectAll().AnyAsync(usr => usr.Username == userName);
-            //                }
-            //                catch (Exception exception)
-            //                {
-            //                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
-            //                    return new BusinessLogicResult(succeeded: false, messages: messages,
-            //                        exception: exception);
-            //                }
-            //
-            //                return new BusinessLogicResult(succeeded: isUserNameAvailable, messages: messages);
-            //            }
-            //            catch (Exception exception)
-            //            {
-            //                messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
-            //                return new BusinessLogicResult(succeeded: false, messages: messages,
-            //                    exception: exception);
-            //            }
         }
 
 
@@ -1724,7 +1782,7 @@ namespace BusinessLogic
         }
 
         public void Dispose()
-        {          
+        {
             _merchantRepository.Dispose();
             _roleRepository.Dispose();
             _userRoleRepository.Dispose();

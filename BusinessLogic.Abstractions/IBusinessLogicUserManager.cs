@@ -9,12 +9,14 @@ namespace BusinessLogic.Abstractions
         Task<IBusinessLogicResult<AddUserViewModel>> AddUserAsync(EmailViewModel emailViewModel);
         Task<IBusinessLogicResult<ListResultViewModel<ListUserViewModel>>> GetUsersAsync(int getterUserId, int page,
             int pageSize, string search, string sort, string filter);
+        Task<IBusinessLogicResult<ListResultViewModel<ListMerchantViewModel>>> GetMerchantsAsync(int getterUserId, int page,
+            int pageSize, string search, string sort, string filter);
         Task<IBusinessLogicResult<EditUserViewModel>> EditUserAsync(EditUserViewModel editUserViewModel, int editorUserId);
         Task<IBusinessLogicResult> DeleteUserAsync(int? userId, int deleterUserId);
         Task<IBusinessLogicResult<EditUserViewModel>> GetUserForEditAsync(int getterUserId);
         Task<IBusinessLogicResult<DetailUserViewModel>> GetUserDetailsAsync(int? userId, int getterUserId);
-        Task<IBusinessLogicResult> IsUserNameAvailableAsync(string userName, int getterUserId);
         Task<IBusinessLogicResult> ChangePasswordAsync(UserChangePasswordViewModel userChangePasswordViewModel, int changerUserId);
+
         //Task<IBusinessLogicResult> ResetPasswordAsync(UserSetPasswordViewModel adminUserSetPasswordViewModel, int reSetterUserId);
         Task<IBusinessLogicResult<UserSignInViewModel>> FindUserAsync(int userId);
         Task<IBusinessLogicResult> UpdateUserLastActivityDateAsync(int userId);

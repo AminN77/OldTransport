@@ -109,5 +109,17 @@ namespace MvcWebApi.Controllers
             if (!res.Succeeded) return StatusCode(500, res);
             return Ok(res);
         }
+
+        [HttpPost]
+        [IgnoreAntiforgeryToken]
+        [Authorize(Policy = CustomRoles.Admin)]
+        public async Task<IActionResult> MerchantsList(int page, int pageSize, string search, string sort, string filter)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var getterUserId = HttpContext.GetCurrentUserId();
+            var res = await _businessLogicUserManager.GetMerchantsAsync(getterUserId, page, pageSize, search, sort, filter);
+            if (!res.Succeeded) return StatusCode(500, res);
+            return Ok(res);
+        }
     }
 }
