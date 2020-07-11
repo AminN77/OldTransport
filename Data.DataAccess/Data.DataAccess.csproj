@@ -23,6 +23,8 @@
     <Compile Remove="Migrations\20200616073335_V0.8-CitiesAndCountries.Designer.cs" />
     <Compile Remove="Migrations\20200616083104_V0.8-CitiesAndCountries.cs" />
     <Compile Remove="Migrations\20200616083104_V0.8-CitiesAndCountries.Designer.cs" />
+    <Compile Remove="Migrations\20200710115310_V1.0-UpdateSettings.cs" />
+    <Compile Remove="Migrations\20200710115310_V1.0-UpdateSettings.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>

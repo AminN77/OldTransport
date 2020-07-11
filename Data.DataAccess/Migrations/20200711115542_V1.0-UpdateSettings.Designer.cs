@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Data.DataAccess.Migrations
 {
     [DbContext(typeof(SqlServerDbContext))]
-    [Migration("20200710115310_V1.0-UpdateSettings")]
+    [Migration("20200711115542_V1.0-UpdateSettings")]
     partial class V10UpdateSettings
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -254,6 +254,9 @@ namespace Data.DataAccess.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("HowItWorks")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Logo")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -262,9 +265,6 @@ namespace Data.DataAccess.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("TermsAndConditions")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UserGuide")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -392,15 +392,15 @@ namespace Data.DataAccess.Migrations
                         {
                             Id = 1,
                             ActivationCode = 0,
-                            CreateDateTime = new DateTime(2020, 7, 10, 16, 23, 10, 260, DateTimeKind.Local).AddTicks(9703),
+                            CreateDateTime = new DateTime(2020, 7, 11, 16, 25, 42, 552, DateTimeKind.Local).AddTicks(6315),
                             EmailAddress = "abolfazl.sh1374@gmail.com",
                             IsDeleted = false,
                             IsEnabled = true,
-                            IterationCount = 68082,
+                            IterationCount = 22501,
                             Name = "Developer",
-                            Password = "13AB57F4E122A180F14E08C23D502BA0B1C2292C7C0BEA8704C88B02F6A00C540B71F920B4EA1A7534F8785DB7DC12D5E9FE6FED6C0100D13904BBA7273B1C96",
-                            Salt = new byte[] { 237, 55, 46, 143, 131, 44, 21, 162, 232, 166, 162, 186, 214, 39, 143, 118, 212, 198, 67, 69, 231, 57, 142, 24, 232, 147, 96, 175, 66, 95, 105, 12 },
-                            SerialNumber = "3610d601-690a-40c3-bbc9-98cfe66b49dc"
+                            Password = "CE2B58BC50E5ACD670D06327898725AFCEC30D37895997017503A11A3A33A999372C8CF4AFEE817CB05DBEF4187D495B12535C897667B73DF11F7C08FFAD8C85",
+                            Salt = new byte[] { 114, 110, 86, 200, 120, 151, 30, 25, 155, 171, 239, 207, 42, 221, 6, 102, 179, 21, 10, 139, 93, 176, 109, 54, 68, 24, 173, 176, 104, 153, 51, 197 },
+                            SerialNumber = "6fcca5f2-729b-4a56-8eac-f14e682f67a6"
                         });
                 });
 

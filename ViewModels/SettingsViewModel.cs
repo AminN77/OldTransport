@@ -20,10 +20,10 @@ namespace ViewModels
         public string ContactNumber { get; set; }
     }
 
-    public class UserGuideViewModel
+    public class HowItWorksViewModel
     {
         [DataType(DataType.MultilineText)]
-        public string UserGuide { get; set; }
+        public string HowItWorks { get; set; }
     }
 
     public class TermsAndConditionsViewModel

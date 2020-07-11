@@ -23,7 +23,7 @@ namespace Data.Model
 
         public string TermsAndConditions { get; set; }
 
-        public string UserGuide { get; set; }
+        public string HowItWorks { get; set; }
 
         public int OffersCountLimit { get; set; }
     }

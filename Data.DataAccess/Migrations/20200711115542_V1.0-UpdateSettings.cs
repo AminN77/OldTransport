@@ -7,6 +7,11 @@ namespace Data.DataAccess.Migrations
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.AddColumn<string>(
+                name: "HowItWorks",
+                table: "Settings",
+                nullable: true);
+
             migrationBuilder.AddColumn<int>(
                 name: "OffersCountLimit",
                 table: "Settings",
@@ -18,31 +23,26 @@ namespace Data.DataAccess.Migrations
                 table: "Settings",
                 nullable: true);
 
-            migrationBuilder.AddColumn<string>(
-                name: "UserGuide",
-                table: "Settings",
-                nullable: true);
-
             migrationBuilder.UpdateData(
                 table: "Users",
                 keyColumn: "Id",
                 keyValue: 1,
                 columns: new[] { "CreateDateTime", "IterationCount", "Password", "Salt", "SerialNumber" },
-                values: new object[] { new DateTime(2020, 7, 10, 16, 23, 10, 260, DateTimeKind.Local).AddTicks(9703), 68082, "13AB57F4E122A180F14E08C23D502BA0B1C2292C7C0BEA8704C88B02F6A00C540B71F920B4EA1A7534F8785DB7DC12D5E9FE6FED6C0100D13904BBA7273B1C96", new byte[] { 237, 55, 46, 143, 131, 44, 21, 162, 232, 166, 162, 186, 214, 39, 143, 118, 212, 198, 67, 69, 231, 57, 142, 24, 232, 147, 96, 175, 66, 95, 105, 12 }, "3610d601-690a-40c3-bbc9-98cfe66b49dc" });
+                values: new object[] { new DateTime(2020, 7, 11, 16, 25, 42, 552, DateTimeKind.Local).AddTicks(6315), 22501, "CE2B58BC50E5ACD670D06327898725AFCEC30D37895997017503A11A3A33A999372C8CF4AFEE817CB05DBEF4187D495B12535C897667B73DF11F7C08FFAD8C85", new byte[] { 114, 110, 86, 200, 120, 151, 30, 25, 155, 171, 239, 207, 42, 221, 6, 102, 179, 21, 10, 139, 93, 176, 109, 54, 68, 24, 173, 176, 104, 153, 51, 197 }, "6fcca5f2-729b-4a56-8eac-f14e682f67a6" });
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropColumn(
+                name: "HowItWorks",
+                table: "Settings");
+
             migrationBuilder.DropColumn(
                 name: "OffersCountLimit",
                 table: "Settings");
 
             migrationBuilder.DropColumn(
                 name: "TermsAndConditions",
-                table: "Settings");
-
-            migrationBuilder.DropColumn(
-                name: "UserGuide",
                 table: "Settings");
 
             migrationBuilder.UpdateData(
