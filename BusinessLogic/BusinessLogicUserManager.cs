@@ -243,7 +243,7 @@ namespace BusinessLogic
         public async Task<IBusinessLogicResult<ListResultViewModel<ListMerchantViewModel>>> GetMerchantsAsync(int getterUserId,
             int page = 1,
             int pageSize = BusinessLogicSetting.MediumDefaultPageSize, string search = null,
-            string sort = nameof(ListUserViewModel.Name) + ":Asc", string filter = null)
+            string sort = nameof(ListMerchantViewModel.Name) + ":Asc", string filter = null)
         {
             var messages = new List<IBusinessLogicMessage>();
             try
@@ -301,14 +301,14 @@ namespace BusinessLogic
 
                 if (string.IsNullOrWhiteSpace(sort))
                 {
-                    sort = nameof(ListUserViewModel.Name) + ":Asc";
+                    sort = nameof(ListMerchantViewModel.Name) + ":Asc";
                 }
                 else
                 {
                     var propertyName = sort.Split(':')[0];
                     var propertyInfo = typeof(ListUserViewModel).GetProperties().SingleOrDefault(p =>
                         p.Name.Equals(propertyName, StringComparison.InvariantCultureIgnoreCase));
-                    if (propertyInfo == null) sort = nameof(ListUserViewModel.Name) + ":Asc";
+                    if (propertyInfo == null) sort = nameof(ListMerchantViewModel.Name) + ":Asc";
                 }
 
                 usersQuery = usersQuery.ApplyOrderBy(sort);
@@ -330,6 +330,100 @@ namespace BusinessLogic
             {
                 messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
                 return new BusinessLogicResult<ListResultViewModel<ListMerchantViewModel>>(succeeded: false,
+                    result: null, messages: messages, exception: exception);
+            }
+        }
+
+        public async Task<IBusinessLogicResult<ListResultViewModel<ListTransporterViewModel>>> GetTransportersAsync(int getterUserId,
+            int page = 1,
+            int pageSize = BusinessLogicSetting.MediumDefaultPageSize, string search = null,
+            string sort = nameof(ListTransporterViewModel.Name) + ":Asc", string filter = null)
+        {
+            var messages = new List<IBusinessLogicMessage>();
+            try
+            {
+                var getterUser = await _userRepository.FindAsync(getterUserId);
+                // Solution 1:
+                var developerUser = await _userRepository
+                    .DeferredWhere(user => user.Id == getterUserId && user.IsEnabled)
+                    .Join(_userRoleRepository.DeferredSelectAll(), user => user.Id, userRole => userRole.UserId,
+                        (user, userRole) => userRole)
+                    .Join(_roleRepository.DeferredSelectAll(), userRole => userRole.RoleId, role => role.Id,
+                        (userRole, role) => role).AnyAsync(role => role.Name == RoleTypes.DeveloperSupport.ToString());
+
+                var usersQuery = _userRepository.DeferredWhere(u => (!u.IsDeleted && !developerUser) || developerUser)
+                    .Join(_userRoleRepository.DeferredSelectAll(),
+                    user => user.Id,
+                    userRole => userRole.UserId,
+                    (user, userRole) => new { user, userRole })
+                        .Join(_roleRepository.DeferredSelectAll(),
+                        c => c.userRole.RoleId,
+                        role => role.Id,
+                        (c, role) => new { c, role })
+                            .Join(_transporterRepository.DeferredSelectAll(),
+                            d => d.c.user.Id,
+                            transporter => transporter.UserId,
+                            (d, transporter) => new ListTransporterViewModel()
+                            {
+                                Name = d.c.user.Name,
+                                IsEnabled = d.c.user.IsEnabled,
+                                Picture = d.c.user.Picture,
+                                LastLoggedIn = d.c.user.LastLoggedIn,
+                                EmailAddress = d.c.user.EmailAddress,
+                                Id = d.c.user.Id,
+                                Role = d.role.Name,
+                                PhoneNumber = d.c.user.PhoneNumber
+                            });
+
+
+                //_userRepository.DeferredWhere(u =>
+                //    (!u.IsDeleted && !developerUser) || developerUser
+                //)
+                //.ProjectTo<ListUserViewModel>(new MapperConfiguration(config =>
+                //    config.CreateMap<User, ListUserViewModel>().ForMember(u => u.IsAdmin, o => o.MapFrom(l => l.UserRoles))));
+
+                if (!string.IsNullOrEmpty(search))
+                {
+                    usersQuery = usersQuery.Where(user =>
+                        user.Name.Contains(search) || user.EmailAddress.Contains(search));
+                }
+
+                if (!string.IsNullOrWhiteSpace(filter))
+                {
+                    usersQuery = usersQuery.ApplyFilter(filter);
+                }
+
+                if (string.IsNullOrWhiteSpace(sort))
+                {
+                    sort = nameof(ListTransporterViewModel.Name) + ":Asc";
+                }
+                else
+                {
+                    var propertyName = sort.Split(':')[0];
+                    var propertyInfo = typeof(ListTransporterViewModel).GetProperties().SingleOrDefault(p =>
+                        p.Name.Equals(propertyName, StringComparison.InvariantCultureIgnoreCase));
+                    if (propertyInfo == null) sort = nameof(ListUserViewModel.Name) + ":Asc";
+                }
+
+                usersQuery = usersQuery.ApplyOrderBy(sort);
+                var userListViewModels = await usersQuery.PaginateAsync(page, pageSize);
+                var recordsCount = await usersQuery.CountAsync();
+                var pageCount = (int)Math.Ceiling(recordsCount / (double)pageSize);
+                var result = new ListResultViewModel<ListTransporterViewModel>
+                {
+                    Results = userListViewModels,
+                    Page = page,
+                    PageSize = pageSize,
+                    TotalEntitiesCount = recordsCount,
+                    TotalPagesCount = pageCount
+                };
+                return new BusinessLogicResult<ListResultViewModel<ListTransporterViewModel>>(succeeded: true,
+                    result: result, messages: messages);
+            }
+            catch (Exception exception)
+            {
+                messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
+                return new BusinessLogicResult<ListResultViewModel<ListTransporterViewModel>>(succeeded: false,
                     result: null, messages: messages, exception: exception);
             }
         }
@@ -918,7 +1012,6 @@ namespace BusinessLogic
         //                    messages: messages, exception: exception);
         //            }
         //}
-
 
         public async Task<IBusinessLogicResult<UserSignInViewModel>> IsUserAuthenticateAsync(
            SignInInfoViewModel signInInfoViewModel)
@@ -1867,7 +1960,6 @@ namespace BusinessLogic
             _userRepository.Dispose();
             _settingsRepository.Dispose();
             _transporterRepository.Dispose();
-
         }
     }
 }

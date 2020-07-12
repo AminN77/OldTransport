@@ -11,6 +11,8 @@ namespace BusinessLogic.Abstractions
             int pageSize, string search, string sort, string filter);
         Task<IBusinessLogicResult<ListResultViewModel<ListMerchantViewModel>>> GetMerchantsAsync(int getterUserId, int page,
             int pageSize, string search, string sort, string filter);
+        Task<IBusinessLogicResult<ListResultViewModel<ListTransporterViewModel>>> GetTransportersAsync(int getterUserId, int page,
+            int pageSize, string search, string sort, string filter);
         Task<IBusinessLogicResult<EditUserViewModel>> EditUserAsync(EditUserViewModel editUserViewModel, int editorUserId);
         Task<IBusinessLogicResult> DeleteUserAsync(int? userId, int deleterUserId);
         Task<IBusinessLogicResult<EditUserViewModel>> GetUserForEditAsync(int getterUserId);

@@ -83,6 +83,8 @@ namespace ViewModels
 
     public class ListMerchantViewModel : ListUserViewModel { }
 
+    public class ListTransporterViewModel : ListUserViewModel { }
+
     public class DetailUserViewModel : ListUserViewModel
     {
         [Required(ErrorMessage = "لطفا {0} را وارد کنید.")]

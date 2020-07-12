@@ -148,5 +148,17 @@ namespace MvcWebApi.Controllers
             if (!res.Succeeded) return StatusCode(500, res);
             return Ok(res);
         }
+
+        [HttpPost]
+        [IgnoreAntiforgeryToken]
+        [Authorize(Policy = CustomRoles.Admin)]
+        public async Task<IActionResult> TransportersList(int page, int pageSize, string search, string sort, string filter)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var getterUserId = HttpContext.GetCurrentUserId();
+            var res = await _businessLogicUserManager.GetTransportersAsync(getterUserId, page, pageSize, search, sort, filter);
+            if (!res.Succeeded) return StatusCode(500, res);
+            return Ok(res);
+        }
     }
 }
