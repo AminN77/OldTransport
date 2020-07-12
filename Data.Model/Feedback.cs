@@ -1,12 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using Data.Abstractions.Models;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Data.Model
 {
-    public class Transporter
+    public class Feedback : IFeedback
     {
-        public Transporter()
+        public Feedback()
         {
 
         }
@@ -14,13 +15,17 @@ namespace Data.Model
         [Key]
         public int Id { get; set; }
 
+        public string EmailAddress { get; set; }
+
+        public string Name { get; set; }
+
+        public string Text { get; set; }
+
+        public DateTime CreateDateTime { get; set; }
+
         [ForeignKey("User")]
         public int UserId { get; set; }
 
-        public string Bio { get; set; }
-
         public virtual User User { get; set; }
-
-        public virtual ICollection<Offer> Offers { get; set; }
     }
 }
