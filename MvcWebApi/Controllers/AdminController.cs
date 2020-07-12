@@ -140,8 +140,7 @@ namespace MvcWebApi.Controllers
             return Ok(res);
         }
 
-        [HttpPost]
-        [IgnoreAntiforgeryToken]
+        [HttpGet]
         [Authorize(Policy = CustomRoles.Admin)]
         public async Task<IActionResult> MerchantsList(int page, int pageSize, string search, string sort, string filter)
         {
@@ -152,8 +151,7 @@ namespace MvcWebApi.Controllers
             return Ok(res);
         }
 
-        [HttpPost]
-        [IgnoreAntiforgeryToken]
+        [HttpGet]
         [Authorize(Policy = CustomRoles.Admin)]
         public async Task<IActionResult> TransportersList(int page, int pageSize, string search, string sort, string filter)
         {
@@ -171,6 +169,17 @@ namespace MvcWebApi.Controllers
             if (!ModelState.IsValid) return BadRequest();
             var getterUserId = HttpContext.GetCurrentUserId();
             var res = await _businessLogicFeedbackManager.GetFeedbackDetailsAsync(feedbackId, getterUserId);
+            if (!res.Succeeded) return StatusCode(500, res);
+            return Ok(res);
+        }
+
+        [HttpGet]
+        [Authorize(Policy = CustomRoles.Admin)]
+        public async Task<IActionResult> FeedbacksList(int page, int pageSize, string search, string sort, string filter)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var getterUserId = HttpContext.GetCurrentUserId();
+            var res = await _businessLogicFeedbackManager.GetFeedbacksAsync(getterUserId, page, pageSize, search, sort, filter);
             if (!res.Succeeded) return StatusCode(500, res);
             return Ok(res);
         }

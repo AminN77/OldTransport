@@ -22,4 +22,9 @@ namespace ViewModels
 
         public int UserId { get; set; }
     }
+
+    public class FeedbackListViewModel : AdminCheckFeedbackViewModel
+    {
+        public int Id { get; set; }
+    }
 }
