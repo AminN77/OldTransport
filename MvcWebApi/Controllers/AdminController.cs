@@ -16,11 +16,14 @@ namespace MvcWebApi.Controllers
     {
         private readonly IBusinessLogicUserManager _businessLogicUserManager;
         private readonly IBusinessLogicProjectManager _businessLogicProjectManager;
+        private readonly IBusinessLoginFeedbackManager _businessLogicFeedbackManager;
 
-        public AdminController(IBusinessLogicUserManager businessLogicUserManager, IBusinessLogicProjectManager businessLogicProjectManager)
+        public AdminController(IBusinessLogicUserManager businessLogicUserManager, IBusinessLogicProjectManager businessLogicProjectManager,
+            IBusinessLoginFeedbackManager businessLogicFeedbackManager)
         {
             _businessLogicUserManager = businessLogicUserManager;
             _businessLogicProjectManager = businessLogicProjectManager;
+            _businessLogicFeedbackManager = businessLogicFeedbackManager;
         }
 
         [HttpGet]
@@ -157,6 +160,17 @@ namespace MvcWebApi.Controllers
             if (!ModelState.IsValid) return BadRequest();
             var getterUserId = HttpContext.GetCurrentUserId();
             var res = await _businessLogicUserManager.GetTransportersAsync(getterUserId, page, pageSize, search, sort, filter);
+            if (!res.Succeeded) return StatusCode(500, res);
+            return Ok(res);
+        }
+
+        [HttpGet]
+        [Authorize(Policy = CustomRoles.Admin)]
+        public async Task<IActionResult> GetFeedback(int feedbackId)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var getterUserId = HttpContext.GetCurrentUserId();
+            var res = await _businessLogicFeedbackManager.GetFeedbackDetailsAsync(feedbackId, getterUserId);
             if (!res.Succeeded) return StatusCode(500, res);
             return Ok(res);
         }

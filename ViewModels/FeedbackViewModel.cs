@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace ViewModels
 {
@@ -9,5 +10,16 @@ namespace ViewModels
         public string Text { get; set; }
     }
 
-    public class AdminCheckFeedback { }
+    public class AdminCheckFeedbackViewModel
+    {
+        public string EmailAddress { get; set; }
+
+        public string Name { get; set; }
+
+        public string Text { get; set; }
+
+        public DateTime CreateDateTime { get; set; }
+
+        public int UserId { get; set; }
+    }
 }
