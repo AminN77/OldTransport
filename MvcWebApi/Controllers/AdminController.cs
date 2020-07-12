@@ -82,37 +82,11 @@ namespace MvcWebApi.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = CustomRoles.Admin)]
         public async Task<IActionResult> Settings()
         {
             if (!ModelState.IsValid) return BadRequest();
             var res = await _businessLogicUserManager.AdminGetSettingsForEdit();
-            if (!res.Succeeded) return StatusCode(500, res);
-            return Ok(res);
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> IndexSettings()
-        {
-            if (!ModelState.IsValid) return BadRequest();
-            var res = await _businessLogicUserManager.AdminGetIndexSettings();
-            if (!res.Succeeded) return StatusCode(500, res);
-            return Ok(res);
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> HowItWorks()
-        {
-            if (!ModelState.IsValid) return BadRequest();
-            var res = await _businessLogicUserManager.AdminGetHowItWorks();
-            if (!res.Succeeded) return StatusCode(500, res);
-            return Ok(res);
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> TermsAndConditions()
-        {
-            if (!ModelState.IsValid) return BadRequest();
-            var res = await _businessLogicUserManager.AdminGetTermsAndConditions();
             if (!res.Succeeded) return StatusCode(500, res);
             return Ok(res);
         }
