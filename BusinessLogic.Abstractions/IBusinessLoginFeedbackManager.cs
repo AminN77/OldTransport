@@ -11,5 +11,7 @@ namespace BusinessLogic.Abstractions
         Task<IBusinessLogicResult<ListResultViewModel<FeedbackListViewModel>>> GetFeedbacksAsync(int getterUserId, int page,
              int pageSize, string search, string sort, string filter);
         Task<IBusinessLogicResult> ContactUsAsync(ContactUsViewModel contactUsViewModel);
+        Task<IBusinessLogicResult<ListResultViewModel<ContactMessagesListViewModel>>> GetContactMessagesAsync(int getterUserId, int page,
+            int pageSize, string search, string sort, string filter);
     }
 }

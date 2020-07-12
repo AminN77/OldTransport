@@ -45,4 +45,9 @@ namespace ViewModels
         [StringLength(32, MinimumLength = 1, ErrorMessage = "{0} must be somewhat between {1} and {2} characters")]
         public string Name { get; set; }
     }
+
+    public class ContactMessagesListViewModel : ContactUsViewModel
+    {
+        public int id { get; set; }
+    }
 }

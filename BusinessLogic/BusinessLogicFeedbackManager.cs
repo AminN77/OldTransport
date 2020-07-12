@@ -138,7 +138,7 @@ namespace BusinessLogic
         public async Task<IBusinessLogicResult<ListResultViewModel<FeedbackListViewModel>>> GetFeedbacksAsync(int getterUserId,
             int page = 1,
             int pageSize = BusinessLogicSetting.MediumDefaultPageSize, string search = null,
-            string sort = nameof(ListTransporterViewModel.Name) + ":Asc", string filter = null)
+            string sort = nameof(FeedbackListViewModel.Name) + ":Asc", string filter = null)
         {
             var messages = new List<IBusinessLogicMessage>();
             try
@@ -183,7 +183,7 @@ namespace BusinessLogic
                 else
                 {
                     var propertyName = sort.Split(':')[0];
-                    var propertyInfo = typeof(ListTransporterViewModel).GetProperties().SingleOrDefault(p =>
+                    var propertyInfo = typeof(FeedbackListViewModel).GetProperties().SingleOrDefault(p =>
                         p.Name.Equals(propertyName, StringComparison.InvariantCultureIgnoreCase));
                     if (propertyInfo == null) sort = nameof(FeedbackListViewModel.Name) + ":Asc";
                 }
@@ -217,9 +217,10 @@ namespace BusinessLogic
             try
             {
                 ContactUs contactUs = await _utility.MapAsync<ContactUsViewModel, ContactUs>(contactUsViewModel);
+                contactUs.CreateDateTime = DateTime.Now;
                 await _contactUsRepository.AddAsync(contactUs);
                 
-                                messages.Add(new BusinessLogicMessage(type: MessageType.Info, message: MessageId.TransporterExists));
+                messages.Add(new BusinessLogicMessage(type: MessageType.Info, message: MessageId.TransporterExists));
                 return new BusinessLogicResult(succeeded: true, messages: messages);
             }
             catch (Exception exception)
@@ -227,6 +228,82 @@ namespace BusinessLogic
                 messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
                 return new BusinessLogicResult(succeeded: false,
                     messages: messages, exception: exception);
+            }
+        }
+
+        public async Task<IBusinessLogicResult<ListResultViewModel<ContactMessagesListViewModel>>> GetContactMessagesAsync(int getterUserId,
+            int page = 1,
+            int pageSize = BusinessLogicSetting.MediumDefaultPageSize, string search = null,
+            string sort = nameof(ContactMessagesListViewModel.Name) + ":Asc", string filter = null)
+        {
+            var messages = new List<IBusinessLogicMessage>();
+            try
+            {
+                // Critical Authentication and Authorization
+                try
+                {
+                    var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
+                    var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == getterUserId && u.RoleId != userRole.Id);
+                    if (!isUserAuthorized)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
+                        return new BusinessLogicResult<ListResultViewModel<ContactMessagesListViewModel>>(succeeded: false, result: null,
+                            messages: messages);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<ListResultViewModel<ContactMessagesListViewModel>>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
+
+                var messageQuery = _contactUsRepository.DeferredSelectAll().ProjectTo<ContactMessagesListViewModel>(new MapperConfiguration(config =>
+                    config.CreateMap<ContactUs, ContactMessagesListViewModel>()));
+
+                if (!string.IsNullOrEmpty(search))
+                {
+                    messageQuery = messageQuery.Where(user =>
+                        user.Name.Contains(search) || user.EmailAddress.Contains(search));
+                }
+
+                if (!string.IsNullOrWhiteSpace(filter))
+                {
+                    messageQuery = messageQuery.ApplyFilter(filter);
+                }
+
+                if (string.IsNullOrWhiteSpace(sort))
+                {
+                    sort = nameof(ContactMessagesListViewModel.Name) + ":Asc";
+                }
+                else
+                {
+                    var propertyName = sort.Split(':')[0];
+                    var propertyInfo = typeof(ContactMessagesListViewModel).GetProperties().SingleOrDefault(p =>
+                        p.Name.Equals(propertyName, StringComparison.InvariantCultureIgnoreCase));
+                    if (propertyInfo == null) sort = nameof(ContactMessagesListViewModel.Name) + ":Asc";
+                }
+
+                messageQuery = messageQuery.ApplyOrderBy(sort);
+                var contactMessagesListViewModel = await messageQuery.PaginateAsync(page, pageSize);
+                var recordsCount = await messageQuery.CountAsync();
+                var pageCount = (int)Math.Ceiling(recordsCount / (double)pageSize);
+                var result = new ListResultViewModel<ContactMessagesListViewModel>
+                {
+                    Results = contactMessagesListViewModel,
+                    Page = page,
+                    PageSize = pageSize,
+                    TotalEntitiesCount = recordsCount,
+                    TotalPagesCount = pageCount
+                };
+                return new BusinessLogicResult<ListResultViewModel<ContactMessagesListViewModel>>(succeeded: true,
+                    result: result, messages: messages);
+            }
+            catch (Exception exception)
+            {
+                messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
+                return new BusinessLogicResult<ListResultViewModel<ContactMessagesListViewModel>>(succeeded: false,
+                    result: null, messages: messages, exception: exception);
             }
         }
 
