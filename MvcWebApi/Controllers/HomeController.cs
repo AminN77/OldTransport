@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using BusinessLogic.Abstractions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using ViewModels;
 
 namespace MvcWebApi.Controllers
 {
@@ -56,6 +57,15 @@ namespace MvcWebApi.Controllers
         {
             if (!ModelState.IsValid) return BadRequest();
             var result = await _businessLogicProjectManager.CountProjectsAsync();
+            if (!result.Succeeded) return StatusCode(500, result);
+            return Ok(result);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ContactUs(ContactUsViewModel contactUsViewModel)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var result = await _businessLogicFeedbackManager.ContactUsAsync(contactUsViewModel);
             if (!result.Succeeded) return StatusCode(500, result);
             return Ok(result);
         }

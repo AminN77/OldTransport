@@ -20,15 +20,18 @@ namespace BusinessLogic
         private readonly IRepository<Feedback> _feedbackRepository;
         private readonly IRepository<Role> _roleRepository;
         private readonly IRepository<UserRole> _userRoleRepository;
+        private readonly IRepository<ContactUs> _contactUsRepository;
         private readonly BusinessLogicUtility _utility;
 
         public BusinessLogicFeedbackManager(IRepository<User> userRepository, IRepository<Feedback> feedbackRepository,
-            BusinessLogicUtility utility, IRepository<UserRole> userRoleRepository, IRepository<Role> roleRepository)
+            BusinessLogicUtility utility, IRepository<UserRole> userRoleRepository, IRepository<Role> roleRepository,
+            IRepository<ContactUs> contactUsRepository)
         {
             _feedbackRepository = feedbackRepository;
             _userRepository = userRepository;
             _roleRepository = roleRepository;
             _userRoleRepository = userRoleRepository;
+            _contactUsRepository = contactUsRepository;
             _utility = utility;
         }
 
@@ -208,12 +211,32 @@ namespace BusinessLogic
             }
         }
 
+        public async Task<IBusinessLogicResult> ContactUsAsync(ContactUsViewModel contactUsViewModel)
+        {
+            var messages = new List<IBusinessLogicMessage>();
+            try
+            {
+                ContactUs contactUs = await _utility.MapAsync<ContactUsViewModel, ContactUs>(contactUsViewModel);
+                await _contactUsRepository.AddAsync(contactUs);
+                
+                                messages.Add(new BusinessLogicMessage(type: MessageType.Info, message: MessageId.TransporterExists));
+                return new BusinessLogicResult(succeeded: true, messages: messages);
+            }
+            catch (Exception exception)
+            {
+                messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                return new BusinessLogicResult(succeeded: false,
+                    messages: messages, exception: exception);
+            }
+        }
+
         public void Dispose()
         {
             _userRepository.Dispose();
             _feedbackRepository.Dispose();
             _userRepository.Dispose();
             _userRoleRepository.Dispose();
+            _contactUsRepository.Dispose();
         }
     }
 }

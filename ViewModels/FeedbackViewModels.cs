@@ -27,4 +27,22 @@ namespace ViewModels
     {
         public int Id { get; set; }
     }
+
+    public class ContactUsViewModel
+    {
+        [Required(ErrorMessage = "Please enter {0}")]
+        [Display(Name = "Message")]
+        [DataType(DataType.MultilineText)]
+        public string Text { get; set; }
+
+        [Required(ErrorMessage = "Please enter {0}")]
+        [Display(Name = "Email Address")]
+        [RegularExpression(@"^([\w\.\-]+)@([\w\-]+)((\.(\w){2,3})+)(|-deleted\d{4})$", ErrorMessage = "Invalid Email Format")]
+        public virtual string EmailAddress { get; set; }
+
+        [Required(ErrorMessage = "Please enter {0}")]
+        [Display(Name = "Name")]
+        [StringLength(32, MinimumLength = 1, ErrorMessage = "{0} must be somewhat between {1} and {2} characters")]
+        public string Name { get; set; }
+    }
 }
