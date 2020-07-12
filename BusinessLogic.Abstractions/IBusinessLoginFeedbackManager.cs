@@ -13,5 +13,6 @@ namespace BusinessLogic.Abstractions
         Task<IBusinessLogicResult> ContactUsAsync(ContactUsViewModel contactUsViewModel);
         Task<IBusinessLogicResult<ListResultViewModel<ContactMessagesListViewModel>>> GetContactMessagesAsync(int getterUserId, int page,
             int pageSize, string search, string sort, string filter);
+        Task<IBusinessLogicResult<ContactMessageViewModel>> GetContactMessageAsync(int messageId, int getterUserId);
     }
 }

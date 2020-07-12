@@ -50,4 +50,6 @@ namespace ViewModels
     {
         public int id { get; set; }
     }
+
+    public class ContactMessageViewModel : ContactMessagesListViewModel { }
 }

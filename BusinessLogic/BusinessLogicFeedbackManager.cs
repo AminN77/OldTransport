@@ -307,6 +307,62 @@ namespace BusinessLogic
             }
         }
 
+        public async Task<IBusinessLogicResult<ContactMessageViewModel>> GetContactMessageAsync(int messageId, int getterUserId)
+        {
+            var messages = new List<IBusinessLogicMessage>();
+            try
+            {
+                // Critical Authentication and Authorization
+                try
+                {
+                    var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
+                    var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == getterUserId && u.RoleId != userRole.Id);
+                    if (!isUserAuthorized)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
+                        return new BusinessLogicResult<ContactMessageViewModel>(succeeded: false, result: null,
+                            messages: messages);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<ContactMessageViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
+
+                ContactUs message;
+                try
+                {
+                    message = await _contactUsRepository.FindAsync(messageId);
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<ContactMessageViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
+
+                if (message == null)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.EntityDoesNotExist));
+                    return new BusinessLogicResult<ContactMessageViewModel>(succeeded: false, result: null,
+                        messages: messages);
+                }
+
+                var contactMessageViewModel = await _utility.MapAsync<ContactUs, ContactMessageViewModel>(message);
+                messages.Add(new BusinessLogicMessage(type: MessageType.Info, message: MessageId.TransporterExists));
+                return new BusinessLogicResult<ContactMessageViewModel>(succeeded: true, messages: messages, result: contactMessageViewModel);
+
+            }
+            catch (Exception exception)
+            {
+                messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                return new BusinessLogicResult<ContactMessageViewModel>(succeeded: false, result: null,
+                    messages: messages, exception: exception);
+            }
+        }
+
         public void Dispose()
         {
             _userRepository.Dispose();

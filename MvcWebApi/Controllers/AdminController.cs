@@ -168,5 +168,16 @@ namespace MvcWebApi.Controllers
             if (!res.Succeeded) return StatusCode(500, res);
             return Ok(res);
         }
+
+        [HttpGet]
+        [Authorize(Policy = CustomRoles.Admin)]
+        public async Task<IActionResult> GetContactMessage(int messageId)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var getterUserId = HttpContext.GetCurrentUserId();
+            var res = await _businessLogicFeedbackManager.GetContactMessageAsync(messageId, getterUserId);
+            if (!res.Succeeded) return StatusCode(500, res);
+            return Ok(res);
+        }
     }
 }
