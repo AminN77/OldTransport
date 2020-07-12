@@ -28,7 +28,10 @@ namespace BusinessLogic.Abstractions
         Task<IBusinessLogicResult> DeactivateUserAsync(int userId, int deactivatorUserId);
         Task<IBusinessLogicResult> ActivateUserAsync(int userId, int activatorUserId);
         Task<IBusinessLogicResult> ForgetPasswordAsync(UserForgetPasswordViewModel userForgetPasswordViewModel);
-        Task<IBusinessLogicResult<SettingsViewModel>> AdminGetSettings();
+        Task<IBusinessLogicResult<SettingsViewModel>> AdminGetSettingsForEdit();
+        Task<IBusinessLogicResult<IndexSettingsViewModel>> AdminGetIndexSettings();
+        Task<IBusinessLogicResult<HowItWorksViewModel>> AdminGetHowItWorks();
+        Task<IBusinessLogicResult<TermsAndConditionsViewModel>> AdminGetTermsAndConditions();
         Task<IBusinessLogicResult<SettingsViewModel>> AdminEditSettings(SettingsViewModel settingsViewModel);
         Task<IBusinessLogicResult<int?>> MerchantAuthenticator(int userId);
         Task<IBusinessLogicResult<int?>> TransporterAuthenticator(int userId);
