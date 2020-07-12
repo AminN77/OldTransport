@@ -17,11 +17,14 @@ namespace MvcWebApi.Controllers
     {
         private readonly IBusinessLogicUserManager _businessLogicUserManager;
         private readonly IBusinessLogicRoleManager _businessLogicRoleManager;
+        private readonly IBusinessLoginFeedbackManager _businessLogicFeedbackManager;
 
-        public UserProfileController(IBusinessLogicUserManager businessLogicUserManager, IBusinessLogicRoleManager businessLogicRoleManager)
+        public UserProfileController(IBusinessLogicUserManager businessLogicUserManager, IBusinessLogicRoleManager businessLogicRoleManager,
+            IBusinessLoginFeedbackManager businessLogicFeedbackManager)
         {
             _businessLogicUserManager = businessLogicUserManager;
             _businessLogicRoleManager = businessLogicRoleManager;
+            _businessLogicFeedbackManager = businessLogicFeedbackManager;
         }
 
         [HttpGet]
@@ -148,7 +151,7 @@ namespace MvcWebApi.Controllers
         {
             if (!ModelState.IsValid) return BadRequest();
             var userId = HttpContext.GetCurrentUserId();
-            var res = await _businessLogicUserManager.SendFeedback(userId, sendFeedbackViewModel);
+            var res = await _businessLogicFeedbackManager.SendFeedback(userId, sendFeedbackViewModel);
             if (!res.Succeeded) return NotFound(res);
             return Ok(res);
         }
