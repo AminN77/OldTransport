@@ -23,6 +23,7 @@ namespace BusinessLogic
         private readonly IRepository<Merchant> _merchantRepository;
         private readonly IRepository<Transporter> _transporterRepository;
         private readonly IRepository<Settings> _settingsRepository;
+        private readonly IRepository<Feedback> _feedbackRepository;
         private readonly BusinessLogicUtility _utility;
         private readonly ILogger<BusinessLogicUserManager> _logger;
         private readonly IPasswordHasher _passwordHasher;
@@ -34,7 +35,7 @@ namespace BusinessLogic
         public BusinessLogicUserManager(IRepository<User> userRepository, ILogger<BusinessLogicUserManager> logger,
                 BusinessLogicUtility utility, IRepository<UserRole> userRoleRepository, IRepository<Merchant> merchantRepository,
                 IPasswordHasher passwordHasher, ISecurityProvider securityProvider, IEmailSender emailSender, IRepository<Settings> settingsRepository,
-                IRepository<Transporter> transporterRepository, IRepository<Role> roleRepository, IFileService fileService)
+                IRepository<Transporter> transporterRepository, IRepository<Role> roleRepository, IFileService fileService, IRepository<Feedback> feedbackRepository)
         {
             _userRepository = userRepository;
             _userRoleRepository = userRoleRepository;
@@ -48,6 +49,7 @@ namespace BusinessLogic
             _roleRepository = roleRepository;
             _fileService = fileService;
             _settingsRepository = settingsRepository;
+            _feedbackRepository = feedbackRepository;
         }
 
         #region User
@@ -1949,6 +1951,50 @@ namespace BusinessLogic
             {
                 messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
                 return new BusinessLogicResult<int?>(succeeded: false, messages: messages, exception: exception, result: null);
+            }
+        }
+
+        public async Task<IBusinessLogicResult> SendFeedback(int userId, SendFeedbackViewModel sendFeedbackViewModel)
+        {
+            var messages = new List<IBusinessLogicMessage>();
+            try
+            {
+                User user;
+                try
+                {
+                    user = await _userRepository.FindAsync(userId);
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.EntityDoesNotExist));
+                    return new BusinessLogicResult(succeeded: false,
+                        messages: messages, exception: exception);
+                }
+
+                var feedback = await _utility.MapAsync<User, Feedback>(user);
+                feedback.Text = sendFeedbackViewModel.Text;
+                feedback.CreateDateTime = DateTime.Now;
+
+                try
+                {
+                    await _feedbackRepository.AddAsync(feedback);
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult(succeeded: false,
+                        messages: messages, exception: exception);
+                }
+
+                messages.Add(new BusinessLogicMessage(type: MessageType.Info, message: MessageId.TransporterExists));
+                return new BusinessLogicResult(succeeded: true, messages: messages);
+
+            }
+            catch (Exception exception)
+            {
+                messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                return new BusinessLogicResult(succeeded: false,
+                    messages: messages, exception: exception);
             }
         }
 

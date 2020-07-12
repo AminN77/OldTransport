@@ -140,5 +140,17 @@ namespace MvcWebApi.Controllers
             if (!res.Succeeded) return NotFound(res);
             return Ok(res);
         }
+
+        [HttpPost]
+        [Authorize]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> Feedback(SendFeedbackViewModel sendFeedbackViewModel)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var userId = HttpContext.GetCurrentUserId();
+            var res = await _businessLogicUserManager.SendFeedback(userId, sendFeedbackViewModel);
+            if (!res.Succeeded) return NotFound(res);
+            return Ok(res);
+        }
     }
 }
