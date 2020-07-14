@@ -4,14 +4,16 @@ using Data.DataAccess.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Data.DataAccess.Migrations
 {
     [DbContext(typeof(SqlServerDbContext))]
-    partial class SqlServerDbContextModelSnapshot : ModelSnapshot
+    [Migration("20200711115542_V1.0-UpdateSettings")]
+    partial class V10UpdateSettings
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -390,15 +392,15 @@ namespace Data.DataAccess.Migrations
                         {
                             Id = 1,
                             ActivationCode = 0,
-                            CreateDateTime = new DateTime(2020, 7, 12, 22, 29, 43, 408, DateTimeKind.Local).AddTicks(7884),
+                            CreateDateTime = new DateTime(2020, 7, 11, 16, 25, 42, 552, DateTimeKind.Local).AddTicks(6315),
                             EmailAddress = "abolfazl.sh1374@gmail.com",
                             IsDeleted = false,
                             IsEnabled = true,
-                            IterationCount = 83064,
+                            IterationCount = 22501,
                             Name = "Developer",
-                            Password = "262C4E4169FA263CC4184CDC9B0A358EF176B65B0EC662BDCE48FE196013571CE140552BEBCC09417DAD4C590D85B1ADFB9612A5F6E9A8536C1D016229297668",
-                            Salt = new byte[] { 189, 91, 78, 44, 230, 193, 180, 89, 74, 139, 182, 28, 45, 132, 128, 87, 201, 105, 218, 78, 131, 20, 189, 210, 106, 235, 247, 94, 137, 162, 205, 57 },
-                            SerialNumber = "9b8a53cf-7df1-46a7-9838-efe78366f198"
+                            Password = "CE2B58BC50E5ACD670D06327898725AFCEC30D37895997017503A11A3A33A999372C8CF4AFEE817CB05DBEF4187D495B12535C897667B73DF11F7C08FFAD8C85",
+                            Salt = new byte[] { 114, 110, 86, 200, 120, 151, 30, 25, 155, 171, 239, 207, 42, 221, 6, 102, 179, 21, 10, 139, 93, 176, 109, 54, 68, 24, 173, 176, 104, 153, 51, 197 },
+                            SerialNumber = "6fcca5f2-729b-4a56-8eac-f14e682f67a6"
                         });
                 });
 

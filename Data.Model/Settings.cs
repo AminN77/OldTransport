@@ -20,5 +20,11 @@ namespace Data.Model
 
         [Required]
         public string ContactNumber { get; set; }
+
+        public string TermsAndConditions { get; set; }
+
+        public string HowItWorks { get; set; }
+
+        public int OffersCountLimit { get; set; }
     }
 }

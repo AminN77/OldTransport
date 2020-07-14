@@ -77,7 +77,7 @@ namespace Cross
             }
         }
 
-        public async Task SaveFile(IFormFile file, FileTypes fileType)
+        public async Task<string> SaveFile(IFormFile file, FileTypes fileType)
         {
             var typePath = "";
             switch (fileType)
@@ -88,7 +88,7 @@ namespace Cross
             }
             if (typePath == null)
             {
-                return;
+                return null;
             }
             var profilePhotoPath = Path.Combine(_env.ContentRootPath, typePath);
             Directory.CreateDirectory(profilePhotoPath);
@@ -100,6 +100,8 @@ namespace Cross
             {
                 await file.CopyToAsync(stream);
             }
+
+            return fileName;
         }
 
         public string SizeDeterminator(long bytes)

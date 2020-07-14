@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace ViewModels
@@ -28,12 +29,12 @@ namespace ViewModels
 
     public class UserSignInViewModel : ListUserViewModel
     {
-        [Required]
-        public string Token { get; set; }
+        public string SerialNumber { get; set; }
     }
 
-    public class EditUserViewModel : UserBaseViewModel
+    public class EditUserViewModel
     {
+        [Required]
         public int Id { get; set; }
 
         [Required(ErrorMessage = "Please enter {0}")]
@@ -49,6 +50,10 @@ namespace ViewModels
         [Display(Name = "Bio")]
         [DataType(DataType.MultilineText)]
         public string Bio { get; set; }
+
+        public IFormFile file { get; set; }
+
+        public string PhoneNumber { get; set; }
     }
 
     public class ListUserViewModel : UserBaseViewModel
@@ -71,20 +76,28 @@ namespace ViewModels
 
         public DateTimeOffset? LastLoggedIn { get; set; }
 
-        public string SerialNumber { get; set; }
+        public string Role { get; set; }
+
+        public string PhoneNumber { get; set; }
     }
+
+    public class ListMerchantViewModel : ListUserViewModel { }
+
+    public class ListTransporterViewModel : ListUserViewModel { }
 
     public class DetailUserViewModel : ListUserViewModel
     {
         [Required(ErrorMessage = "لطفا {0} را وارد کنید.")]
         [Display(Name = "تاریخ ثبت")]
         public DateTime CreateDateTime { get; set; }
+
+        [Display(Name = "Bio")]
+        [DataType(DataType.MultilineText)]
+        public string Bio { get; set; }
     }
 
     public class UserResetPasswordViewModel
     {
-        public int Id { get; set; }
-
         [Required(ErrorMessage = "لطفا {0} را وارد کنید.")]
         [Display(Name = "کلمه عبور جدید")]
         [DataType(DataType.Password)]
@@ -154,16 +167,12 @@ namespace ViewModels
 
     public class AddMerchantViewModel
     {
-        [Required(ErrorMessage = "Please enter {0}")]
-        [Display(Name = "User Id")]
-        public int UserId { get; set; }
+        public int MerchantId { get; set; }
     }    
     
     public class AddTransporterViewModel
     {
-        [Required(ErrorMessage = "Please enter {0}")]
-        [Display(Name = "User Id")]
-        public int UserId { get; set; }
+        public int TransporterId { get; set; }
     }
 
     public class UserForgetPasswordViewModel : EmailViewModel { }

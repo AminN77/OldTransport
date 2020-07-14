@@ -41,11 +41,9 @@ namespace MvcWebApi.Controllers
         public async Task<IActionResult> OffersList(int page, int pageSize, string search, string sort, string filter)
         {
             if (!ModelState.IsValid) return BadRequest();
-            var getterUserId = HttpContext.GetCurrentUserId();
-            var result = await _businessLogicOfferManager.GetOfferAsync(getterUserId, page, pageSize, search, sort, filter);
+            var result = await _businessLogicOfferManager.GetOfferAsync(page, pageSize, search, sort, filter);
             if (!result.Succeeded) return StatusCode(500, result);
             return Ok(result);
-
         }
 
         [HttpPut]

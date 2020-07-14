@@ -16,15 +16,20 @@ namespace MvcWebApi.Controllers
     public class UserProfileController : ControllerBase
     {
         private readonly IBusinessLogicUserManager _businessLogicUserManager;
+        private readonly IBusinessLogicRoleManager _businessLogicRoleManager;
+        private readonly IBusinessLoginFeedbackManager _businessLogicFeedbackManager;
 
-        public UserProfileController(IBusinessLogicUserManager businessLogicUserManager)
+        public UserProfileController(IBusinessLogicUserManager businessLogicUserManager, IBusinessLogicRoleManager businessLogicRoleManager,
+            IBusinessLoginFeedbackManager businessLogicFeedbackManager)
         {
             _businessLogicUserManager = businessLogicUserManager;
+            _businessLogicRoleManager = businessLogicRoleManager;
+            _businessLogicFeedbackManager = businessLogicFeedbackManager;
         }
 
         [HttpGet]
         [Authorize]
-        public async Task<IActionResult> UserDetails(int userId)
+        public async Task<IActionResult> UserDetails(int? userId)
         {
             if (!ModelState.IsValid) return BadRequest();
             var getterUserId = HttpContext.GetCurrentUserId();
@@ -35,7 +40,8 @@ namespace MvcWebApi.Controllers
 
         [HttpDelete]
         [Authorize]
-        public async Task<IActionResult> DeleteUser(int userId)
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> DeleteAccount(int? userId)
         {
             if (!ModelState.IsValid) return BadRequest();
             var deleterUserId = HttpContext.GetCurrentUserId();
@@ -56,14 +62,26 @@ namespace MvcWebApi.Controllers
             return Ok();
         }
 
+        [HttpGet]
+        [Authorize]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> EditUser()
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var getterUserId = HttpContext.GetCurrentUserId();
+            var res = await _businessLogicUserManager.GetUserForEditAsync(getterUserId);
+            if (!res.Succeeded) return StatusCode(500, res);
+            return Ok(res);
+        }
+
         [HttpPost]
         [Authorize]
         [IgnoreAntiforgeryToken]
-        public async Task<IActionResult> EditUser(EditUserViewModel editUserViewModel, IFormFile file)
+        public async Task<IActionResult> EditUser(EditUserViewModel editUserViewModel)
         {
             if (!ModelState.IsValid) return BadRequest();
             var editorUserId = HttpContext.GetCurrentUserId();
-            var res = await _businessLogicUserManager.EditUserAsync(editUserViewModel, editorUserId, file);
+            var res = await _businessLogicUserManager.EditUserAsync(editUserViewModel, editorUserId);
             if (!res.Succeeded) return StatusCode(500, res);
             return Ok(res);
         }
@@ -73,10 +91,9 @@ namespace MvcWebApi.Controllers
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> IsUserMerchant()
         {
-            if (!ModelState.IsValid) return BadRequest();
             var userId = HttpContext.GetCurrentUserId();
             var res = await _businessLogicUserManager.MerchantAuthenticator(userId);
-            if (!res.Succeeded) return NotFound(res);
+            if (!res.Succeeded) return StatusCode(204, res);
             return Ok(res);
         }
 
@@ -85,20 +102,32 @@ namespace MvcWebApi.Controllers
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> IsUserTransporter()
         {
-            if (!ModelState.IsValid) return BadRequest();
             var userId = HttpContext.GetCurrentUserId();
             var res = await _businessLogicUserManager.TransporterAuthenticator(userId);
-            if (!res.Succeeded) return NotFound(res);
+            if (!res.Succeeded) return StatusCode(204, res);
             return Ok(res);
         }
 
-        [HttpGet]
+        [HttpPost]
         [Authorize]
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> AddTransporter(AddTransporterViewModel addTransporterViewModel)
         {
             if (!ModelState.IsValid) return BadRequest();
-            var res = await _businessLogicUserManager.AddTransporterAsync(addTransporterViewModel);
+            var userId = HttpContext.GetCurrentUserId();
+            var res = await _businessLogicUserManager.AddTransporterAsync(userId, addTransporterViewModel);
+            if (!res.Succeeded) return NotFound(res);
+            return Ok(res);
+        }
+
+        [HttpPost]
+        [Authorize]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> AddMerchant(AddMerchantViewModel addMerchantViewModel)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var userId = HttpContext.GetCurrentUserId();
+            var res = await _businessLogicUserManager.AddMerchantAsync(userId, addMerchantViewModel);
             if (!res.Succeeded) return NotFound(res);
             return Ok(res);
         }
@@ -106,10 +135,23 @@ namespace MvcWebApi.Controllers
         [HttpGet]
         [Authorize]
         [IgnoreAntiforgeryToken]
-        public async Task<IActionResult> AddMerchant(AddMerchantViewModel addMerchantViewModel)
+        public async Task<IActionResult> UserRole()
         {
             if (!ModelState.IsValid) return BadRequest();
-            var res = await _businessLogicUserManager.AddMerchantAsync(addMerchantViewModel);
+            var userId = HttpContext.GetCurrentUserId();
+            var res = await _businessLogicRoleManager.FindUserRolesAsync(userId);
+            if (!res.Succeeded) return NotFound(res);
+            return Ok(res);
+        }
+
+        [HttpPost]
+        [Authorize]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> Feedback(SendFeedbackViewModel sendFeedbackViewModel)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var userId = HttpContext.GetCurrentUserId();
+            var res = await _businessLogicFeedbackManager.SendFeedback(userId, sendFeedbackViewModel);
             if (!res.Succeeded) return NotFound(res);
             return Ok(res);
         }

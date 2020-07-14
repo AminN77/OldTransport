@@ -101,6 +101,8 @@ namespace BusinessLogic.Abstractions.Message
         [Display(Name = "Merchant Exists")]
         MerchantExists,
         [Display(Name = "Transporter Exists")]
-        TransporterExists
+        TransporterExists,
+        [Display(Name = "Duplicated Offer")]
+        DuplicatedOffer
     }
 }

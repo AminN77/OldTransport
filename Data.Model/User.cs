@@ -37,9 +37,6 @@ namespace Data.Model
         [Required]
         public bool IsDeleted { get; set; }
 
-
-        public string Token { get; set; }
-
         [Required]
         [MaxLength(32)]
         [MinLength(32)]
@@ -62,6 +59,8 @@ namespace Data.Model
 
         [Required]
         public DateTime CreateDateTime { get; set; }
+
+        public string PhoneNumber { get; set; }
 
         public virtual ICollection<UserRole> UserRoles { get; set; }
 

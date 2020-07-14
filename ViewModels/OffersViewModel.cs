@@ -5,6 +5,7 @@ namespace ViewModels
 {
     public abstract class BaseOfferViewModel
     {
+        public int Id { get; set; }
         public int TransporterId { get; set; }
 
         [Required]
@@ -29,18 +30,22 @@ namespace ViewModels
     {
     }
 
-    public class ListOfferViewModel : EditOfferViewModel
+    public class ListOfferViewModel : BaseOfferViewModel
     {
         public string TransporterName { get; set; }
+        public string ProjectName { get; set; }
+        public bool IsAccepted { get; set; }
     }
 
     public class EditOfferViewModel : BaseOfferViewModel
     {
-        [Required]
-        public int offerId { get; set; }
+
     }
 
     public class OfferDetailsViewModel : ListOfferViewModel
     {
+        public int MerchantId { get; set; }
+
+        public int AcceptId { get; set; }
     }
 }

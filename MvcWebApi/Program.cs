@@ -20,6 +20,7 @@ namespace MvcWebApi
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
+                    webBuilder.UseUrls("http://*:8585");
                     webBuilder.UseStartup<Startup>();
                 });
     }

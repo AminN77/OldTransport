@@ -53,7 +53,11 @@ namespace ViewModels
         public int Id { get; set; }
 
         [Required]
-        public bool IsEnabled{ get; set; }
+        public bool IsEnabled { get; set; }
+
+        public int AcceptedOfferId { get; set; }
+
+        public int MerchantId { get; set; }
     }
 
     public class EditProjectViewModel : AddProjectViewModel
@@ -81,5 +85,9 @@ namespace ViewModels
         public double Weight { get; set; }
 
         public string MerchantName { get; set; }
+
+        public int count { get; set; }
+
+        public bool IsMerchatOwner { get; set; }
     }
 }

@@ -1,6 +1,4 @@
-﻿using AutoMapper;
-using AutoMapper.QueryableExtensions;
-using BusinessLogic.Abstractions;
+﻿using BusinessLogic.Abstractions;
 using BusinessLogic.Abstractions.Message;
 using Cross.Abstractions.EntityEnums;
 using Data.Abstractions;
@@ -9,7 +7,6 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using ViewModels;
 
@@ -24,11 +21,14 @@ namespace BusinessLogic
         private readonly IRepository<Role> _roleRepository;
         private readonly IRepository<UserRole> _userRoleRepository;
         private readonly IRepository<User> _userRepository;
+        private readonly IRepository<Accept> _acceptRepository;
+        private readonly IRepository<Merchant> _merchantRepository;
         private readonly BusinessLogicUtility _utility;
 
         public BusinessLogicOfferManager(IRepository<Offer> offerRepository, IRepository<Transporter> transporterRepository,
                 BusinessLogicUtility utility, IRepository<Project> projectRepository, IRepository<Role> roleRepository,
-                IRepository<UserRole> userRoleRepository, IRepository<User> userRepository)
+                IRepository<UserRole> userRoleRepository, IRepository<User> userRepository, IRepository<Accept> acceptRepository,
+                IRepository<Merchant> merchantRepository)
         {
             _transporterRepository = transporterRepository;
             _offerRepository = offerRepository;
@@ -36,6 +36,8 @@ namespace BusinessLogic
             _userRoleRepository = userRoleRepository;
             _roleRepository = roleRepository;
             _userRepository = userRepository;
+            _acceptRepository = acceptRepository;
+            _merchantRepository = merchantRepository;
             _utility = utility;
         }
 
@@ -110,7 +112,7 @@ namespace BusinessLogic
                 try
                 {
                     DuplicateOffer = await _offerRepository.DeferredSelectAll().SingleOrDefaultAsync(
-                        o => o.ProjectId == addOfferViewModel.ProjectId && o.TransporterId == addOfferViewModel.TransporterId);
+                        o => o.ProjectId == addOfferViewModel.ProjectId && o.TransporterId == transporter.Id);
                 }
 
                 catch (Exception exception)
@@ -122,7 +124,7 @@ namespace BusinessLogic
 
                 if (DuplicateOffer != null)
                 {
-                    messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.AccessDenied));
+                    messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.DuplicatedOffer));
                     return new BusinessLogicResult<AddOfferViewModel>(succeeded: false, result: null,
                         messages: messages);
                 }
@@ -174,27 +176,47 @@ namespace BusinessLogic
             }
         }
 
-        public async Task<IBusinessLogicResult<ListResultViewModel<ListOfferViewModel>>> GetOfferAsync(int getterUserId,
+        public async Task<IBusinessLogicResult<ListResultViewModel<ListOfferViewModel>>> GetOfferAsync(
             int page, int pageSize, string search, string sort, string filter)
         {
             var messages = new List<IBusinessLogicMessage>();
 
             try
             {
-                var getterUser = await _offerRepository.FindAsync(getterUserId);
-                // Solution 1:
-                // Todo: Abolfazl -> set developer role type. (Abolfazl)
-                const bool developerUser = true; // RoleType.DeveloperSupport;
-                var usersQuery = _offerRepository.DeferredWhere(u =>
-                        (!u.Transporter.User.IsDeleted && !developerUser) || developerUser
-                    )
-                    .ProjectTo<ListOfferViewModel>(new MapperConfiguration(config =>
-                        config.CreateMap<Offer, ListOfferViewModel>()));
+                var usersQuery = _offerRepository.DeferredWhere(o => !o.IsDeleted)
+                        .Join(_transporterRepository.DeferredSelectAll(),
+                        o => o.TransporterId,
+                        t => t.Id,
+                        (o, t) => new { o, t })
+                            .Join(_userRepository.DeferredSelectAll(),
+                            c => c.t.UserId,
+                            u => u.Id,
+                            (c, u) => new { c, u })
+                                .Join(_projectRepository.DeferredSelectAll(),
+                                d => d.c.o.ProjectId,
+                                p => p.Id,
+                                (d, p) => new ListOfferViewModel()
+                                {
+                                    Id = d.c.o.Id,
+                                    Description = d.c.o.Description,
+                                    TransporterName = d.u.Name,
+                                    EstimatedTime = d.c.o.EstimatedTime,
+                                    Price = d.c.o.Price,
+                                    TransporterId = d.c.o.TransporterId,
+                                    ProjectId = d.c.o.ProjectId,
+                                    ProjectName = p.Title
+                                });
+
+                //_offerRepository.DeferredWhere(u =>
+                //    (!u.IsDeleted)
+                //)
+                //.ProjectTo<ListOfferViewModel>(new MapperConfiguration(config =>
+                //    config.CreateMap<Offer, ListOfferViewModel>().ForMember(o => o.TransporterName, o => o.MapFrom(l => l.Transporter))));
+
                 if (!string.IsNullOrEmpty(search))
                 {
                     usersQuery = usersQuery.Where(offer =>
                         offer.Description.Contains(search));
-
                 }
 
                 //TODO : isDeleted must add
@@ -228,6 +250,11 @@ namespace BusinessLogic
                     TotalEntitiesCount = recordsCount,
                     TotalPagesCount = pageCount
                 };
+                foreach (var item in offerListViewModels)
+                {
+                    item.IsAccepted = _acceptRepository.DeferredWhere(a => a.OfferId == item.Id).Any();
+                }
+
                 return new BusinessLogicResult<ListResultViewModel<ListOfferViewModel>>(succeeded: true,
                     result: result, messages: messages);
             }
@@ -240,7 +267,7 @@ namespace BusinessLogic
 
         }
 
-        public async Task<IBusinessLogicResult<EditOfferViewModel>> GetOfferForEditAsync(int offerId , int getterUserId)
+        public async Task<IBusinessLogicResult<EditOfferViewModel>> GetOfferForEditAsync(int offerId, int getterUserId)
         {
             var messages = new List<IBusinessLogicMessage>();
             try
@@ -446,7 +473,7 @@ namespace BusinessLogic
                 {
                     try
                     {
-                        offer = await _offerRepository.DeferredSelectAll().SingleOrDefaultAsync(o => o.Id == editOfferViewModel.offerId);
+                        offer = await _offerRepository.DeferredSelectAll().SingleOrDefaultAsync(o => o.Id == editOfferViewModel.Id);
                     }
                     catch (Exception exception)
                     {
@@ -484,6 +511,9 @@ namespace BusinessLogic
                            messages: messages);
                     }
 
+                    editOfferViewModel.TransporterId = transporter.Id;
+                    editOfferViewModel.ProjectId = offer.ProjectId;
+
                 }
                 catch (Exception exception)
                 {
@@ -493,21 +523,22 @@ namespace BusinessLogic
 
                 }
 
-                offer.Price = editOfferViewModel.Price;
-                offer.EstimatedTime = editOfferViewModel.EstimatedTime;
-                offer.Description = editOfferViewModel.Description;
+                //offer.Price = editOfferViewModel.Price;
+                //offer.EstimatedTime = editOfferViewModel.EstimatedTime;
+                //offer.Description = editOfferViewModel.Description;
 
-                //try
-                //{
-                //    await _utility.MapAsync(editOfferViewModel,offer);
 
-                //}
-                //catch (Exception exception)
-                //{
-                //    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
-                //    return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
-                //        messages: messages, exception: exception);
-                //}
+                try
+                {
+                    await _utility.MapAsync(editOfferViewModel, offer);
+
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
 
                 try
                 {
@@ -540,7 +571,7 @@ namespace BusinessLogic
             var messages = new List<IBusinessLogicMessage>();
             try
             {
-                Offer  offer;
+                Offer offer;
                 // Critical Database
                 try
                 {
@@ -565,9 +596,30 @@ namespace BusinessLogic
                 var offerDetailsViewModel = await _utility.MapAsync<Offer, OfferDetailsViewModel>(offer);
                 try
                 {
-                    var merchantUserId = await _offerRepository.FindAsync(offer.TransporterId);
-                    var user = await _userRepository.FindAsync(merchantUserId);
+                    var transporter = await _transporterRepository.FindAsync(offer.TransporterId);
+                    var user = await _userRepository.FindAsync(transporter.UserId);
                     offerDetailsViewModel.TransporterName = user.Name;
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<OfferDetailsViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
+
+                try
+                {
+                    var project = await _projectRepository.FindAsync(offer.ProjectId);
+                    var merchant = await _merchantRepository.DeferredSelectAll().SingleOrDefaultAsync(m => m.Id == project.MerchantId);
+                    var accept = await _acceptRepository.DeferredSelectAll().SingleOrDefaultAsync(a => a.OfferId == offer.Id);
+                    if(accept!= null)
+                    {
+                        offerDetailsViewModel.AcceptId = accept.Id;
+                        offerDetailsViewModel.IsAccepted = true;
+                    }
+                    offerDetailsViewModel.ProjectName = project.Title;
+                    offerDetailsViewModel.MerchantId = merchant.Id;
+                    
                 }
                 catch (Exception exception)
                 {
@@ -588,9 +640,14 @@ namespace BusinessLogic
 
         public void Dispose()
         {
-            _projectRepository.Dispose();
-            _transporterRepository.Dispose();
-            _offerRepository.Dispose();
-        }
+             _projectRepository.Dispose();
+             _transporterRepository.Dispose();
+             _offerRepository.Dispose();
+             _merchantRepository.Dispose();
+             _roleRepository.Dispose();
+             _userRoleRepository.Dispose();
+             _userRepository.Dispose();
+             _acceptRepository.Dispose();
     }
+}
 }

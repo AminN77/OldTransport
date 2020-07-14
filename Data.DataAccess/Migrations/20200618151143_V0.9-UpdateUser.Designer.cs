@@ -4,14 +4,16 @@ using Data.DataAccess.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Data.DataAccess.Migrations
 {
     [DbContext(typeof(SqlServerDbContext))]
-    partial class SqlServerDbContextModelSnapshot : ModelSnapshot
+    [Migration("20200618151143_V0.9-UpdateUser")]
+    partial class V09UpdateUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -252,17 +254,8 @@ namespace Data.DataAccess.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("HowItWorks")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Logo")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("OffersCountLimit")
-                        .HasColumnType("int");
-
-                    b.Property<string>("TermsAndConditions")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -276,8 +269,7 @@ namespace Data.DataAccess.Migrations
                             AboutUs = "We're The Transport Team",
                             ContactEmail = "abolfazl.sh1374@gmail.com",
                             ContactNumber = "+98 937 733 9223",
-                            Logo = "abcd",
-                            OffersCountLimit = 0
+                            Logo = "abcd"
                         });
                 });
 
@@ -390,15 +382,15 @@ namespace Data.DataAccess.Migrations
                         {
                             Id = 1,
                             ActivationCode = 0,
-                            CreateDateTime = new DateTime(2020, 7, 12, 22, 29, 43, 408, DateTimeKind.Local).AddTicks(7884),
+                            CreateDateTime = new DateTime(2020, 6, 18, 19, 41, 42, 770, DateTimeKind.Local).AddTicks(7168),
                             EmailAddress = "abolfazl.sh1374@gmail.com",
                             IsDeleted = false,
                             IsEnabled = true,
-                            IterationCount = 83064,
+                            IterationCount = 62556,
                             Name = "Developer",
-                            Password = "262C4E4169FA263CC4184CDC9B0A358EF176B65B0EC662BDCE48FE196013571CE140552BEBCC09417DAD4C590D85B1ADFB9612A5F6E9A8536C1D016229297668",
-                            Salt = new byte[] { 189, 91, 78, 44, 230, 193, 180, 89, 74, 139, 182, 28, 45, 132, 128, 87, 201, 105, 218, 78, 131, 20, 189, 210, 106, 235, 247, 94, 137, 162, 205, 57 },
-                            SerialNumber = "9b8a53cf-7df1-46a7-9838-efe78366f198"
+                            Password = "796BD4B8E6CFE64B655DB67F015A081759B6822DDE3E8576B4454C3B979AD3ED9F4483F3AB73F13E7F7D0E4611D9A32291AAE278AEC2414E0375CF0169B93085",
+                            Salt = new byte[] { 112, 194, 97, 42, 229, 250, 0, 87, 24, 43, 98, 18, 16, 178, 67, 44, 74, 224, 121, 171, 50, 10, 31, 146, 30, 9, 149, 70, 95, 251, 65, 162 },
+                            SerialNumber = "a2c63b77-70d7-4abf-a50f-4cdc33d277f8"
                         });
                 });
 

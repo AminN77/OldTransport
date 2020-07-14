@@ -28,6 +28,8 @@ namespace BusinessLogic
             _utility = utility;
         }
 
+       
+
         public async Task<IBusinessLogicResult<IList<ListRoleViewModel>>> FindUserRolesAsync(int userId)
         {
             var messages = new List<IBusinessLogicMessage>();
@@ -81,7 +83,6 @@ namespace BusinessLogic
                         IsEnabled = user.IsEnabled,
                         LastLoggedIn = user.LastLoggedIn,
                         Name = user.Name,
-                        SerialNumber = user.SerialNumber,
                         Picture = user.Picture
                     }).ToListAsync();
 
@@ -122,5 +123,15 @@ namespace BusinessLogic
                     messages: messages, exception: exception);
             }
         }
+
+        public void Dispose()
+        {
+            
+            _roleRepository.Dispose();
+            _userRoleRepository.Dispose();
+            _userRepository.Dispose();
+           
+        }
+
     }
 }
