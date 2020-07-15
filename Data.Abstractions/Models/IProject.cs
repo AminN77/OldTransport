@@ -18,12 +18,16 @@ namespace Data.Abstractions.Models
 
         string Title { get; set; }
 
+        string Cargo { get; set; }
+
         DateTime CreateDateTime { get; set; }
 
         int Budget { get; set; }
 
         double Weight { get; set; }
 
+        double Quantity { get; set; }
 
+        double Dimention { get; set; }
     }
 }

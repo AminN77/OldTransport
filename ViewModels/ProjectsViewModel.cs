@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Cross.Abstractions.EntityEnums;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
@@ -87,6 +88,8 @@ namespace ViewModels
 
         [Required]
         public int OfferId { get; set; }
+
+        public AcceptStatus Status { get; set; }
     }
 
     public class ProjectDetailsViewModel : ListProjectViewModel

@@ -1,9 +1,7 @@
-﻿using Data.Abstractions.Models;
-using System;
-using System.Collections.Generic;
+﻿using Cross.Abstractions.EntityEnums;
+using Data.Abstractions.Models;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Text;
 
 namespace Data.Model
 {
@@ -22,6 +20,8 @@ namespace Data.Model
 
         [ForeignKey("Offer")]
         public int OfferId { get; set; }
+
+        public AcceptStatus Status { get; set; }
 
         public virtual Offer Offer { get; set; }
 
