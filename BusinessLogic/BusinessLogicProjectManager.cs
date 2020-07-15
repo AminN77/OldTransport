@@ -17,6 +17,7 @@ namespace BusinessLogic
     public class BusinessLogicProjectManager : IBusinessLogicProjectManager
     {
         private readonly IRepository<Merchant> _merchantRepository;
+        private readonly IRepository<Transporter> _transporerRepository;
         private readonly IRepository<Project> _projectRepository;
         private readonly IRepository<Accept> _acceptRepository;
         private readonly IRepository<Role> _roleRepository;
@@ -27,7 +28,8 @@ namespace BusinessLogic
 
         public BusinessLogicProjectManager(IRepository<Merchant> merchantRepository, IRepository<Project> projectRepository,
                 BusinessLogicUtility utility, IRepository<Accept> acceptRepository, IRepository<Role> roleRepository,
-                IRepository<UserRole> userRoleRepository, IRepository<User> userRepository, IRepository<Offer> offerRepository)
+                IRepository<UserRole> userRoleRepository, IRepository<User> userRepository, IRepository<Offer> offerRepository,
+                IRepository<Transporter> transporerRepository)
         {
             _merchantRepository = merchantRepository;
             _projectRepository = projectRepository;
@@ -36,6 +38,7 @@ namespace BusinessLogic
             _roleRepository = roleRepository;
             _userRepository = userRepository;
             _offerRepository = offerRepository;
+            _transporerRepository = transporerRepository;
             _utility = utility;
         }
 
@@ -605,6 +608,7 @@ namespace BusinessLogic
                 }
 
                 acceptOfferViewModel.MerchantId = merchant.Id;
+                acceptOfferViewModel.Status = AcceptStatus.Accepted;
                 var accept = await _utility.MapAsync<AcceptOfferViewModel, Accept>(acceptOfferViewModel);
                 try
                 {
@@ -628,7 +632,7 @@ namespace BusinessLogic
             }
         }
 
-        public async Task<IBusinessLogicResult> DeleteAccept(int acceptId, int merchantUserId)
+        public async Task<IBusinessLogicResult<AcceptOfferViewModel>> DeleteAccept(int acceptId, int deleterUserId)
         {
             var messages = new List<IBusinessLogicMessage>();
             try
@@ -637,17 +641,17 @@ namespace BusinessLogic
                 try
                 {
                     var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
-                    var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == merchantUserId && u.RoleId == userRole.Id);
+                    var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == deleterUserId && u.RoleId == userRole.Id);
                     if (!isUserAuthorized)
                     {
                         messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
-                        return new BusinessLogicResult(succeeded: false, messages: messages);
+                        return new BusinessLogicResult<AcceptOfferViewModel>(succeeded: false, messages: messages, result: null);
                     }
                 }
                 catch (Exception exception)
                 {
                     messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
-                    return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+                    return new BusinessLogicResult<AcceptOfferViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
                 }
                 Accept accept;
                 // Critical Database
@@ -658,7 +662,7 @@ namespace BusinessLogic
                 catch (Exception exception)
                 {
                     messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
-                    return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+                    return new BusinessLogicResult<AcceptOfferViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
                 }
 
                 // Verification
@@ -666,44 +670,99 @@ namespace BusinessLogic
                 {
                     messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.ProjectNotFound,
                         BusinessLogicSetting.UserDisplayName));
-                    return new BusinessLogicResult(succeeded: false, messages: messages);
+                    return new BusinessLogicResult<AcceptOfferViewModel>(succeeded: false, messages: messages, result: null);
                 }
 
                 Merchant merchant;
                 try
                 {
-                    merchant = await _merchantRepository.DeferredSelectAll().SingleOrDefaultAsync(m => m.Id == accept.MerchantId);
+                    merchant = await _merchantRepository.DeferredSelectAll().SingleOrDefaultAsync(m => m.UserId == deleterUserId);
                 }
                 catch (Exception exception)
                 {
                     messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
-                    return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+                    return new BusinessLogicResult<AcceptOfferViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
                 }
 
-                if (merchant.UserId != merchantUserId)
+                if (merchant != null)
                 {
-                    messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.AccessDenied,
-                        BusinessLogicSetting.UserDisplayName));
-                    return new BusinessLogicResult(succeeded: false, messages: messages);
-                }
+                    if (merchant.Id != accept.MerchantId)
+                    {
+                        messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.AccessDenied,
+                            BusinessLogicSetting.UserDisplayName));
+                        return new BusinessLogicResult<AcceptOfferViewModel>(succeeded: false, messages: messages, result: null);
+                    }
 
-                try
-                {
-                    await _acceptRepository.DeleteAsync(accept, true);
-                }
-                catch (Exception exception)
-                {
-                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
-                    return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
-                }
+                    try
+                    {
+                        accept.Status = AcceptStatus.Mcanceled;
+                        await _acceptRepository.UpdateAsync(accept, true);
+                        var acceptOfferViewModel = await _utility.MapAsync<Accept, AcceptOfferViewModel>(accept);
 
-                messages.Add(new BusinessLogicMessage(type: MessageType.Info, MessageId.EntitySuccessfullyDeleted));
-                return new BusinessLogicResult(succeeded: true, messages: messages);
+                        messages.Add(new BusinessLogicMessage(MessageType.Info, MessageId.EntitySuccessfullyUpdated));
+                        return new BusinessLogicResult<AcceptOfferViewModel>(succeeded: true, messages: messages, result: acceptOfferViewModel);
+                    }
+                    catch (Exception exception)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                        return new BusinessLogicResult<AcceptOfferViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
+                    }
+                }
+                else
+                {
+                    Transporter transporter;
+                    int offerTransporterId;
+                    try
+                    {
+                        transporter = await _transporerRepository.DeferredSelectAll().SingleOrDefaultAsync(t => t.UserId == deleterUserId);
+                    }
+                    catch (Exception exception)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
+                        return new BusinessLogicResult<AcceptOfferViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
+                    }
+
+                    try
+                    {
+                        offerTransporterId = _offerRepository.DeferredWhere(o => o.Id == accept.OfferId)
+                            .Join(_transporerRepository.DeferredSelectAll(),
+                            o => o.TransporterId,
+                            t => t.Id,
+                            (o, t) => t).SingleOrDefault().Id;
+                    }
+                    catch (Exception exception)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
+                        return new BusinessLogicResult<AcceptOfferViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
+                    }
+
+                    if (transporter.Id != offerTransporterId)
+                    {
+                        messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.AccessDenied,
+                            BusinessLogicSetting.UserDisplayName));
+                        return new BusinessLogicResult<AcceptOfferViewModel>(succeeded: false, messages: messages, result: null);
+                    }
+
+                    try
+                    {
+                        accept.Status = AcceptStatus.TCanceled;
+                        await _acceptRepository.UpdateAsync(accept, true);
+                        var acceptOfferViewModel = await _utility.MapAsync<Accept, AcceptOfferViewModel>(accept);
+
+                        messages.Add(new BusinessLogicMessage(MessageType.Info, MessageId.EntitySuccessfullyUpdated));
+                        return new BusinessLogicResult<AcceptOfferViewModel>(succeeded: true, messages: messages, result: acceptOfferViewModel);
+                    }
+                    catch (Exception exception)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                        return new BusinessLogicResult<AcceptOfferViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
+                    }
+                }
             }
             catch (Exception exception)
             {
                 messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
-                return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+                return new BusinessLogicResult<AcceptOfferViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
             }
         }
 
@@ -866,6 +925,7 @@ namespace BusinessLogic
             _userRoleRepository.Dispose();
             _userRepository.Dispose();
             _acceptRepository.Dispose();
+            _transporerRepository.Dispose();
         }
     }
 }

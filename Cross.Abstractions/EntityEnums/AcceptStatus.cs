@@ -4,15 +4,17 @@ namespace Cross.Abstractions.EntityEnums
 {
     public enum AcceptStatus : byte
     {
+        [Display(Name = "Accepted")]
+        Accepted = 0,
         [Display(Name = "Loading")]
-        Loading = 0,
+        Loading = 1,
         [Display(Name = "Shipping")]
-        Shipping = 1,
+        Shipping = 2,
         [Display(Name = "Delivered")]
-        Delivered = 2,
+        Delivered = 3,
         [Display(Name = "Canceled By Transporter")]
-        TCanceled = 3,
+        TCanceled = 4,
         [Display(Name = "Canceled By Merchant")]
-        Mcanceled = 4
+        Mcanceled = 5
     }
 }
