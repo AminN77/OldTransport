@@ -21,7 +21,9 @@ namespace BusinessLogic
         private readonly IRepository<Role> _roleRepository;
         private readonly IRepository<UserRole> _userRoleRepository;
         private readonly IRepository<Merchant> _merchantRepository;
+        private readonly IRepository<Accept> _acceptRepository;
         private readonly IRepository<Transporter> _transporterRepository;
+        private readonly IRepository<Offer> _offerRepository;
         private readonly BusinessLogicUtility _utility;
         private readonly ILogger<BusinessLogicUserManager> _logger;
         private readonly IPasswordHasher _passwordHasher;
@@ -33,7 +35,8 @@ namespace BusinessLogic
         public BusinessLogicUserManager(IRepository<User> userRepository, ILogger<BusinessLogicUserManager> logger,
                 BusinessLogicUtility utility, IRepository<UserRole> userRoleRepository, IRepository<Merchant> merchantRepository,
                 IPasswordHasher passwordHasher, ISecurityProvider securityProvider, IEmailSender emailSender, IFileService fileService,
-                IRepository<Transporter> transporterRepository, IRepository<Role> roleRepository)
+                IRepository<Transporter> transporterRepository, IRepository<Role> roleRepository, IRepository<Accept> acceptRepository,
+                IRepository<Offer> offerRepository)
         {
             _userRepository = userRepository;
             _userRoleRepository = userRoleRepository;
@@ -45,6 +48,8 @@ namespace BusinessLogic
             _merchantRepository = merchantRepository;
             _transporterRepository = transporterRepository;
             _roleRepository = roleRepository;
+            _acceptRepository = acceptRepository;
+            _offerRepository = offerRepository;
             _fileService = fileService;
         }
 
@@ -599,10 +604,54 @@ namespace BusinessLogic
                 }
                 if (isUserAdmin || isUserDeveloper)
                 {
-                    messages.Add(new BusinessLogicMessage(type: MessageType.Error,
-                        message: MessageId.AccessDenied, BusinessLogicSetting.UserDisplayName));
-                    return new BusinessLogicResult<AddUserViewModel>(succeeded: false, result: null,
-                        messages: messages);
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
+                    return new BusinessLogicResult(succeeded: false, messages: messages);
+                }
+
+                try
+                {
+                    var merchant = await _merchantRepository.DeferredSelectAll().SingleOrDefaultAsync(m => m.UserId == user.Id);
+                    if (merchant != null)
+                    {
+                        bool hasActiveProject = _acceptRepository.DeferredSelectAll(a => a.MerchantId == merchant.Id).Where(a => a.Status == AcceptStatus.Accepted ||
+                            a.Status == AcceptStatus.Delivered || a.Status == AcceptStatus.Loading || a.Status == AcceptStatus.Shipping).Any();
+
+                        if (hasActiveProject)
+                        {
+                            messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.CannotDeleteAccountDueToActiveProject));
+                            return new BusinessLogicResult(succeeded: false, messages: messages);
+                        }
+                    }
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+                }
+
+                try
+                {
+                    var transporter = await _transporterRepository.DeferredSelectAll().SingleOrDefaultAsync(t => t.UserId == user.Id);
+                    if (transporter != null)
+                    {
+                        bool hasActiveProject = _acceptRepository.DeferredSelectAll()
+                            .Join(_offerRepository.DeferredWhere(o => o.TransporterId == transporter.Id),
+                            a => a.OfferId,
+                            o => o.Id,
+                            (a, o) => a).Where(a => a.Status == AcceptStatus.Accepted || a.Status == AcceptStatus.Delivered ||
+                            a.Status == AcceptStatus.Loading || a.Status == AcceptStatus.Shipping).Any();
+
+                        if (hasActiveProject)
+                        {
+                            messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.CannotDeleteAccountDueToActiveProject));
+                            return new BusinessLogicResult(succeeded: false, messages: messages);
+                        }
+                    }
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
                 }
 
                 // Critical Database operation

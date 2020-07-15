@@ -105,6 +105,8 @@ namespace BusinessLogic.Abstractions.Message
         [Display(Name = "Duplicated Offer")]
         DuplicatedOffer,
         [Display(Name = "Maximum Allowed Offers Limit Reached")]
-        MaximumAllowedOffers
+        MaximumAllowedOffers,
+        [Display(Name = "Cannot Delete Account Due To Active Project")]
+        CannotDeleteAccountDueToActiveProject
     }
 }
