@@ -1,11 +1,12 @@
 ﻿using BusinessLogic.Abstractions;
 using BusinessLogic.Abstractions.Message;
+using Cross.Abstractions.EntityEnums;
 using Data.Abstractions;
 using Data.Model;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using ViewModels;
 
@@ -14,19 +15,42 @@ namespace BusinessLogic
     public class BusinessLogicSettingsManager: IBusinessLogicSettingsManager
     {
         private readonly IRepository<Settings> _settingsRepository;
+        private readonly IRepository<Role> _roleRepository;
+        private readonly IRepository<UserRole> _userRoleRepository;
         private readonly BusinessLogicUtility _utility;
 
-
-        public BusinessLogicSettingsManager(IRepository<Settings> settingsRepository, BusinessLogicUtility utility)
+        public BusinessLogicSettingsManager(IRepository<Settings> settingsRepository, BusinessLogicUtility utility,
+            IRepository<Role> roleRepository, IRepository<UserRole> userRoleRepository)
         {
             _settingsRepository = settingsRepository;
+            _roleRepository = roleRepository;
+            _userRoleRepository = userRoleRepository;
             _utility = utility;
         }
-        public async Task<IBusinessLogicResult<SettingsViewModel>> AdminGetSettingsForEdit()
+        public async Task<IBusinessLogicResult<SettingsViewModel>> AdminGetSettingsForEdit(int getterUserId)
         {
             var messages = new List<IBusinessLogicMessage>();
             try
             {
+                // Critical Authentication and Authorization
+                try
+                {
+                    var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
+                    var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == getterUserId && u.RoleId != userRole.Id);
+                    if (!isUserAuthorized)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
+                        return new BusinessLogicResult<SettingsViewModel>(succeeded: false, result: null,
+                            messages: messages);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<SettingsViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
+
                 Settings settings;
                 try
                 {
@@ -48,7 +72,7 @@ namespace BusinessLogic
             }
         }
 
-        public async Task<IBusinessLogicResult<IndexSettingsViewModel>> AdminGetIndexSettings()
+        public async Task<IBusinessLogicResult<IndexSettingsViewModel>> GetIndexSettings()
         {
             var messages = new List<IBusinessLogicMessage>();
             try
@@ -74,7 +98,7 @@ namespace BusinessLogic
             }
         }
 
-        public async Task<IBusinessLogicResult<HowItWorksViewModel>> AdminGetHowItWorks()
+        public async Task<IBusinessLogicResult<HowItWorksViewModel>> GetHowItWorks()
         {
             var messages = new List<IBusinessLogicMessage>();
             try
@@ -100,7 +124,7 @@ namespace BusinessLogic
             }
         }
 
-        public async Task<IBusinessLogicResult<TermsAndConditionsViewModel>> AdminGetTermsAndConditions()
+        public async Task<IBusinessLogicResult<TermsAndConditionsViewModel>> GetTermsAndConditions()
         {
             var messages = new List<IBusinessLogicMessage>();
             try
@@ -126,11 +150,30 @@ namespace BusinessLogic
             }
         }
 
-        public async Task<IBusinessLogicResult<SettingsViewModel>> AdminEditSettings(SettingsViewModel settingsViewModel)
+        public async Task<IBusinessLogicResult<SettingsViewModel>> AdminEditSettings(int editorUserId, SettingsViewModel settingsViewModel)
         {
             var messages = new List<IBusinessLogicMessage>();
             try
             {
+                // Critical Authentication and Authorization
+                try
+                {
+                    var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
+                    var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == editorUserId && u.RoleId != userRole.Id);
+                    if (!isUserAuthorized)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
+                        return new BusinessLogicResult<SettingsViewModel>(succeeded: false, result: null,
+                            messages: messages);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<SettingsViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
+
                 Settings settings;
                 try
                 {
@@ -164,6 +207,8 @@ namespace BusinessLogic
         public void Dispose()
         {
             _settingsRepository.Dispose();
+            _userRoleRepository.Dispose();
+            _roleRepository.Dispose();
         }
     }
 }

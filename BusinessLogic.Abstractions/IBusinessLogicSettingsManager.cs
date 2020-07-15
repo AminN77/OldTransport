@@ -6,10 +6,10 @@ namespace BusinessLogic.Abstractions
 {
     public interface IBusinessLogicSettingsManager: IDisposable
     {
-        Task<IBusinessLogicResult<SettingsViewModel>> AdminGetSettingsForEdit();
-        Task<IBusinessLogicResult<IndexSettingsViewModel>> AdminGetIndexSettings();
-        Task<IBusinessLogicResult<HowItWorksViewModel>> AdminGetHowItWorks();
-        Task<IBusinessLogicResult<TermsAndConditionsViewModel>> AdminGetTermsAndConditions();
-        Task<IBusinessLogicResult<SettingsViewModel>> AdminEditSettings(SettingsViewModel settingsViewModel);
+        Task<IBusinessLogicResult<SettingsViewModel>> AdminGetSettingsForEdit(int getterUserId);
+        Task<IBusinessLogicResult<IndexSettingsViewModel>> GetIndexSettings();
+        Task<IBusinessLogicResult<HowItWorksViewModel>> GetHowItWorks();
+        Task<IBusinessLogicResult<TermsAndConditionsViewModel>> GetTermsAndConditions();
+        Task<IBusinessLogicResult<SettingsViewModel>> AdminEditSettings(int editorUserId, SettingsViewModel settingsViewModel);
     }
 }

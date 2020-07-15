@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using BusinessLogic.Abstractions;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ViewModels;
 
@@ -17,10 +13,9 @@ namespace MvcWebApi.Controllers
         private readonly IBusinessLoginFeedbackManager _businessLogicFeedbackManager;
         private readonly IBusinessLogicSettingsManager _businessLogicSettingsManager;
 
-        public HomeController(IBusinessLogicUserManager businessLogicUserManager, IBusinessLogicProjectManager businessLogicProjectManager,
+        public HomeController(IBusinessLogicProjectManager businessLogicProjectManager,
             IBusinessLoginFeedbackManager businessLogicFeedbackManager, IBusinessLogicSettingsManager businessLogicSettingsManager)
         {
-            _businessLogicUserManager = businessLogicUserManager;
             _businessLogicProjectManager = businessLogicProjectManager;
             _businessLogicFeedbackManager = businessLogicFeedbackManager;
             _businessLogicSettingsManager = businessLogicSettingsManager;
@@ -30,7 +25,7 @@ namespace MvcWebApi.Controllers
         public async Task<IActionResult> IndexSettings()
         {
             if (!ModelState.IsValid) return BadRequest();
-            var res = await _businessLogicSettingsManager.AdminGetIndexSettings();
+            var res = await _businessLogicSettingsManager.GetIndexSettings();
             if (!res.Succeeded) return StatusCode(500, res);
             return Ok(res);
         }
@@ -39,7 +34,7 @@ namespace MvcWebApi.Controllers
         public async Task<IActionResult> HowItWorks()
         {
             if (!ModelState.IsValid) return BadRequest();
-            var res = await _businessLogicSettingsManager.AdminGetHowItWorks();
+            var res = await _businessLogicSettingsManager.GetHowItWorks();
             if (!res.Succeeded) return StatusCode(500, res);
             return Ok(res);
         }
@@ -48,7 +43,7 @@ namespace MvcWebApi.Controllers
         public async Task<IActionResult> TermsAndConditions()
         {
             if (!ModelState.IsValid) return BadRequest();
-            var res = await _businessLogicSettingsManager.AdminGetTermsAndConditions();
+            var res = await _businessLogicSettingsManager.GetTermsAndConditions();
             if (!res.Succeeded) return StatusCode(500, res);
             return Ok(res);
         }
