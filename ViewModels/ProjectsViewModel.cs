@@ -45,6 +45,21 @@ namespace ViewModels
         [Required(ErrorMessage = "Please enter {0}")]
         [Range(0.0, double.MaxValue)]
         public double Weight { get; set; }
+
+        [Display(Name = "Dimention")]
+        [Required(ErrorMessage = "Please enter {0}")]
+        [Range(0.0, double.MaxValue)]
+        public double Dimention { get; set; }
+
+        [Display(Name = "Quantity")]
+        [Required(ErrorMessage = "Please enter {0}")]
+        [Range(0.0, double.MaxValue)]
+        public double Quantity { get; set; }
+
+        [Display(Name = "Cargo")]
+        [Required(ErrorMessage = "Please enter {0}")]
+        [MaxLength(500)]
+        public string Cargo { get; set; }
     }
 
     public class ListProjectViewModel : ProjectBaseViewModel
@@ -84,9 +99,24 @@ namespace ViewModels
         [Range(0.0, double.MaxValue)]
         public double Weight { get; set; }
 
+        [Display(Name = "Dimention")]
+        [Required(ErrorMessage = "Please enter {0}")]
+        [Range(0.0, double.MaxValue)]
+        public double Dimention { get; set; }
+
+        [Display(Name = "Quantity")]
+        [Required(ErrorMessage = "Please enter {0}")]
+        [Range(0.0, double.MaxValue)]
+        public double Quantity { get; set; }
+
+        [Display(Name = "Cargo")]
+        [Required(ErrorMessage = "Please enter {0}")]
+        [MaxLength(500)]
+        public string Cargo { get; set; }
+
         public string MerchantName { get; set; }
 
-        public int count { get; set; }
+        public int Offerscount { get; set; }
 
         public bool IsMerchatOwner { get; set; }
     }

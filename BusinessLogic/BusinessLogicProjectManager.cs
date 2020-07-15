@@ -459,7 +459,7 @@ namespace BusinessLogic
                 try
                 {
                     var count = _offerRepository.DeferredWhere(o => o.ProjectId == project.Id).Count();
-                    projectDetailsViewModel.count = count;
+                    projectDetailsViewModel.Offerscount = count;
                 }
                 catch (Exception exception)
                 {

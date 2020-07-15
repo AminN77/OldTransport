@@ -40,6 +40,10 @@ namespace Data.Model
         public string Title { get; set; }
 
         [Required]
+        [MaxLength(500)]
+        public string Cargo { get; set; }
+
+        [Required]
         public DateTime CreateDateTime { get; set; }
 
         [Required]
@@ -49,6 +53,14 @@ namespace Data.Model
         [Required]
         [Range(0.0, double.MaxValue)]
         public double Weight { get; set; }
+
+        [Required]
+        [Range(0.0, double.MaxValue)]
+        public double Dimention { get; set; }
+
+        [Required]
+        [Range(0.0, double.MaxValue)]
+        public double Quantity { get; set; }
 
         [Required]
         public bool IsEnabled { get; set; }
