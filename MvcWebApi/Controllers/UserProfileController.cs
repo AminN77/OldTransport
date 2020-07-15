@@ -134,7 +134,7 @@ namespace MvcWebApi.Controllers
         [HttpGet]
         [Authorize]
         [IgnoreAntiforgeryToken]
-        public async Task<IActionResult> UserRole()
+        public async Task<IActionResult> CurrentlyAuthenticatedUsersRole()
         {
             if (!ModelState.IsValid) return BadRequest();
             var userId = HttpContext.GetCurrentUserId();

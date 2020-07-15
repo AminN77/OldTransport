@@ -13,23 +13,24 @@ namespace MvcWebApi.Controllers
     [ApiController]
     public class HomeController : ControllerBase
     {
-        private readonly IBusinessLogicUserManager _businessLogicUserManager;
         private readonly IBusinessLogicProjectManager _businessLogicProjectManager;
         private readonly IBusinessLoginFeedbackManager _businessLogicFeedbackManager;
+        private readonly IBusinessLogicSettingsManager _businessLogicSettingsManager;
 
         public HomeController(IBusinessLogicUserManager businessLogicUserManager, IBusinessLogicProjectManager businessLogicProjectManager,
-            IBusinessLoginFeedbackManager businessLogicFeedbackManager)
+            IBusinessLoginFeedbackManager businessLogicFeedbackManager, IBusinessLogicSettingsManager businessLogicSettingsManager)
         {
             _businessLogicUserManager = businessLogicUserManager;
             _businessLogicProjectManager = businessLogicProjectManager;
             _businessLogicFeedbackManager = businessLogicFeedbackManager;
+            _businessLogicSettingsManager = businessLogicSettingsManager;
         }
 
         [HttpGet]
         public async Task<IActionResult> IndexSettings()
         {
             if (!ModelState.IsValid) return BadRequest();
-            var res = await _businessLogicUserManager.AdminGetIndexSettings();
+            var res = await _businessLogicSettingsManager.AdminGetIndexSettings();
             if (!res.Succeeded) return StatusCode(500, res);
             return Ok(res);
         }
@@ -38,7 +39,7 @@ namespace MvcWebApi.Controllers
         public async Task<IActionResult> HowItWorks()
         {
             if (!ModelState.IsValid) return BadRequest();
-            var res = await _businessLogicUserManager.AdminGetHowItWorks();
+            var res = await _businessLogicSettingsManager.AdminGetHowItWorks();
             if (!res.Succeeded) return StatusCode(500, res);
             return Ok(res);
         }
@@ -47,7 +48,7 @@ namespace MvcWebApi.Controllers
         public async Task<IActionResult> TermsAndConditions()
         {
             if (!ModelState.IsValid) return BadRequest();
-            var res = await _businessLogicUserManager.AdminGetTermsAndConditions();
+            var res = await _businessLogicSettingsManager.AdminGetTermsAndConditions();
             if (!res.Succeeded) return StatusCode(500, res);
             return Ok(res);
         }

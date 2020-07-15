@@ -6,6 +6,7 @@ namespace BusinessLogic.Abstractions
 {
     public interface IBusinessLogicUserManager : IDisposable
     {
+        //Task<IBusinessLogicResult> ResetPasswordAsync(UserSetPasswordViewModel adminUserSetPasswordViewModel, int reSetterUserId);
         Task<IBusinessLogicResult<AddUserViewModel>> AddUserAsync(EmailViewModel emailViewModel);
         Task<IBusinessLogicResult<ListResultViewModel<ListUserViewModel>>> GetUsersAsync(int getterUserId, int page,
             int pageSize, string search, string sort, string filter);
@@ -18,8 +19,6 @@ namespace BusinessLogic.Abstractions
         Task<IBusinessLogicResult<EditUserViewModel>> GetUserForEditAsync(int getterUserId);
         Task<IBusinessLogicResult<DetailUserViewModel>> GetUserDetailsAsync(int? userId, int getterUserId);
         Task<IBusinessLogicResult> ChangePasswordAsync(UserChangePasswordViewModel userChangePasswordViewModel, int changerUserId);
-
-        //Task<IBusinessLogicResult> ResetPasswordAsync(UserSetPasswordViewModel adminUserSetPasswordViewModel, int reSetterUserId);
         Task<IBusinessLogicResult<UserSignInViewModel>> FindUserAsync(int userId);
         Task<IBusinessLogicResult> UpdateUserLastActivityDateAsync(int userId);
         Task<IBusinessLogicResult> SendVerificationEmailAsync(EmailViewModel emailViewModel, int activationCode);
@@ -30,11 +29,6 @@ namespace BusinessLogic.Abstractions
         Task<IBusinessLogicResult> DeactivateUserAsync(int userId, int deactivatorUserId);
         Task<IBusinessLogicResult> ActivateUserAsync(int userId, int activatorUserId);
         Task<IBusinessLogicResult> ForgetPasswordAsync(UserForgetPasswordViewModel userForgetPasswordViewModel);
-        Task<IBusinessLogicResult<SettingsViewModel>> AdminGetSettingsForEdit();
-        Task<IBusinessLogicResult<IndexSettingsViewModel>> AdminGetIndexSettings();
-        Task<IBusinessLogicResult<HowItWorksViewModel>> AdminGetHowItWorks();
-        Task<IBusinessLogicResult<TermsAndConditionsViewModel>> AdminGetTermsAndConditions();
-        Task<IBusinessLogicResult<SettingsViewModel>> AdminEditSettings(SettingsViewModel settingsViewModel);
         Task<IBusinessLogicResult<int?>> MerchantAuthenticator(int userId);
         Task<IBusinessLogicResult<int?>> TransporterAuthenticator(int userId);
     }
