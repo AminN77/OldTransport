@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 using BusinessLogic.Abstractions;
-using Cross.Abstractions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;

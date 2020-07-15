@@ -23,12 +23,13 @@ namespace BusinessLogic
         private readonly IRepository<User> _userRepository;
         private readonly IRepository<Accept> _acceptRepository;
         private readonly IRepository<Merchant> _merchantRepository;
+        private readonly IRepository<Settings> _settingsRepository;
         private readonly BusinessLogicUtility _utility;
 
         public BusinessLogicOfferManager(IRepository<Offer> offerRepository, IRepository<Transporter> transporterRepository,
                 BusinessLogicUtility utility, IRepository<Project> projectRepository, IRepository<Role> roleRepository,
                 IRepository<UserRole> userRoleRepository, IRepository<User> userRepository, IRepository<Accept> acceptRepository,
-                IRepository<Merchant> merchantRepository)
+                IRepository<Merchant> merchantRepository, IRepository<Settings> settingsRepository)
         {
             _transporterRepository = transporterRepository;
             _offerRepository = offerRepository;
@@ -38,6 +39,7 @@ namespace BusinessLogic
             _userRepository = userRepository;
             _acceptRepository = acceptRepository;
             _merchantRepository = merchantRepository;
+            _settingsRepository = settingsRepository;
             _utility = utility;
         }
 
@@ -74,7 +76,6 @@ namespace BusinessLogic
                 {
                     transporter = await _transporterRepository.DeferredSelectAll().SingleOrDefaultAsync(m => m.UserId == AdderUserId);
                 }
-
                 catch (Exception exception)
                 {
                     messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
@@ -85,6 +86,15 @@ namespace BusinessLogic
                 if (transporter == null)
                 {
                     messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.EntityDoesNotExist));
+                    return new BusinessLogicResult<AddOfferViewModel>(succeeded: false, result: null,
+                        messages: messages);
+                }
+
+                var offerCountLimit = _settingsRepository.DeferredSelectAll().FirstOrDefault().OffersCountLimit;
+                var transporterOffersCount = _offerRepository.DeferredSelectAll(o => o.TransporterId == transporter.Id).Count();
+                if (transporterOffersCount >= offerCountLimit)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.MaximumAllowedOffers));
                     return new BusinessLogicResult<AddOfferViewModel>(succeeded: false, result: null,
                         messages: messages);
                 }

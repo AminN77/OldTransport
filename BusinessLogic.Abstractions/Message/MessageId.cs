@@ -103,6 +103,8 @@ namespace BusinessLogic.Abstractions.Message
         [Display(Name = "Transporter Exists")]
         TransporterExists,
         [Display(Name = "Duplicated Offer")]
-        DuplicatedOffer
+        DuplicatedOffer,
+        [Display(Name = "Maximum Allowed Offers Limit Reached")]
+        MaximumAllowedOffers
     }
 }
