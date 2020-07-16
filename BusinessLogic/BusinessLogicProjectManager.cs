@@ -98,6 +98,7 @@ namespace BusinessLogic
                 project.IsEnabled = true;
                 project.MerchantId = merchant.Id;
                 project.Merchant = merchant;
+                project.IsDeleted = false;
 
                 try
                 {

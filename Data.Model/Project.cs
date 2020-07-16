@@ -65,6 +65,9 @@ namespace Data.Model
         [Required]
         public bool IsEnabled { get; set; }
 
+        [Required]
+        public bool IsDeleted { get; set; }
+
         public virtual Merchant Merchant { get; set; }
 
         public virtual ICollection<Offer> Offers { get; set; }
