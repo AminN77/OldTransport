@@ -129,7 +129,7 @@ namespace BusinessLogic
 
         }
 
-        public async Task<IBusinessLogicResult<EditProjectViewModel>> DeleteProjectAsync(int projectId,int deleterUserId)
+        public async Task<IBusinessLogicResult<DeleteProjectViewModel>> DeleteProjectAsync(int projectId,int deleterUserId)
         {
             var messages = new List<IBusinessLogicMessage>();
             try
@@ -142,14 +142,14 @@ namespace BusinessLogic
                     if (!isUserAuthorized)
                     {
                         messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
-                        return new BusinessLogicResult<EditProjectViewModel>(succeeded: false, result: null,
+                        return new BusinessLogicResult<DeleteProjectViewModel>(succeeded: false, result: null,
                             messages: messages);
                     }
                 }
                 catch (Exception exception)
                 {
                     messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
-                    return new BusinessLogicResult<EditProjectViewModel>(succeeded: false, result: null,
+                    return new BusinessLogicResult<DeleteProjectViewModel>(succeeded: false, result: null,
                         messages: messages, exception: exception);
                 }
 
@@ -162,7 +162,7 @@ namespace BusinessLogic
                 catch (Exception exception)
                 {
                     messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
-                    return new BusinessLogicResult<EditProjectViewModel>(succeeded: false, result: null,
+                    return new BusinessLogicResult<DeleteProjectViewModel>(succeeded: false, result: null,
                         messages: messages, exception: exception);
                 }
 
@@ -171,7 +171,7 @@ namespace BusinessLogic
                 {
                     messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.ProjectNotFound,
                         BusinessLogicSetting.UserDisplayName));
-                    return new BusinessLogicResult<EditProjectViewModel>(succeeded: false, result: null,
+                    return new BusinessLogicResult<DeleteProjectViewModel>(succeeded: false, result: null,
                         messages: messages);
                 }
 
@@ -183,7 +183,7 @@ namespace BusinessLogic
                 catch (Exception exception)
                 {
                     messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
-                    return new BusinessLogicResult<EditProjectViewModel>(succeeded: false, result: null,
+                    return new BusinessLogicResult<DeleteProjectViewModel>(succeeded: false, result: null,
                         messages: messages, exception: exception);
                 }
 
@@ -191,40 +191,70 @@ namespace BusinessLogic
                 {
                     messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.AccessDenied,
                         BusinessLogicSetting.UserDisplayName));
-                    return new BusinessLogicResult<EditProjectViewModel>(succeeded: false, result: null,
+                    return new BusinessLogicResult<DeleteProjectViewModel>(succeeded: false, result: null,
                         messages: messages);
                 }
 
+                Accept projectAccept;
                 try
                 {
-
-                }
-                catch (Exception)
-                {
-
-                    throw;
-                }
-
-                try
-                {
-                    await _projectRepository.DeleteAsync(project, true);
+                    projectAccept = await _acceptRepository.DeferredSelectAll()
+                        .Join(_offerRepository.DeferredWhere(o => o.ProjectId == project.Id),
+                        a => a.OfferId,
+                        o => o.Id,
+                        (a, o) => a).SingleOrDefaultAsync();
                 }
                 catch (Exception exception)
                 {
-
                     messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
-                    return new BusinessLogicResult<EditProjectViewModel>(succeeded: false, result: null,
+                    return new BusinessLogicResult<DeleteProjectViewModel>(succeeded: false, result: null,
                         messages: messages, exception: exception);
                 }
-                var editProjectViewModel = await _utility.MapAsync<Project, EditProjectViewModel>(project);
-                messages.Add(new BusinessLogicMessage(type: MessageType.Info, MessageId.EntitySuccessfullyDeleted));
-                return new BusinessLogicResult<EditProjectViewModel>(succeeded: true, result:editProjectViewModel ,
-                    messages: messages);
+
+                if (projectAccept == null)
+                {
+                    try
+                    {
+                        await _projectRepository.DeleteAsync(project, true);
+                    }
+                    catch (Exception exception)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                        return new BusinessLogicResult<DeleteProjectViewModel>(succeeded: true, result: null,
+                            messages: messages, exception: exception);
+                    }
+                }
+                else if (projectAccept.Status == AcceptStatus.Mcanceled || projectAccept.Status == AcceptStatus.TCanceled)
+                {
+                    try
+                    {
+                        project.IsDeleted = true;
+                        await _projectRepository.UpdateAsync(project, true);
+                    }
+                    catch (Exception exception)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                        return new BusinessLogicResult<DeleteProjectViewModel>(succeeded: false, result: null,
+                            messages: messages, exception: exception);
+                    }
+
+                    var deleteProjectViewModel = await _utility.MapAsync<Project, DeleteProjectViewModel>(project);
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Info, MessageId.EntitySuccessfullyDeleted));
+                    return new BusinessLogicResult<DeleteProjectViewModel>(succeeded: true, result: deleteProjectViewModel,
+                        messages: messages);
+                }
+                else
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.CannotDeleteActiveProject));
+                    return new BusinessLogicResult<DeleteProjectViewModel>(succeeded: false, result: null,
+                        messages: messages);
+                }
+
             }
             catch (Exception exception)
             {
                 messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
-                return new BusinessLogicResult<EditProjectViewModel>(succeeded: false, result: null,
+                return new BusinessLogicResult<DeleteProjectViewModel>(succeeded: false, result: null,
                     messages: messages, exception: exception);
             }
         }

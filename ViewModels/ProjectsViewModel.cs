@@ -121,4 +121,9 @@ namespace ViewModels
 
         public bool IsMerchatOwner { get; set; }
     }
+
+    public class DeleteProjectViewModel : EditProjectViewModel
+    {
+        public bool IsDeleted { get; set; }
+    }
 }
