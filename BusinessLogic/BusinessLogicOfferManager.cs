@@ -193,7 +193,7 @@ namespace BusinessLogic
 
             try
             {
-                var usersQuery = _offerRepository.DeferredWhere(o => !o.IsDeleted)
+                var offerQuery = _offerRepository.DeferredWhere(o => !o.IsDeleted)
                         .Join(_transporterRepository.DeferredSelectAll(),
                         o => o.TransporterId,
                         t => t.Id,
@@ -225,7 +225,7 @@ namespace BusinessLogic
 
                 if (!string.IsNullOrEmpty(search))
                 {
-                    usersQuery = usersQuery.Where(offer =>
+                    offerQuery = offerQuery.Where(offer =>
                         offer.Description.Contains(search));
                 }
 
@@ -233,7 +233,7 @@ namespace BusinessLogic
 
                 if (!string.IsNullOrWhiteSpace(filter))
                 {
-                    usersQuery = usersQuery.ApplyFilter(filter);
+                    offerQuery = offerQuery.ApplyFilter(filter);
                 }
 
                 if (string.IsNullOrWhiteSpace(sort))
@@ -248,9 +248,9 @@ namespace BusinessLogic
                     if (propertyInfo == null) sort = nameof(ListOfferViewModel.Price) + ":Asc";
                 }
 
-                usersQuery = usersQuery.ApplyOrderBy(sort);
-                var offerListViewModels = await usersQuery.PaginateAsync(page, pageSize);
-                var recordsCount = await usersQuery.CountAsync();
+                offerQuery = offerQuery.ApplyOrderBy(sort);
+                var offerListViewModels = await offerQuery.PaginateAsync(page, pageSize);
+                var recordsCount = await offerQuery.CountAsync();
                 var pageCount = (int)Math.Ceiling(recordsCount / (double)pageSize);
                 var result = new ListResultViewModel<ListOfferViewModel>
                 {

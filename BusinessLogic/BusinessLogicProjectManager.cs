@@ -81,11 +81,11 @@ namespace BusinessLogic
                         messages: messages, exception: exception);
                 }
 
-                Project project;        
+                Project project;
 
                 try
                 {
-                   project = await _utility.MapAsync<AddProjectViewModel, Project>(addProjectViewModel);
+                    project = await _utility.MapAsync<AddProjectViewModel, Project>(addProjectViewModel);
                 }
                 catch (Exception exception)
                 {
@@ -129,7 +129,7 @@ namespace BusinessLogic
 
         }
 
-        public async Task<IBusinessLogicResult<DeleteProjectViewModel>> DeleteProjectAsync(int projectId,int deleterUserId)
+        public async Task<IBusinessLogicResult<DeleteProjectViewModel>> DeleteProjectAsync(int projectId, int deleterUserId)
         {
             var messages = new List<IBusinessLogicMessage>();
             try
@@ -243,12 +243,10 @@ namespace BusinessLogic
                     return new BusinessLogicResult<DeleteProjectViewModel>(succeeded: true, result: deleteProjectViewModel,
                         messages: messages);
                 }
-                else
-                {
-                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.CannotDeleteActiveProject));
-                    return new BusinessLogicResult<DeleteProjectViewModel>(succeeded: false, result: null,
-                        messages: messages);
-                }
+
+                messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.CannotDeleteActiveProject));
+                return new BusinessLogicResult<DeleteProjectViewModel>(succeeded: false, result: null,
+                    messages: messages);
 
             }
             catch (Exception exception)
@@ -372,7 +370,7 @@ namespace BusinessLogic
             }
         }
 
-        public async Task<IBusinessLogicResult<EditProjectViewModel>> GetProjectForEditAsync(int projectId,int getterUserId)
+        public async Task<IBusinessLogicResult<EditProjectViewModel>> GetProjectForEditAsync(int projectId, int getterUserId)
         {
 
             var messages = new List<IBusinessLogicMessage>();
@@ -529,22 +527,21 @@ namespace BusinessLogic
 
             try
             {
-                var usersQuery = _projectRepository.DeferredSelectAll()
+                var projectsQuery = _projectRepository.DeferredSelectAll(p => !p.IsDeleted)
                     .ProjectTo<ListProjectViewModel>(new MapperConfiguration(config =>
                         config.CreateMap<Project, ListProjectViewModel>()));
+
                 if (!string.IsNullOrEmpty(search))
                 {
-                    usersQuery = usersQuery.Where(project =>
+                    projectsQuery = projectsQuery.Where(project =>
                         project.BeginningCountry.Contains(search) || project.DestinationCountry.Contains(search) || project.DestinationCity.Contains(search)
                         || project.BeginningCity.Contains(search));
 
                 }
 
-                //TODO : isDeleted must add
-
                 if (!string.IsNullOrWhiteSpace(filter))
                 {
-                    usersQuery = usersQuery.ApplyFilter(filter);
+                    projectsQuery = projectsQuery.ApplyFilter(filter);
                 }
 
                 if (string.IsNullOrWhiteSpace(sort))
@@ -559,9 +556,9 @@ namespace BusinessLogic
                     if (propertyInfo == null) sort = nameof(ListProjectViewModel.BeginningCountry) + ":Asc";
                 }
 
-                usersQuery = usersQuery.ApplyOrderBy(sort);
-                var projectListViewModels = await usersQuery.PaginateAsync(page, pageSize);
-                var recordsCount = await usersQuery.CountAsync();
+                projectsQuery = projectsQuery.ApplyOrderBy(sort);
+                var projectListViewModels = await projectsQuery.PaginateAsync(page, pageSize);
+                var recordsCount = await projectsQuery.CountAsync();
                 var pageCount = (int)Math.Ceiling(recordsCount / (double)pageSize);
                 var result = new ListResultViewModel<ListProjectViewModel>
                 {
@@ -578,7 +575,7 @@ namespace BusinessLogic
                         o => o.Id,
                         a => a.OfferId,
                         (o, a) => o).Distinct().SingleOrDefaultAsync();
-                    if(acceptedOffer != null) item.AcceptedOfferId = acceptedOffer.Id;
+                    if (acceptedOffer != null) item.AcceptedOfferId = acceptedOffer.Id;
                 }
 
                 return new BusinessLogicResult<ListResultViewModel<ListProjectViewModel>>(succeeded: true,
@@ -961,7 +958,7 @@ namespace BusinessLogic
         {
             _projectRepository.Dispose();
             _merchantRepository.Dispose();
-            _offerRepository.Dispose();           
+            _offerRepository.Dispose();
             _roleRepository.Dispose();
             _userRoleRepository.Dispose();
             _userRepository.Dispose();
