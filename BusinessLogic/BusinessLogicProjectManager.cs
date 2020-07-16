@@ -219,7 +219,7 @@ namespace BusinessLogic
                     }
                     catch (Exception exception)
                     {
-                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.EntitySuccessfullyDeleted));
                         return new BusinessLogicResult<DeleteProjectViewModel>(succeeded: true, result: null,
                             messages: messages, exception: exception);
                     }

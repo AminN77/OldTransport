@@ -109,6 +109,8 @@ namespace BusinessLogic.Abstractions.Message
         [Display(Name = "Cannot Delete Account Due To Active Project")]
         CannotDeleteAccountDueToActiveProject,
         [Display(Name = "Cannot Delete Active Project")]
-        CannotDeleteActiveProject
+        CannotDeleteActiveProject,
+        [Display(Name = "Cannot Delete Active Offer")]
+        CannotDeleteActiveOffer
     }
 }

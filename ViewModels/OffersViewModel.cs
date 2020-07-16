@@ -37,15 +37,17 @@ namespace ViewModels
         public bool IsAccepted { get; set; }
     }
 
-    public class EditOfferViewModel : BaseOfferViewModel
-    {
-
-    }
+    public class EditOfferViewModel : BaseOfferViewModel { }
 
     public class OfferDetailsViewModel : ListOfferViewModel
     {
         public int MerchantId { get; set; }
 
         public int AcceptId { get; set; }
+    }
+
+    public class DeleteOfferViewModel : EditOfferViewModel
+    {
+        public bool IsDeleted { get; set; }
     }
 }

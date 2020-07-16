@@ -360,7 +360,7 @@ namespace BusinessLogic
             }
         }
 
-        public async Task<IBusinessLogicResult<EditOfferViewModel>> DeleteOfferAsync(int offerId, int deleterUserId)
+        public async Task<IBusinessLogicResult<DeleteOfferViewModel>> DeleteOfferAsync(int offerId, int deleterUserId)
         {
             var messages = new List<IBusinessLogicMessage>();
             try
@@ -373,14 +373,14 @@ namespace BusinessLogic
                     if (!isUserAuthorized)
                     {
                         messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
-                        return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
+                        return new BusinessLogicResult<DeleteOfferViewModel>(succeeded: false, result: null,
                             messages: messages);
                     }
                 }
                 catch (Exception exception)
                 {
                     messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
-                    return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
+                    return new BusinessLogicResult<DeleteOfferViewModel>(succeeded: false, result: null,
                         messages: messages, exception: exception);
                 }
 
@@ -393,7 +393,7 @@ namespace BusinessLogic
                 catch (Exception exception)
                 {
                     messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
-                    return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
+                    return new BusinessLogicResult<DeleteOfferViewModel>(succeeded: false, result: null,
                         messages: messages, exception: exception);
                 }
 
@@ -402,7 +402,7 @@ namespace BusinessLogic
                 {
                     messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.ProjectNotFound,
                         BusinessLogicSetting.UserDisplayName));
-                    return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
+                    return new BusinessLogicResult<DeleteOfferViewModel>(succeeded: false, result: null,
                         messages: messages);
                 }
 
@@ -414,7 +414,7 @@ namespace BusinessLogic
                 catch (Exception exception)
                 {
                     messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
-                    return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
+                    return new BusinessLogicResult<DeleteOfferViewModel>(succeeded: false, result: null,
                         messages: messages, exception: exception);
                 }
 
@@ -422,31 +422,63 @@ namespace BusinessLogic
                 {
                     messages.Add(new BusinessLogicMessage(MessageType.Error, MessageId.AccessDenied,
                         BusinessLogicSetting.UserDisplayName));
-                    return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
+                    return new BusinessLogicResult<DeleteOfferViewModel>(succeeded: false, result: null,
                         messages: messages);
                 }
 
+                Accept offerAccept;
                 try
                 {
-                    await _offerRepository.DeleteAsync(offer, true);
+                    offerAccept = await _acceptRepository.DeferredWhere(a => a.OfferId == offer.Id).SingleOrDefaultAsync();
                 }
                 catch (Exception exception)
                 {
-
                     messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
-                    return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
+                    return new BusinessLogicResult<DeleteOfferViewModel>(succeeded: false, result: null,
                         messages: messages, exception: exception);
                 }
 
-                var editOfferViewModel = await _utility.MapAsync<Offer, EditOfferViewModel>(offer);
-                messages.Add(new BusinessLogicMessage(type: MessageType.Info, MessageId.EntitySuccessfullyDeleted));
-                return new BusinessLogicResult<EditOfferViewModel>(succeeded: true, result: editOfferViewModel,
+                if (offerAccept == null)
+                {
+                    try
+                    {
+                        await _offerRepository.DeleteAsync(offer, true);
+                    }
+                    catch (Exception exception)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.EntitySuccessfullyDeleted));
+                        return new BusinessLogicResult<DeleteOfferViewModel>(succeeded: true, result: null,
+                            messages: messages, exception: exception);
+                    }
+                }
+                else if (offerAccept.Status == AcceptStatus.Mcanceled || offerAccept.Status == AcceptStatus.TCanceled)
+                {
+                    try
+                    {
+                        offer.IsDeleted = true;
+                        await _offerRepository.UpdateAsync(offer, true);
+                    }
+                    catch (Exception exception)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                        return new BusinessLogicResult<DeleteOfferViewModel>(succeeded: false, result: null,
+                            messages: messages, exception: exception);
+                    }
+
+                    var deleteOfferViewModel = await _utility.MapAsync<Offer, DeleteOfferViewModel>(offer);
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Info, MessageId.EntitySuccessfullyDeleted));
+                    return new BusinessLogicResult<DeleteOfferViewModel>(succeeded: true, result: deleteOfferViewModel,
+                        messages: messages);
+                }
+
+                messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.CannotDeleteActiveOffer));
+                return new BusinessLogicResult<DeleteOfferViewModel>(succeeded: false, result: null,
                     messages: messages);
             }
             catch (Exception exception)
             {
                 messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
-                return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
+                return new BusinessLogicResult<DeleteOfferViewModel>(succeeded: false, result: null,
                     messages: messages, exception: exception);
             }
 
