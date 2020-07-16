@@ -1,5 +1,4 @@
-﻿using System.Text.RegularExpressions;
-using Data.Abstractions;
+﻿using Data.Abstractions;
 using Data.Model;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
@@ -26,6 +25,8 @@ namespace Data.DataAccess.Context
         public DbSet<SocialMedia> SocialMedias { get; set; }
         public DbSet<Country> Countries { get; set; }
         public DbSet<City> Cities { get; set; }
+        public DbSet<ContactUs> ContactUs { get; set; }
+        public DbSet<Feedback> Feedbacks { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

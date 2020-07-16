@@ -197,6 +197,16 @@ namespace BusinessLogic
 
                 try
                 {
+
+                }
+                catch (Exception)
+                {
+
+                    throw;
+                }
+
+                try
+                {
                     await _projectRepository.DeleteAsync(project, true);
                 }
                 catch (Exception exception)
