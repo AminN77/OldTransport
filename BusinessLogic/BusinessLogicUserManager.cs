@@ -21,8 +21,9 @@ namespace BusinessLogic
         private readonly IRepository<Role> _roleRepository;
         private readonly IRepository<UserRole> _userRoleRepository;
         private readonly IRepository<Merchant> _merchantRepository;
+        private readonly IRepository<Accept> _acceptRepository;
         private readonly IRepository<Transporter> _transporterRepository;
-        private readonly IRepository<Settings> _settingsRepository;
+        private readonly IRepository<Offer> _offerRepository;
         private readonly BusinessLogicUtility _utility;
         private readonly ILogger<BusinessLogicUserManager> _logger;
         private readonly IPasswordHasher _passwordHasher;
@@ -33,8 +34,9 @@ namespace BusinessLogic
         // Constructor
         public BusinessLogicUserManager(IRepository<User> userRepository, ILogger<BusinessLogicUserManager> logger,
                 BusinessLogicUtility utility, IRepository<UserRole> userRoleRepository, IRepository<Merchant> merchantRepository,
-                IPasswordHasher passwordHasher, ISecurityProvider securityProvider, IEmailSender emailSender, IRepository<Settings> settingsRepository,
-                IRepository<Transporter> transporterRepository, IRepository<Role> roleRepository, IFileService fileService)
+                IPasswordHasher passwordHasher, ISecurityProvider securityProvider, IEmailSender emailSender, IFileService fileService,
+                IRepository<Transporter> transporterRepository, IRepository<Role> roleRepository, IRepository<Accept> acceptRepository,
+                IRepository<Offer> offerRepository)
         {
             _userRepository = userRepository;
             _userRoleRepository = userRoleRepository;
@@ -46,8 +48,9 @@ namespace BusinessLogic
             _merchantRepository = merchantRepository;
             _transporterRepository = transporterRepository;
             _roleRepository = roleRepository;
+            _acceptRepository = acceptRepository;
+            _offerRepository = offerRepository;
             _fileService = fileService;
-            _settingsRepository = settingsRepository;
         }
 
         #region User
@@ -601,10 +604,54 @@ namespace BusinessLogic
                 }
                 if (isUserAdmin || isUserDeveloper)
                 {
-                    messages.Add(new BusinessLogicMessage(type: MessageType.Error,
-                        message: MessageId.AccessDenied, BusinessLogicSetting.UserDisplayName));
-                    return new BusinessLogicResult<AddUserViewModel>(succeeded: false, result: null,
-                        messages: messages);
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
+                    return new BusinessLogicResult(succeeded: false, messages: messages);
+                }
+
+                try
+                {
+                    var merchant = await _merchantRepository.DeferredSelectAll().SingleOrDefaultAsync(m => m.UserId == user.Id);
+                    if (merchant != null)
+                    {
+                        bool hasActiveProject = _acceptRepository.DeferredSelectAll(a => a.MerchantId == merchant.Id).Where(a => a.Status == AcceptStatus.Accepted ||
+                            a.Status == AcceptStatus.Delivered || a.Status == AcceptStatus.Loading || a.Status == AcceptStatus.Shipping).Any();
+
+                        if (hasActiveProject)
+                        {
+                            messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.CannotDeleteAccountDueToActiveProject));
+                            return new BusinessLogicResult(succeeded: false, messages: messages);
+                        }
+                    }
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+                }
+
+                try
+                {
+                    var transporter = await _transporterRepository.DeferredSelectAll().SingleOrDefaultAsync(t => t.UserId == user.Id);
+                    if (transporter != null)
+                    {
+                        bool hasActiveProject = _acceptRepository.DeferredSelectAll()
+                            .Join(_offerRepository.DeferredWhere(o => o.TransporterId == transporter.Id),
+                            a => a.OfferId,
+                            o => o.Id,
+                            (a, o) => a).Where(a => a.Status == AcceptStatus.Accepted || a.Status == AcceptStatus.Delivered ||
+                            a.Status == AcceptStatus.Loading || a.Status == AcceptStatus.Shipping).Any();
+
+                        if (hasActiveProject)
+                        {
+                            messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.CannotDeleteAccountDueToActiveProject));
+                            return new BusinessLogicResult(succeeded: false, messages: messages);
+                        }
+                    }
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
                 }
 
                 // Critical Database operation
@@ -1705,145 +1752,6 @@ namespace BusinessLogic
 
         }
 
-        public async Task<IBusinessLogicResult<SettingsViewModel>> AdminGetSettingsForEdit()
-        {
-            var messages = new List<IBusinessLogicMessage>();
-            try
-            {
-                Settings settings;
-                try
-                {
-                    settings = _settingsRepository.DeferredSelectAll().FirstOrDefault();
-                }
-                catch (Exception exception)
-                {
-                    messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
-                    return new BusinessLogicResult<SettingsViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
-                }
-                SettingsViewModel settingsViewModel = await _utility.MapAsync<Settings, SettingsViewModel>(settings);
-                messages.Add(new BusinessLogicMessage(type: MessageType.Info, message: MessageId.Successed));
-                return new BusinessLogicResult<SettingsViewModel>(succeeded: true, messages: messages, result: settingsViewModel);
-            }
-            catch (Exception exception)
-            {
-                messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
-                return new BusinessLogicResult<SettingsViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
-            }
-        }
-
-        public async Task<IBusinessLogicResult<IndexSettingsViewModel>> AdminGetIndexSettings()
-        {
-            var messages = new List<IBusinessLogicMessage>();
-            try
-            {
-                Settings settings;
-                try
-                {
-                    settings = _settingsRepository.DeferredSelectAll().FirstOrDefault();
-                }
-                catch (Exception exception)
-                {
-                    messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
-                    return new BusinessLogicResult<IndexSettingsViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
-                }
-                IndexSettingsViewModel settingsViewModel = await _utility.MapAsync<Settings, IndexSettingsViewModel>(settings);
-                messages.Add(new BusinessLogicMessage(type: MessageType.Info, message: MessageId.Successed));
-                return new BusinessLogicResult<IndexSettingsViewModel>(succeeded: true, messages: messages, result: settingsViewModel);
-            }
-            catch (Exception exception)
-            {
-                messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
-                return new BusinessLogicResult<IndexSettingsViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
-            }
-        }
-
-        public async Task<IBusinessLogicResult<HowItWorksViewModel>> AdminGetHowItWorks()
-        {
-            var messages = new List<IBusinessLogicMessage>();
-            try
-            {
-                Settings settings;
-                try
-                {
-                    settings = _settingsRepository.DeferredSelectAll().FirstOrDefault();
-                }
-                catch (Exception exception)
-                {
-                    messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
-                    return new BusinessLogicResult<HowItWorksViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
-                }
-                HowItWorksViewModel settingsViewModel = await _utility.MapAsync<Settings, HowItWorksViewModel>(settings);
-                messages.Add(new BusinessLogicMessage(type: MessageType.Info, message: MessageId.Successed));
-                return new BusinessLogicResult<HowItWorksViewModel>(succeeded: true, messages: messages, result: settingsViewModel);
-            }
-            catch (Exception exception)
-            {
-                messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
-                return new BusinessLogicResult<HowItWorksViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
-            }
-        }
-
-        public async Task<IBusinessLogicResult<TermsAndConditionsViewModel>> AdminGetTermsAndConditions()
-        {
-            var messages = new List<IBusinessLogicMessage>();
-            try
-            {
-                Settings settings;
-                try
-                {
-                    settings = _settingsRepository.DeferredSelectAll().FirstOrDefault();
-                }
-                catch (Exception exception)
-                {
-                    messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
-                    return new BusinessLogicResult<TermsAndConditionsViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
-                }
-                TermsAndConditionsViewModel settingsViewModel = await _utility.MapAsync<Settings, TermsAndConditionsViewModel>(settings);
-                messages.Add(new BusinessLogicMessage(type: MessageType.Info, message: MessageId.Successed));
-                return new BusinessLogicResult<TermsAndConditionsViewModel>(succeeded: true, messages: messages, result: settingsViewModel);
-            }
-            catch (Exception exception)
-            {
-                messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
-                return new BusinessLogicResult<TermsAndConditionsViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
-            }
-        }
-
-        public async Task<IBusinessLogicResult<SettingsViewModel>> AdminEditSettings(SettingsViewModel settingsViewModel)
-        {
-            var messages = new List<IBusinessLogicMessage>();
-            try
-            {
-                Settings settings;
-                try
-                {
-                    settings = _settingsRepository.DeferredSelectAll().FirstOrDefault();
-                }
-                catch (Exception exception)
-                {
-                    messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
-                    return new BusinessLogicResult<SettingsViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
-                }
-                await _utility.MapAsync(settingsViewModel, settings);
-                try
-                {
-                    await _settingsRepository.UpdateAsync(settings, true);
-                }
-                catch (Exception exception)
-                {
-                    messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
-                    return new BusinessLogicResult<SettingsViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
-                }
-                messages.Add(new BusinessLogicMessage(type: MessageType.Info, message: MessageId.SettingSuccessfullySaved));
-                return new BusinessLogicResult<SettingsViewModel>(succeeded: true, messages: messages, result: settingsViewModel);
-            }
-            catch (Exception exception)
-            {
-                messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
-                return new BusinessLogicResult<SettingsViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
-            }
-        }
-
         public async Task<IBusinessLogicResult<int?>> MerchantAuthenticator(int userId)
         {
             var messages = new List<IBusinessLogicMessage>();
@@ -1958,7 +1866,6 @@ namespace BusinessLogic
             _roleRepository.Dispose();
             _userRoleRepository.Dispose();
             _userRepository.Dispose();
-            _settingsRepository.Dispose();
             _transporterRepository.Dispose();
         }
     }

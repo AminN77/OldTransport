@@ -17,13 +17,15 @@ namespace MvcWebApi.Controllers
         private readonly IBusinessLogicUserManager _businessLogicUserManager;
         private readonly IBusinessLogicProjectManager _businessLogicProjectManager;
         private readonly IBusinessLoginFeedbackManager _businessLogicFeedbackManager;
+        private readonly IBusinessLogicSettingsManager _businessLogicSettingsManager;
 
         public AdminController(IBusinessLogicUserManager businessLogicUserManager, IBusinessLogicProjectManager businessLogicProjectManager,
-            IBusinessLoginFeedbackManager businessLogicFeedbackManager)
+            IBusinessLoginFeedbackManager businessLogicFeedbackManager, IBusinessLogicSettingsManager businessLogicSettingsManager)
         {
             _businessLogicUserManager = businessLogicUserManager;
             _businessLogicProjectManager = businessLogicProjectManager;
             _businessLogicFeedbackManager = businessLogicFeedbackManager;
+            _businessLogicSettingsManager = businessLogicSettingsManager;
         }
 
         [HttpGet]
@@ -86,7 +88,8 @@ namespace MvcWebApi.Controllers
         public async Task<IActionResult> Settings()
         {
             if (!ModelState.IsValid) return BadRequest();
-            var res = await _businessLogicUserManager.AdminGetSettingsForEdit();
+            var getterUserId = HttpContext.GetCurrentUserId();
+            var res = await _businessLogicSettingsManager.AdminGetSettingsForEdit(getterUserId);
             if (!res.Succeeded) return StatusCode(500, res);
             return Ok(res);
         }
@@ -97,7 +100,8 @@ namespace MvcWebApi.Controllers
         public async Task<IActionResult> Settings(SettingsViewModel settingsViewModel)
         {
             if (!ModelState.IsValid) return BadRequest();
-            var res = await _businessLogicUserManager.AdminEditSettings(settingsViewModel);
+            var editorUserId = HttpContext.GetCurrentUserId();
+            var res = await _businessLogicSettingsManager.AdminEditSettings(editorUserId, settingsViewModel);
             if (!res.Succeeded) return StatusCode(500, res);
             return Ok(res);
         }

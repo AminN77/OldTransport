@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Cross.Abstractions.EntityEnums;
 
 namespace Data.Abstractions.Models
 {
     public interface IAccept : IEntity<int>
     {
+        AcceptStatus Status { get; set; }
     }
 }

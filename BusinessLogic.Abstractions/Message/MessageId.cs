@@ -103,6 +103,14 @@ namespace BusinessLogic.Abstractions.Message
         [Display(Name = "Transporter Exists")]
         TransporterExists,
         [Display(Name = "Duplicated Offer")]
-        DuplicatedOffer
+        DuplicatedOffer,
+        [Display(Name = "Maximum Allowed Offers Limit Reached")]
+        MaximumAllowedOffers,
+        [Display(Name = "Cannot Delete Account Due To Active Project")]
+        CannotDeleteAccountDueToActiveProject,
+        [Display(Name = "Cannot Delete Active Project")]
+        CannotDeleteActiveProject,
+        [Display(Name = "Cannot Delete Active Offer")]
+        CannotDeleteActiveOffer
     }
 }

@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Cross.Abstractions.EntityEnums;
+using System;
 using System.ComponentModel.DataAnnotations;
-using System.Text;
 
 namespace ViewModels
 {
@@ -45,6 +44,21 @@ namespace ViewModels
         [Required(ErrorMessage = "Please enter {0}")]
         [Range(0.0, double.MaxValue)]
         public double Weight { get; set; }
+
+        [Display(Name = "Dimention")]
+        [Required(ErrorMessage = "Please enter {0}")]
+        [Range(0.0, double.MaxValue)]
+        public double Dimention { get; set; }
+
+        [Display(Name = "Quantity")]
+        [Required(ErrorMessage = "Please enter {0}")]
+        [Range(0.0, double.MaxValue)]
+        public double Quantity { get; set; }
+
+        [Display(Name = "Cargo")]
+        [Required(ErrorMessage = "Please enter {0}")]
+        [MaxLength(500)]
+        public string Cargo { get; set; }
     }
 
     public class ListProjectViewModel : ProjectBaseViewModel
@@ -72,6 +86,8 @@ namespace ViewModels
 
         [Required]
         public int OfferId { get; set; }
+
+        public AcceptStatus Status { get; set; }
     }
 
     public class ProjectDetailsViewModel : ListProjectViewModel
@@ -84,10 +100,30 @@ namespace ViewModels
         [Range(0.0, double.MaxValue)]
         public double Weight { get; set; }
 
+        [Display(Name = "Dimention")]
+        [Required(ErrorMessage = "Please enter {0}")]
+        [Range(0.0, double.MaxValue)]
+        public double Dimention { get; set; }
+
+        [Display(Name = "Quantity")]
+        [Required(ErrorMessage = "Please enter {0}")]
+        [Range(0.0, double.MaxValue)]
+        public double Quantity { get; set; }
+
+        [Display(Name = "Cargo")]
+        [Required(ErrorMessage = "Please enter {0}")]
+        [MaxLength(500)]
+        public string Cargo { get; set; }
+
         public string MerchantName { get; set; }
 
-        public int count { get; set; }
+        public int Offerscount { get; set; }
 
         public bool IsMerchatOwner { get; set; }
+    }
+
+    public class DeleteProjectViewModel : EditProjectViewModel
+    {
+        public bool IsDeleted { get; set; }
     }
 }

@@ -103,8 +103,8 @@ namespace MvcWebApi.Controllers
         public async Task<IActionResult> DeleteAccept(int acceptId)
         {
             if (!ModelState.IsValid) return BadRequest();
-            var merchantUserId = HttpContext.GetCurrentUserId();
-            var result = await _businessLogicProjectManager.DeleteAccept(acceptId, merchantUserId);
+            var deleterUserId = HttpContext.GetCurrentUserId();
+            var result = await _businessLogicProjectManager.DeleteAccept(acceptId, deleterUserId);
             if (!result.Succeeded) return StatusCode(500, result);
             return Ok(result);
         }

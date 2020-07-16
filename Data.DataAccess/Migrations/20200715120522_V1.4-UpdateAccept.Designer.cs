@@ -4,14 +4,16 @@ using Data.DataAccess.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Data.DataAccess.Migrations
 {
     [DbContext(typeof(SqlServerDbContext))]
-    partial class SqlServerDbContextModelSnapshot : ModelSnapshot
+    [Migration("20200715120522_V1.4-UpdateAccept")]
+    partial class V14UpdateAccept
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -177,9 +179,6 @@ namespace Data.DataAccess.Migrations
 
                     b.Property<double>("Dimention")
                         .HasColumnType("float");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
 
                     b.Property<bool>("IsEnabled")
                         .HasColumnType("bit");
@@ -407,15 +406,15 @@ namespace Data.DataAccess.Migrations
                         {
                             Id = 1,
                             ActivationCode = 0,
-                            CreateDateTime = new DateTime(2020, 7, 16, 19, 11, 47, 783, DateTimeKind.Local).AddTicks(3336),
+                            CreateDateTime = new DateTime(2020, 7, 15, 16, 35, 22, 398, DateTimeKind.Local).AddTicks(6327),
                             EmailAddress = "abolfazl.sh1374@gmail.com",
                             IsDeleted = false,
                             IsEnabled = true,
-                            IterationCount = 91988,
+                            IterationCount = 4576,
                             Name = "Developer",
-                            Password = "C0ACA888360B30437BB63F9B68494D5D673D9755D2C28255502E6610C486523CFED853AB26DED1CB4BE37E475ABC320BF3FB8BC08040E3939E17FE21635B41B4",
-                            Salt = new byte[] { 43, 79, 177, 210, 94, 236, 60, 144, 161, 30, 54, 185, 224, 84, 207, 58, 88, 52, 139, 106, 154, 167, 106, 102, 145, 34, 236, 219, 185, 135, 20, 133 },
-                            SerialNumber = "9618146f-e855-431b-a09a-5d344f5baac8"
+                            Password = "38764993846F1AD1775EFC54DB12B94FF0FB33FF9188D070791AAF321DD693EFD58DBC2FEE17074A7EFAC64821DD6661AD9C0E3F21A018FB63B02AD718A765BE",
+                            Salt = new byte[] { 110, 98, 10, 172, 25, 154, 177, 84, 245, 142, 244, 234, 155, 160, 174, 2, 189, 218, 228, 183, 231, 204, 113, 165, 87, 162, 64, 80, 241, 92, 38, 146 },
+                            SerialNumber = "5e97e03b-09d0-44b5-a9f6-81c25e28b4a9"
                         });
                 });
 
