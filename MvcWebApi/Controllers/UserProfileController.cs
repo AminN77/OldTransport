@@ -16,10 +16,10 @@ namespace MvcWebApi.Controllers
     {
         private readonly IBusinessLogicUserManager _businessLogicUserManager;
         private readonly IBusinessLogicRoleManager _businessLogicRoleManager;
-        private readonly IBusinessLoginFeedbackManager _businessLogicFeedbackManager;
+        private readonly IBusinessLogicFeedbackManager _businessLogicFeedbackManager;
 
         public UserProfileController(IBusinessLogicUserManager businessLogicUserManager, IBusinessLogicRoleManager businessLogicRoleManager,
-            IBusinessLoginFeedbackManager businessLogicFeedbackManager)
+            IBusinessLogicFeedbackManager businessLogicFeedbackManager)
         {
             _businessLogicUserManager = businessLogicUserManager;
             _businessLogicRoleManager = businessLogicRoleManager;

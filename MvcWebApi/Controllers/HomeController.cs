@@ -10,11 +10,11 @@ namespace MvcWebApi.Controllers
     public class HomeController : ControllerBase
     {
         private readonly IBusinessLogicProjectManager _businessLogicProjectManager;
-        private readonly IBusinessLoginFeedbackManager _businessLogicFeedbackManager;
+        private readonly IBusinessLogicFeedbackManager _businessLogicFeedbackManager;
         private readonly IBusinessLogicSettingsManager _businessLogicSettingsManager;
 
         public HomeController(IBusinessLogicProjectManager businessLogicProjectManager,
-            IBusinessLoginFeedbackManager businessLogicFeedbackManager, IBusinessLogicSettingsManager businessLogicSettingsManager)
+            IBusinessLogicFeedbackManager businessLogicFeedbackManager, IBusinessLogicSettingsManager businessLogicSettingsManager)
         {
             _businessLogicProjectManager = businessLogicProjectManager;
             _businessLogicFeedbackManager = businessLogicFeedbackManager;
@@ -58,6 +58,7 @@ namespace MvcWebApi.Controllers
         }
 
         [HttpPost]
+        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> ContactUs(ContactUsViewModel contactUsViewModel)
         {
             if (!ModelState.IsValid) return BadRequest();

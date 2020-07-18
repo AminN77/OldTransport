@@ -14,7 +14,7 @@ using ViewModels;
 
 namespace BusinessLogic
 {
-    public class BusinessLogicFeedbackManager: IBusinessLoginFeedbackManager
+    public class BusinessLogicFeedbackManager: IBusinessLogicFeedbackManager
     {
         private readonly IRepository<User> _userRepository;
         private readonly IRepository<Feedback> _feedbackRepository;

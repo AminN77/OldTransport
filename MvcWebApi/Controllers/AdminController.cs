@@ -16,11 +16,11 @@ namespace MvcWebApi.Controllers
     {
         private readonly IBusinessLogicUserManager _businessLogicUserManager;
         private readonly IBusinessLogicProjectManager _businessLogicProjectManager;
-        private readonly IBusinessLoginFeedbackManager _businessLogicFeedbackManager;
+        private readonly IBusinessLogicFeedbackManager _businessLogicFeedbackManager;
         private readonly IBusinessLogicSettingsManager _businessLogicSettingsManager;
 
         public AdminController(IBusinessLogicUserManager businessLogicUserManager, IBusinessLogicProjectManager businessLogicProjectManager,
-            IBusinessLoginFeedbackManager businessLogicFeedbackManager, IBusinessLogicSettingsManager businessLogicSettingsManager)
+            IBusinessLogicFeedbackManager businessLogicFeedbackManager, IBusinessLogicSettingsManager businessLogicSettingsManager)
         {
             _businessLogicUserManager = businessLogicUserManager;
             _businessLogicProjectManager = businessLogicProjectManager;
