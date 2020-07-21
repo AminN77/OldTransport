@@ -1,5 +1,7 @@
 ﻿using System.Threading.Tasks;
 using BusinessLogic.Abstractions;
+using Cross.Abstractions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ViewModels;
 
@@ -12,13 +14,15 @@ namespace MvcWebApi.Controllers
         private readonly IBusinessLogicProjectManager _businessLogicProjectManager;
         private readonly IBusinessLogicFeedbackManager _businessLogicFeedbackManager;
         private readonly IBusinessLogicSettingsManager _businessLogicSettingsManager;
+        private readonly IFileService _fileService;
 
-        public HomeController(IBusinessLogicProjectManager businessLogicProjectManager,
+        public HomeController(IBusinessLogicProjectManager businessLogicProjectManager, IFileService fileService,
             IBusinessLogicFeedbackManager businessLogicFeedbackManager, IBusinessLogicSettingsManager businessLogicSettingsManager)
         {
             _businessLogicProjectManager = businessLogicProjectManager;
             _businessLogicFeedbackManager = businessLogicFeedbackManager;
             _businessLogicSettingsManager = businessLogicSettingsManager;
+            _fileService = fileService;
         }
 
         [HttpGet]
@@ -66,5 +70,15 @@ namespace MvcWebApi.Controllers
             if (!result.Succeeded) return StatusCode(500, result);
             return Ok(result);
         }
+
+        //[HttpPost]
+        //[IgnoreAntiforgeryToken]
+        //public IActionResult Test(IFormFile formFile)
+        //{
+        //    if (!ModelState.IsValid) return BadRequest();
+        //    var result = _fileService.SaveFile(formFile, Cross.Abstractions.EntityEnums.FileTypes.ProfilePhoto);
+        //    //if (!result.Succeeded) return StatusCode(500, result);
+        //    return Ok(result);
+        //}
     }
 }
