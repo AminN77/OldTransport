@@ -742,7 +742,7 @@ namespace BusinessLogic
                             messages: messages);
                     }
                     //var resizedPhoto = _fileService.PhotoResizer(file);
-                    editUserViewModel.Picture = await _fileService.SaveFile(editUserViewModel.file, Cross.Abstractions.EntityEnums.FileTypes.ProfilePhoto);
+                    //editUserViewModel.Picture = await _fileService.SaveFile(editUserViewModel.file, Cross.Abstractions.EntityEnums.FileTypes.ProfilePhoto);
                 }
 
                 User user;
