@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using MvcWebApi.Hubs;
+using MvcWebApi.Hubs.Abstractions;
 using MvcWebApi.Provider;
 using ViewModels;
 
@@ -18,10 +20,12 @@ namespace MvcWebApi.Controllers
     public class ProjectController : ControllerBase
     {
         private readonly IBusinessLogicProjectManager _businessLogicProjectManager;
+        private readonly IPanelHub _panelHub;
 
-        public ProjectController(IBusinessLogicProjectManager businessLogicProjectManager)
+        public ProjectController(IBusinessLogicProjectManager businessLogicProjectManager,IPanelHub panelHub)
         {
             _businessLogicProjectManager = businessLogicProjectManager;
+            _panelHub = panelHub;
         }
 
         [HttpPost]
@@ -44,6 +48,7 @@ namespace MvcWebApi.Controllers
             if (!ModelState.IsValid) return BadRequest();
             var result = await _businessLogicProjectManager.GetProjectsAsync(page, pageSize, search, sort, filter);
             if (!result.Succeeded) return StatusCode(500, result);
+            await _panelHub.UpdateProjectsListRealTime();
             return Ok(result);
         }
 

@@ -15,6 +15,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
+using MvcWebApi.Hubs;
+using MvcWebApi.Hubs.Abstractions;
 using MvcWebApi.Models;
 using MvcWebApi.Providers;
 
@@ -23,12 +25,12 @@ namespace MvcWebApi
     public class Startup
     {
         private IConfiguration Configuration { get; }
-        private Microsoft.AspNetCore.Hosting.IHostingEnvironment _env;
+        //private Microsoft.AspNetCore.Hosting.IHostingEnvironment _env;
 
-        public Startup(IConfiguration configuration, Microsoft.AspNetCore.Hosting.IHostingEnvironment env)
+        public Startup(IConfiguration configuration /*Microsoft.AspNetCore.Hosting.IHostingEnvironment env*/)
         {
             Configuration = configuration;
-            _env = env;
+            //_env = env;
         }
 
         public void ConfigureServices(IServiceCollection services)
@@ -40,18 +42,21 @@ namespace MvcWebApi
             {
                 options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
             });
+            
+            services.AddSignalR();
 
             // Add Custom Cors
             services.AddCors(options =>
             {
                 options.AddPolicy("CorsPolicy",
                     builder => builder
-                        .WithOrigins("http://localhost:44338") //Note:  The URL must be specified without a trailing slash (/).
+                        .WithOrigins("http://localhost:44338","http://localhost:3000") //Note:  The URL must be specified without a trailing slash (/).
                         .AllowAnyMethod()
                         .AllowAnyHeader()
                         .WithExposedHeaders("AccessToken")
                         .SetIsOriginAllowed((host) => true)
                         .AllowCredentials());
+
             });
 
             // Add CustomJwt Bearer
@@ -127,6 +132,7 @@ namespace MvcWebApi
             services.AddScoped<ITokenValidatorService, TokenValidatorService>();
             services.AddScoped<ITokenFactoryService, TokenFactoryService>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddScoped<IPanelHub, PanelHub>();
             services.AddControllers();
         }
 
@@ -185,6 +191,7 @@ namespace MvcWebApi
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
+                endpoints.MapHub<PanelHub>("/panelhub");
             });
         }
     }

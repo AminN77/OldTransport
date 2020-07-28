@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using MvcWebApi.Hubs;
+using MvcWebApi.Hubs.Abstractions;
 using MvcWebApi.Provider;
 using ViewModels;
 
@@ -18,10 +20,12 @@ namespace MvcWebApi.Controllers
     public class OfferController : ControllerBase
     {
         private readonly IBusinessLogicOfferManager _businessLogicOfferManager;
+        private readonly IPanelHub _panelHub;
 
-        public OfferController(IBusinessLogicOfferManager businessLogicOfferManager)
+        public OfferController(IBusinessLogicOfferManager businessLogicOfferManager,IPanelHub panelHub)
         {
             _businessLogicOfferManager = businessLogicOfferManager;
+            _panelHub = panelHub;
         }
 
         [HttpPost]
@@ -43,6 +47,7 @@ namespace MvcWebApi.Controllers
             if (!ModelState.IsValid) return BadRequest();
             var result = await _businessLogicOfferManager.GetOfferAsync(page, pageSize, search, sort, filter);
             if (!result.Succeeded) return StatusCode(500, result);
+            await _panelHub.UpdateOffersListRealTime();
             return Ok(result);
         }
 
