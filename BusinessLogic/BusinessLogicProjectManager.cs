@@ -590,6 +590,95 @@ namespace BusinessLogic
 
         }
 
+        public async Task<IBusinessLogicResult<ListResultViewModel<ListProjectViewModel>>> GetMerchantProjectsAsync(int page, int pageSize, string search, string sort, string filter, int getterUserId)
+        {
+            var messages = new List<IBusinessLogicMessage>();
+
+            try
+            {
+                var projectsQuery = _projectRepository.DeferredSelectAll(p => !p.IsDeleted)
+                        .Join(_merchantRepository.DeferredSelectAll(),
+                        p => p.MerchantId,
+                        m => m.Id,
+                        (p, m) => new { p, m })
+                        .Join(_userRepository.DeferredSelectAll(u => u.Id == getterUserId),
+                        pm => pm.m.UserId,
+                        u => u.Id,
+                        (pm, u) => new ListProjectViewModel()
+                        {
+                            Id = pm.p.Id,
+                            IsEnabled = pm.p.IsEnabled,
+                            MerchantId = pm.m.Id,
+                            Title = pm.p.Title,
+                            BeginningCity = pm.p.BeginningCity,
+                            BeginningCountry = pm.p.BeginningCountry,
+                            DestinationCity = pm.p.DestinationCity,
+                            DestinationCountry = pm.p.DestinationCountry,
+                            Budget = pm.p.Budget
+                        });
+
+                    //.ProjectTo<ListProjectViewModel>(new MapperConfiguration(config =>
+                    //    config.CreateMap<Project, ListProjectViewModel>()));
+
+                if (!string.IsNullOrEmpty(search))
+                {
+                    projectsQuery = projectsQuery.Where(project =>
+                        project.BeginningCountry.Contains(search) || project.DestinationCountry.Contains(search) || project.DestinationCity.Contains(search)
+                        || project.BeginningCity.Contains(search));
+
+                }
+
+                if (!string.IsNullOrWhiteSpace(filter))
+                {
+                    projectsQuery = projectsQuery.ApplyFilter(filter);
+                }
+
+                if (string.IsNullOrWhiteSpace(sort))
+                {
+                    sort = nameof(ListProjectViewModel.BeginningCountry) + ":Asc";
+                }
+                else
+                {
+                    var propertyName = sort.Split(':')[0];
+                    var propertyInfo = typeof(ListProjectViewModel).GetProperties().SingleOrDefault(p =>
+                        p.Name.Equals(propertyName, StringComparison.InvariantCultureIgnoreCase));
+                    if (propertyInfo == null) sort = nameof(ListProjectViewModel.BeginningCountry) + ":Asc";
+                }
+
+                projectsQuery = projectsQuery.ApplyOrderBy(sort);
+                var projectListViewModels = await projectsQuery.PaginateAsync(page, pageSize);
+                var recordsCount = await projectsQuery.CountAsync();
+                var pageCount = (int)Math.Ceiling(recordsCount / (double)pageSize);
+                var result = new ListResultViewModel<ListProjectViewModel>
+                {
+                    Results = projectListViewModels,
+                    Page = page,
+                    PageSize = pageSize,
+                    TotalEntitiesCount = recordsCount,
+                    TotalPagesCount = pageCount
+                };
+                foreach (var item in projectListViewModels)
+                {
+                    var acceptedOffer = await _offerRepository.DeferredWhere(o => o.ProjectId == item.Id)
+                        .Join(_acceptRepository.DeferredSelectAll(),
+                        o => o.Id,
+                        a => a.OfferId,
+                        (o, a) => o).Distinct().SingleOrDefaultAsync();
+                    if (acceptedOffer != null) item.AcceptedOfferId = acceptedOffer.Id;
+                }
+
+                return new BusinessLogicResult<ListResultViewModel<ListProjectViewModel>>(succeeded: true,
+                    result: result, messages: messages);
+            }
+            catch (Exception exception)
+            {
+                messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
+                return new BusinessLogicResult<ListResultViewModel<ListProjectViewModel>>(succeeded: false,
+                    result: null, messages: messages, exception: exception);
+            }
+
+        }
+
         public async Task<IBusinessLogicResult<AcceptOfferViewModel>> AcceptOffer(AcceptOfferViewModel acceptOfferViewModel, int merchantUserId)
         {
             var messages = new List<IBusinessLogicMessage>();

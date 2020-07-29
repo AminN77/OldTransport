@@ -278,7 +278,7 @@ namespace BusinessLogic
         }
 
         public async Task<IBusinessLogicResult<ListResultViewModel<ListOfferViewModel>>> GetTransporterOffersAsync(
-            int page, int pageSize, string search, string sort, string filter, int transporterUserId)
+            int page, int pageSize, string search, string sort, string filter, int getterUserId)
         {
             var messages = new List<IBusinessLogicMessage>();
             try
@@ -288,7 +288,7 @@ namespace BusinessLogic
                         o => o.TransporterId,
                         t => t.Id,
                         (o, t) => new { o, t })
-                            .Join(_userRepository.DeferredSelectAll(t => t.Id == transporterUserId),
+                            .Join(_userRepository.DeferredSelectAll(t => t.Id == getterUserId),
                             c => c.t.UserId,
                             u => u.Id,
                             (c, u) => new { c, u })
