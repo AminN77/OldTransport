@@ -11,7 +11,7 @@ namespace BusinessLogic.Abstractions
            int pageSize, string search, string sort, string filter);
 
         Task<IBusinessLogicResult<ListResultViewModel<ListOfferViewModel>>> GetTransporterOffersAsync(int page,
-            int pageSize, string search, string sort, string filter, int transporterUserId);
+            int pageSize, string search, string sort, string filter, int getterUserId);
         Task<IBusinessLogicResult<EditOfferViewModel>> EditOfferAsync(EditOfferViewModel editOfferViewModel, int editorUserId);
         Task<IBusinessLogicResult<EditOfferViewModel>> GetOfferForEditAsync(int offerId, int getterUserId);
         Task<IBusinessLogicResult<DeleteOfferViewModel>> DeleteOfferAsync(int offerId, int deleterUserId);
