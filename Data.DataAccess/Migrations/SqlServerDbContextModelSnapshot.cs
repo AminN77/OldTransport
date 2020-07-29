@@ -63,74 +63,6 @@ namespace Data.DataAccess.Migrations
                     b.HasIndex("CountryId");
 
                     b.ToTable("Cities");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CountryId = 1,
-                            Name = "Herat"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            CountryId = 1,
-                            Name = "Kabul"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            CountryId = 1,
-                            Name = "Kandahar"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            CountryId = 1,
-                            Name = "Molah"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            CountryId = 1,
-                            Name = "Rana"
-                        },
-                        new
-                        {
-                            Id = 6,
-                            CountryId = 1,
-                            Name = "Shar"
-                        },
-                        new
-                        {
-                            Id = 7,
-                            CountryId = 1,
-                            Name = "Sharif"
-                        },
-                        new
-                        {
-                            Id = 8,
-                            CountryId = 1,
-                            Name = "Wazir Akbar Khan"
-                        },
-                        new
-                        {
-                            Id = 9,
-                            CountryId = 2,
-                            Name = "Elbasan"
-                        },
-                        new
-                        {
-                            Id = 10,
-                            CountryId = 2,
-                            Name = "Petran"
-                        },
-                        new
-                        {
-                            Id = 11,
-                            CountryId = 2,
-                            Name = "Pogradec"
-                        });
                 });
 
             modelBuilder.Entity("Data.Model.ContactUs", b =>
@@ -170,18 +102,6 @@ namespace Data.DataAccess.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Countries");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Name = "Afghanistan"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Name = "Albania"
-                        });
                 });
 
             modelBuilder.Entity("Data.Model.Feedback", b =>
@@ -402,9 +322,6 @@ namespace Data.DataAccess.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("HowItWorks")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Logo")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -446,7 +363,12 @@ namespace Data.DataAccess.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("SettingsId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("SettingsId");
 
                     b.ToTable("SocialMedias");
                 });
@@ -540,15 +462,15 @@ namespace Data.DataAccess.Migrations
                         {
                             Id = 1,
                             ActivationCode = 0,
-                            CreateDateTime = new DateTime(2020, 7, 20, 12, 41, 28, 362, DateTimeKind.Local).AddTicks(6300),
+                            CreateDateTime = new DateTime(2020, 7, 29, 19, 43, 2, 735, DateTimeKind.Local).AddTicks(141),
                             EmailAddress = "abolfazl.sh1374@gmail.com",
                             IsDeleted = false,
                             IsEnabled = true,
-                            IterationCount = 23418,
+                            IterationCount = 57621,
                             Name = "Developer",
-                            Password = "13B12ED80C9D2443E1D8A2AC195130FB856739DC4FCB8D3740F27E216832AED5B67A2B530CA0F3EC79E7D0CDA5439E6067CFA81B96BE6F4124786321167880E8",
-                            Salt = new byte[] { 5, 49, 50, 95, 12, 41, 210, 214, 160, 50, 113, 13, 133, 158, 232, 51, 160, 42, 66, 132, 205, 36, 38, 74, 115, 9, 113, 151, 218, 43, 249, 123 },
-                            SerialNumber = "cb31f86d-83da-49a7-bede-9e4a4fd512dc"
+                            Password = "F53B0B674F7CB585AA4ECED8BC9218A2CA783F0293D61F57CAB7F33BCEF9B6AAE24EAD492C1DFB3053CE4B2C71BC375873F4A8C143F6AA2CDB04ED9744F63F52",
+                            Salt = new byte[] { 158, 217, 218, 99, 36, 139, 169, 40, 243, 101, 184, 15, 54, 248, 103, 78, 10, 41, 59, 10, 243, 240, 165, 217, 55, 151, 208, 220, 45, 144, 200, 67 },
+                            SerialNumber = "f7062cbe-018c-4f1a-ab6b-c10292e7d76b"
                         });
                 });
 
@@ -670,6 +592,15 @@ namespace Data.DataAccess.Migrations
                     b.HasOne("Data.Model.Merchant", "Merchant")
                         .WithMany("Projects")
                         .HasForeignKey("MerchantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Data.Model.SocialMedia", b =>
+                {
+                    b.HasOne("Data.Model.Settings", "Settings")
+                        .WithMany()
+                        .HasForeignKey("SettingsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

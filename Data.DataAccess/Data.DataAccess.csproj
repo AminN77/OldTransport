@@ -25,6 +25,8 @@
     <Compile Remove="Migrations\20200616083104_V0.8-CitiesAndCountries.Designer.cs" />
     <Compile Remove="Migrations\20200710115310_V1.0-UpdateSettings.cs" />
     <Compile Remove="Migrations\20200710115310_V1.0-UpdateSettings.Designer.cs" />
+    <Compile Remove="Migrations\20200720081129_v0.1.4.1-AddCountrySeed.cs" />
+    <Compile Remove="Migrations\20200720081129_v0.1.4.1-AddCountrySeed.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>
