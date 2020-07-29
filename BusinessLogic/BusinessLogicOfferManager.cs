@@ -186,7 +186,7 @@ namespace BusinessLogic
             }
         }
 
-        public async Task<IBusinessLogicResult<ListResultViewModel<ListOfferViewModel>>> GetOfferAsync(
+        public async Task<IBusinessLogicResult<ListResultViewModel<ListOfferViewModel>>> GetOffersAsync(
             int page, int pageSize, string search, string sort, string filter)
         {
             var messages = new List<IBusinessLogicMessage>();
@@ -199,6 +199,96 @@ namespace BusinessLogic
                         t => t.Id,
                         (o, t) => new { o, t })
                             .Join(_userRepository.DeferredSelectAll(),
+                            c => c.t.UserId,
+                            u => u.Id,
+                            (c, u) => new { c, u })
+                                .Join(_projectRepository.DeferredSelectAll(),
+                                d => d.c.o.ProjectId,
+                                p => p.Id,
+                                (d, p) => new ListOfferViewModel()
+                                {
+                                    Id = d.c.o.Id,
+                                    Description = d.c.o.Description,
+                                    TransporterName = d.u.Name,
+                                    EstimatedTime = d.c.o.EstimatedTime,
+                                    Price = d.c.o.Price,
+                                    TransporterId = d.c.o.TransporterId,
+                                    ProjectId = d.c.o.ProjectId,
+                                    ProjectName = p.Title
+                                });
+
+                //_offerRepository.DeferredWhere(u =>
+                //    (!u.IsDeleted)
+                //)
+                //.ProjectTo<ListOfferViewModel>(new MapperConfiguration(config =>
+                //    config.CreateMap<Offer, ListOfferViewModel>().ForMember(o => o.TransporterName, o => o.MapFrom(l => l.Transporter))));
+
+                if (!string.IsNullOrEmpty(search))
+                {
+                    offerQuery = offerQuery.Where(offer =>
+                        offer.Description.Contains(search));
+                }
+
+                //TODO : isDeleted must add
+
+                if (!string.IsNullOrWhiteSpace(filter))
+                {
+                    offerQuery = offerQuery.ApplyFilter(filter);
+                }
+
+                if (string.IsNullOrWhiteSpace(sort))
+                {
+                    sort = nameof(ListOfferViewModel.Price) + ":Asc";
+                }
+                else
+                {
+                    var propertyName = sort.Split(':')[0];
+                    var propertyInfo = typeof(ListProjectViewModel).GetProperties().SingleOrDefault(p =>
+                        p.Name.Equals(propertyName, StringComparison.InvariantCultureIgnoreCase));
+                    if (propertyInfo == null) sort = nameof(ListOfferViewModel.Price) + ":Asc";
+                }
+
+                offerQuery = offerQuery.ApplyOrderBy(sort);
+                var offerListViewModels = await offerQuery.PaginateAsync(page, pageSize);
+                var recordsCount = await offerQuery.CountAsync();
+                var pageCount = (int)Math.Ceiling(recordsCount / (double)pageSize);
+                var result = new ListResultViewModel<ListOfferViewModel>
+                {
+                    Results = offerListViewModels,
+                    Page = page,
+                    PageSize = pageSize,
+                    TotalEntitiesCount = recordsCount,
+                    TotalPagesCount = pageCount
+                };
+                foreach (var item in offerListViewModels)
+                {
+                    item.IsAccepted = _acceptRepository.DeferredWhere(a => a.OfferId == item.Id).Any();
+                }
+
+                return new BusinessLogicResult<ListResultViewModel<ListOfferViewModel>>(succeeded: true,
+                    result: result, messages: messages);
+            }
+            catch (Exception exception)
+            {
+                messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
+                return new BusinessLogicResult<ListResultViewModel<ListOfferViewModel>>(succeeded: false,
+                    result: null, messages: messages, exception: exception);
+            }
+
+        }
+
+        public async Task<IBusinessLogicResult<ListResultViewModel<ListOfferViewModel>>> GetTransporterOffersAsync(
+            int page, int pageSize, string search, string sort, string filter, int transporterUserId)
+        {
+            var messages = new List<IBusinessLogicMessage>();
+            try
+            {
+                var offerQuery = _offerRepository.DeferredWhere(o => !o.IsDeleted)
+                        .Join(_transporterRepository.DeferredSelectAll(),
+                        o => o.TransporterId,
+                        t => t.Id,
+                        (o, t) => new { o, t })
+                            .Join(_userRepository.DeferredSelectAll(t => t.Id == transporterUserId),
                             c => c.t.UserId,
                             u => u.Id,
                             (c, u) => new { c, u })
