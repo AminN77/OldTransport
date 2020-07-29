@@ -16,19 +16,19 @@ namespace Data.DataAccess.Context
         {
 
 
-            const string jsonFileName = @"//countriesJsonFile.json";
-            var contentRootPath = System.IO.Directory.GetCurrentDirectory();
-            var jsonString = System.IO.File.ReadAllText(contentRootPath + jsonFileName);
-            var myModel = JsonConvert.DeserializeObject<List<Country>>(jsonString);
+            //const string jsonFileName = @"//countriesJsonFile.json";
+            //var contentRootPath = System.IO.Directory.GetCurrentDirectory();
+            //var jsonString = System.IO.File.ReadAllText(contentRootPath + jsonFileName);
+            //var myModel = JsonConvert.DeserializeObject<List<Country>>(jsonString);
 
-            modelBuilder.Entity<Country>().HasData(myModel);
+            //modelBuilder.Entity<Country>().HasData(myModel);
 
 
-            const string jsonCitiesFileName = @"//citiesJsonFile.json";
-            var jsonCitiesString = System.IO.File.ReadAllText(contentRootPath + jsonCitiesFileName);
-            var myCitiesModel = JsonConvert.DeserializeObject<List<City>>(jsonCitiesString);
+            //const string jsonCitiesFileName = @"//citiesJsonFile.json";
+            //var jsonCitiesString = System.IO.File.ReadAllText(contentRootPath + jsonCitiesFileName);
+            //var myCitiesModel = JsonConvert.DeserializeObject<List<City>>(jsonCitiesString);
 
-            modelBuilder.Entity<City>().HasData(myCitiesModel);
+            //modelBuilder.Entity<City>().HasData(myCitiesModel);
 
 
             var role = new List<Role>
