@@ -54,6 +54,12 @@ namespace ViewModels
         public string Text { get; set; }
     }
 
+    public class EditHowItWorksViewModel : HowItWorksViewModel
+    {
+        [Required]
+        public int Id { get; set; }
+    }
+
     public class TermsAndConditionsViewModel
     {
         [DataType(DataType.MultilineText)]

@@ -195,5 +195,17 @@ namespace MvcWebApi.Controllers
             if (!res.Succeeded) return StatusCode(500, res);
             return Ok(res);
         }
+
+        [HttpPut]
+        [Authorize(Policy = CustomRoles.Admin)]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> EditHowItWorks(EditHowItWorksViewModel editHowItWorksViewModel)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var editorUserId = HttpContext.GetCurrentUserId();
+            var res = await _businessLogicSettingsManager.AdminEditHowItWorksAsync(editorUserId, editHowItWorksViewModel);
+            if (!res.Succeeded) return StatusCode(500, res);
+            return Ok(res);
+        }
     }
 }
