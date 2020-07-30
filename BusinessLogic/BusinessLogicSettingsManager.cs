@@ -100,29 +100,49 @@ namespace BusinessLogic
             }
         }
 
-        public async Task<IBusinessLogicResult<HowItWorksViewModel>> GetHowItWorks()
+        public async Task<IBusinessLogicResult<EditHowItWorksViewModel>> AdminGetHowItWorksForEditAsync(int getterUserId, int howItWorksId)
         {
             var messages = new List<IBusinessLogicMessage>();
             try
             {
-                Settings settings;
+                // Critical Authentication and Authorization
                 try
                 {
-                    settings = _settingsRepository.DeferredSelectAll().FirstOrDefault();
+                    var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
+                    var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == getterUserId && u.RoleId != userRole.Id);
+                    if (!isUserAuthorized)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
+                        return new BusinessLogicResult<EditHowItWorksViewModel>(succeeded: false, result: null,
+                            messages: messages);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<EditHowItWorksViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
+
+                HowItWorks howItWorks;
+                try
+                {
+                    howItWorks = await _howItWorksRepository.FindAsync(howItWorksId);
                 }
                 catch (Exception exception)
                 {
                     messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
-                    return new BusinessLogicResult<HowItWorksViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
+                    return new BusinessLogicResult<EditHowItWorksViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
                 }
-                HowItWorksViewModel settingsViewModel = await _utility.MapAsync<Settings, HowItWorksViewModel>(settings);
+
+                EditHowItWorksViewModel editHowItWorksViewModel = await _utility.MapAsync<HowItWorks, EditHowItWorksViewModel>(howItWorks);
                 messages.Add(new BusinessLogicMessage(type: MessageType.Info, message: MessageId.Successed));
-                return new BusinessLogicResult<HowItWorksViewModel>(succeeded: true, messages: messages, result: settingsViewModel);
+                return new BusinessLogicResult<EditHowItWorksViewModel>(succeeded: true, messages: messages, result: editHowItWorksViewModel);
             }
             catch (Exception exception)
             {
                 messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
-                return new BusinessLogicResult<HowItWorksViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
+                return new BusinessLogicResult<EditHowItWorksViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
             }
         }
 

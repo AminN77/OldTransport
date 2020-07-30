@@ -35,15 +35,6 @@ namespace MvcWebApi.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> HowItWorks()
-        {
-            if (!ModelState.IsValid) return BadRequest();
-            var res = await _businessLogicSettingsManager.GetHowItWorks();
-            if (!res.Succeeded) return StatusCode(500, res);
-            return Ok(res);
-        }
-
-        [HttpGet]
         public async Task<IActionResult> TermsAndConditions()
         {
             if (!ModelState.IsValid) return BadRequest();
