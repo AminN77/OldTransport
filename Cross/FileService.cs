@@ -26,7 +26,7 @@ namespace Cross
             var extention = Path.GetExtension(file.FileName);
             switch (fileType)
             {
-                case FileTypes.ProfilePhoto:
+                case FileTypes.Photo:
                     if (extention == ".jpg" || extention == ".png" || extention == ".JPG" || extention == ".PNG") return true;
                     return false;
             }
@@ -79,8 +79,8 @@ namespace Cross
             var typePath = "";
             switch (fileType)
             {
-                case FileTypes.ProfilePhoto:
-                    typePath = "Uploads/Images/ProfilePhotos";
+                case FileTypes.Photo:
+                    typePath = "Uploads/Images";
                     break;
             }
             if (typePath == null)

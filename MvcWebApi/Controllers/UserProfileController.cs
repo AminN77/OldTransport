@@ -85,6 +85,18 @@ namespace MvcWebApi.Controllers
             return Ok(res);
         }
 
+        [HttpPost]
+        [Authorize]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> UploadPhoto(IFormFile formFile)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var uploaderUserId = HttpContext.GetCurrentUserId();
+            var result = await _businessLogicUserManager.UploadPhotoAsync(formFile, uploaderUserId);
+            if (!result.Succeeded) return StatusCode(500, result);
+            return Ok(result);
+        }
+
         [HttpGet]
         [Authorize]
         [IgnoreAntiforgeryToken]
