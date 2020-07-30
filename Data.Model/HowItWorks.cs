@@ -4,8 +4,13 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Data.Model
 {
-    public class SocialMedia : ISocialMedia
+    public class HowItWorks : IHowItWorks
     {
+        public HowItWorks()
+        {
+
+        }
+
         [Key]
         public int Id { get; set; }
 
@@ -13,7 +18,8 @@ namespace Data.Model
         public string Name { get; set; }
 
         [Required]
-        public string Link { get; set; }
+        [DataType(DataType.MultilineText)]
+        public string Text { get; set; }
 
         [ForeignKey("Settings")]
         public int SettingsId { get; set; }
