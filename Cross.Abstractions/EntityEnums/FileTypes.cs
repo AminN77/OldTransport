@@ -6,6 +6,6 @@ namespace Cross.Abstractions.EntityEnums
 {
     public enum FileTypes : byte
     {
-        ProfilePhoto
+        Photo
     }
 }

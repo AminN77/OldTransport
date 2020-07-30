@@ -111,6 +111,8 @@ namespace BusinessLogic.Abstractions.Message
         [Display(Name = "Cannot Delete Active Project")]
         CannotDeleteActiveProject,
         [Display(Name = "Cannot Delete Active Offer")]
-        CannotDeleteActiveOffer
+        CannotDeleteActiveOffer,
+        [Display(Name = "File Successfully Uploaded")]
+        FileSuccessfullyUploaded
     }
 }
