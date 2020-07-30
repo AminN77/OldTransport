@@ -17,17 +17,19 @@ namespace BusinessLogic
         private readonly IRepository<Settings> _settingsRepository;
         private readonly IRepository<Role> _roleRepository;
         private readonly IRepository<UserRole> _userRoleRepository;
+        private readonly IRepository<HowItWorks> _howItWorksRepository;
         private readonly BusinessLogicUtility _utility;
 
         public BusinessLogicSettingsManager(IRepository<Settings> settingsRepository, BusinessLogicUtility utility,
-            IRepository<Role> roleRepository, IRepository<UserRole> userRoleRepository)
+            IRepository<Role> roleRepository, IRepository<UserRole> userRoleRepository, IRepository<HowItWorks> howItWorksRepository)
         {
             _settingsRepository = settingsRepository;
             _roleRepository = roleRepository;
             _userRoleRepository = userRoleRepository;
+            _howItWorksRepository = howItWorksRepository;
             _utility = utility;
         }
-        public async Task<IBusinessLogicResult<SettingsViewModel>> AdminGetSettingsForEdit(int getterUserId)
+        public async Task<IBusinessLogicResult<SettingsViewModels>> AdminGetSettingsForEdit(int getterUserId)
         {
             var messages = new List<IBusinessLogicMessage>();
             try
@@ -40,14 +42,14 @@ namespace BusinessLogic
                     if (!isUserAuthorized)
                     {
                         messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
-                        return new BusinessLogicResult<SettingsViewModel>(succeeded: false, result: null,
+                        return new BusinessLogicResult<SettingsViewModels>(succeeded: false, result: null,
                             messages: messages);
                     }
                 }
                 catch (Exception exception)
                 {
                     messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
-                    return new BusinessLogicResult<SettingsViewModel>(succeeded: false, result: null,
+                    return new BusinessLogicResult<SettingsViewModels>(succeeded: false, result: null,
                         messages: messages, exception: exception);
                 }
 
@@ -59,16 +61,16 @@ namespace BusinessLogic
                 catch (Exception exception)
                 {
                     messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
-                    return new BusinessLogicResult<SettingsViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
+                    return new BusinessLogicResult<SettingsViewModels>(succeeded: false, messages: messages, exception: exception, result: null);
                 }
-                SettingsViewModel settingsViewModel = await _utility.MapAsync<Settings, SettingsViewModel>(settings);
+                SettingsViewModels settingsViewModel = await _utility.MapAsync<Settings, SettingsViewModels>(settings);
                 messages.Add(new BusinessLogicMessage(type: MessageType.Info, message: MessageId.Successed));
-                return new BusinessLogicResult<SettingsViewModel>(succeeded: true, messages: messages, result: settingsViewModel);
+                return new BusinessLogicResult<SettingsViewModels>(succeeded: true, messages: messages, result: settingsViewModel);
             }
             catch (Exception exception)
             {
                 messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
-                return new BusinessLogicResult<SettingsViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
+                return new BusinessLogicResult<SettingsViewModels>(succeeded: false, messages: messages, exception: exception, result: null);
             }
         }
 
@@ -150,7 +152,7 @@ namespace BusinessLogic
             }
         }
 
-        public async Task<IBusinessLogicResult<SettingsViewModel>> AdminEditSettings(int editorUserId, SettingsViewModel settingsViewModel)
+        public async Task<IBusinessLogicResult<SettingsViewModels>> AdminEditSettings(int editorUserId, SettingsViewModels settingsViewModel)
         {
             var messages = new List<IBusinessLogicMessage>();
             try
@@ -163,14 +165,14 @@ namespace BusinessLogic
                     if (!isUserAuthorized)
                     {
                         messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
-                        return new BusinessLogicResult<SettingsViewModel>(succeeded: false, result: null,
+                        return new BusinessLogicResult<SettingsViewModels>(succeeded: false, result: null,
                             messages: messages);
                     }
                 }
                 catch (Exception exception)
                 {
                     messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
-                    return new BusinessLogicResult<SettingsViewModel>(succeeded: false, result: null,
+                    return new BusinessLogicResult<SettingsViewModels>(succeeded: false, result: null,
                         messages: messages, exception: exception);
                 }
 
@@ -182,7 +184,7 @@ namespace BusinessLogic
                 catch (Exception exception)
                 {
                     messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
-                    return new BusinessLogicResult<SettingsViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
+                    return new BusinessLogicResult<SettingsViewModels>(succeeded: false, messages: messages, exception: exception, result: null);
                 }
                 await _utility.MapAsync(settingsViewModel, settings);
                 try
@@ -192,16 +194,78 @@ namespace BusinessLogic
                 catch (Exception exception)
                 {
                     messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
-                    return new BusinessLogicResult<SettingsViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
+                    return new BusinessLogicResult<SettingsViewModels>(succeeded: false, messages: messages, exception: exception, result: null);
                 }
                 messages.Add(new BusinessLogicMessage(type: MessageType.Info, message: MessageId.SettingSuccessfullySaved));
-                return new BusinessLogicResult<SettingsViewModel>(succeeded: true, messages: messages, result: settingsViewModel);
+                return new BusinessLogicResult<SettingsViewModels>(succeeded: true, messages: messages, result: settingsViewModel);
             }
             catch (Exception exception)
             {
                 messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
-                return new BusinessLogicResult<SettingsViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
+                return new BusinessLogicResult<SettingsViewModels>(succeeded: false, messages: messages, exception: exception, result: null);
             }
+        }
+
+        public async Task<IBusinessLogicResult<HowItWorksViewModel>> AdminAddHowItWorksAsync(int adderUserId, HowItWorksViewModel howItWorksViewModel)
+        {
+            var messages = new List<IBusinessLogicMessage>();
+            try
+            {
+                // Critical Authentication and Authorization
+                try
+                {
+                    var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
+                    var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == adderUserId && u.RoleId != userRole.Id);
+                    if (!isUserAuthorized)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
+                        return new BusinessLogicResult<HowItWorksViewModel>(succeeded: false, result: null,
+                            messages: messages);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<HowItWorksViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
+
+                Settings settings;
+                try
+                {
+                    settings = _settingsRepository.DeferredSelectAll().FirstOrDefault();
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                    return new BusinessLogicResult<HowItWorksViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
+                }
+
+                HowItWorks howItWorks;
+                howItWorks = await _utility.MapAsync<HowItWorksViewModel, HowItWorks>(howItWorksViewModel);
+                howItWorks.SettingsId = settings.Id;
+
+                try
+                {
+                    await _howItWorksRepository.AddAsync(howItWorks);
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                    return new BusinessLogicResult<HowItWorksViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
+                }
+
+                messages.Add(new BusinessLogicMessage(type: MessageType.Info, message: MessageId.EntitySuccessfullyAdded));
+                return new BusinessLogicResult<HowItWorksViewModel>(succeeded: true, messages: messages, result: howItWorksViewModel);
+
+            }
+            catch (Exception exception)
+            {
+                messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                return new BusinessLogicResult<HowItWorksViewModel>(succeeded: false, result: null,
+                    messages: messages, exception: exception);
+            }
+
         }
 
         public void Dispose()
