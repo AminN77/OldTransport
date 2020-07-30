@@ -218,5 +218,17 @@ namespace MvcWebApi.Controllers
             if (!res.Succeeded) return StatusCode(500, res);
             return Ok(res);
         }
+
+        [HttpGet]
+        [IgnoreAntiforgeryToken]
+        [Authorize(Policy = CustomRoles.Admin)]
+        public async Task<IActionResult> DeleteHowItWorks(int howItWorksId)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var deleterUserId = HttpContext.GetCurrentUserId();
+            var res = await _businessLogicSettingsManager.AdminDeleteHowItWorksAsync(deleterUserId, howItWorksId);
+            if (!res.Succeeded) return StatusCode(500, res);
+            return Ok(res);
+        }
     }
 }

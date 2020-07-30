@@ -354,6 +354,62 @@ namespace BusinessLogic
 
         }
 
+        public async Task<IBusinessLogicResult<HowItWorksViewModel>> AdminDeleteHowItWorksAsync(int deleterUserId, int howItWorksId)
+        {
+            var messages = new List<IBusinessLogicMessage>();
+            try
+            {
+                // Critical Authentication and Authorization
+                try
+                {
+                    var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
+                    var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == deleterUserId && u.RoleId != userRole.Id);
+                    if (!isUserAuthorized)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
+                        return new BusinessLogicResult<HowItWorksViewModel>(succeeded: false, result: null,
+                            messages: messages);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<HowItWorksViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
+
+                HowItWorks howItWorks;
+                try
+                {
+                    howItWorks = await _howItWorksRepository.FindAsync(howItWorksId);
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                    return new BusinessLogicResult<HowItWorksViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
+                }
+
+                try
+                {
+                    await _howItWorksRepository.DeleteAsync(howItWorks, true);
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                    return new BusinessLogicResult<HowItWorksViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
+                }
+
+                HowItWorksViewModel howItWorksViewModel = await _utility.MapAsync<HowItWorks, HowItWorksViewModel>(howItWorks);
+                messages.Add(new BusinessLogicMessage(type: MessageType.Info, message: MessageId.EntitySuccessfullyDeleted));
+                return new BusinessLogicResult<HowItWorksViewModel>(succeeded: true, messages: messages, result: howItWorksViewModel);
+            }
+            catch (Exception exception)
+            {
+                messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                return new BusinessLogicResult<HowItWorksViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
+            }
+        }
+
         public void Dispose()
         {
             _settingsRepository.Dispose();
