@@ -44,6 +44,15 @@ namespace MvcWebApi.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> HowItWorksList()
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var res = await _businessLogicSettingsManager.ListHowItWorksAsync();
+            if (!res.Succeeded) return StatusCode(500, res);
+            return Ok(res);
+        }
+
+        [HttpGet]
         public async Task<IActionResult> ProjectsCount()
         {
             if (!ModelState.IsValid) return BadRequest();

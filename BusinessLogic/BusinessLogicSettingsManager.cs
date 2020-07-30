@@ -1,4 +1,6 @@
-﻿using BusinessLogic.Abstractions;
+﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using BusinessLogic.Abstractions;
 using BusinessLogic.Abstractions.Message;
 using Cross.Abstractions.EntityEnums;
 using Data.Abstractions;
@@ -407,6 +409,32 @@ namespace BusinessLogic
             {
                 messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
                 return new BusinessLogicResult<HowItWorksViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
+            }
+        }
+
+        public async Task<IBusinessLogicResult<ListResultViewModel<ListHowItWorksViewModel>>> ListHowItWorksAsync()
+        {
+            var messages = new List<IBusinessLogicMessage>();
+            try
+            {
+                var listHowItWorksViewModel = await _howItWorksRepository.DeferredSelectAll()
+                    .ProjectTo<ListHowItWorksViewModel>(new MapperConfiguration(config =>
+                        config.CreateMap<HowItWorks, ListHowItWorksViewModel>())).ToListAsync();
+
+                var result = new ListResultViewModel<ListHowItWorksViewModel>
+                {
+                    Results = listHowItWorksViewModel
+                };
+
+                return new BusinessLogicResult<ListResultViewModel<ListHowItWorksViewModel>>(succeeded: true,
+                    result: result, messages: messages);
+
+            }
+            catch (Exception exception)
+            {
+                messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
+                return new BusinessLogicResult<ListResultViewModel<ListHowItWorksViewModel>>(succeeded: false,
+                    result: null, messages: messages, exception: exception);
             }
         }
 
