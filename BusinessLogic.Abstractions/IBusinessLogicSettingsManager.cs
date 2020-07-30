@@ -12,5 +12,6 @@ namespace BusinessLogic.Abstractions
         Task<IBusinessLogicResult<TermsAndConditionsViewModel>> GetTermsAndConditions();
         Task<IBusinessLogicResult<SettingsViewModels>> AdminEditSettings(int editorUserId, SettingsViewModels settingsViewModel);
         Task<IBusinessLogicResult<HowItWorksViewModel>> AdminAddHowItWorksAsync(int adderUserId, HowItWorksViewModel howItWorksViewModel);
+        Task<IBusinessLogicResult<EditHowItWorksViewModel>> AdminEditHowItWorksAsync(int editorUserId, EditHowItWorksViewModel editHowItWorksViewModel);
     }
 }

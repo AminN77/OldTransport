@@ -268,6 +268,72 @@ namespace BusinessLogic
 
         }
 
+        public async Task<IBusinessLogicResult<EditHowItWorksViewModel>> AdminEditHowItWorksAsync(int editorUserId, EditHowItWorksViewModel editHowItWorksViewModel)
+        {
+            var messages = new List<IBusinessLogicMessage>();
+            try
+            {
+                // Critical Authentication and Authorization
+                try
+                {
+                    var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
+                    var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == editorUserId && u.RoleId != userRole.Id);
+                    if (!isUserAuthorized)
+                    {
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
+                        return new BusinessLogicResult<EditHowItWorksViewModel>(succeeded: false, result: null,
+                            messages: messages);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                    return new BusinessLogicResult<EditHowItWorksViewModel>(succeeded: false, result: null,
+                        messages: messages, exception: exception);
+                }
+
+                HowItWorks howItWorks;
+                try
+                {
+                    howItWorks = await _howItWorksRepository.FindAsync(editHowItWorksViewModel.Id);
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                    return new BusinessLogicResult<EditHowItWorksViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
+                }
+
+                if (howItWorks == null)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.EntityDoesNotExist));
+                    return new BusinessLogicResult<EditHowItWorksViewModel>(succeeded: false, messages: messages, result: null);
+                }
+
+                howItWorks = await _utility.MapAsync<EditHowItWorksViewModel, HowItWorks>(editHowItWorksViewModel);
+
+                try
+                {
+                    await _howItWorksRepository.UpdateAsync(howItWorks, true);
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                    return new BusinessLogicResult<EditHowItWorksViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
+                }
+
+                messages.Add(new BusinessLogicMessage(type: MessageType.Info, message: MessageId.EntitySuccessfullyUpdated));
+                return new BusinessLogicResult<EditHowItWorksViewModel>(succeeded: true, messages: messages, result: editHowItWorksViewModel);
+
+            }
+            catch (Exception exception)
+            {
+                messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
+                return new BusinessLogicResult<EditHowItWorksViewModel>(succeeded: false, result: null,
+                    messages: messages, exception: exception);
+            }
+
+        }
+
         public void Dispose()
         {
             _settingsRepository.Dispose();
