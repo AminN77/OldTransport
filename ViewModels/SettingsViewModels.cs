@@ -2,7 +2,7 @@
 
 namespace ViewModels
 {
-    public class SettingsViewModel
+    public class SettingsViewModels
     {
         [Required(ErrorMessage = "Please Enter {0}")]
         [Display(Name = "Contact Email")]
@@ -46,8 +46,12 @@ namespace ViewModels
 
     public class HowItWorksViewModel
     {
+        [Required]
+        public string Name { get; set; }
+
+        [Required]
         [DataType(DataType.MultilineText)]
-        public string HowItWorks { get; set; }
+        public string Text { get; set; }
     }
 
     public class TermsAndConditionsViewModel
