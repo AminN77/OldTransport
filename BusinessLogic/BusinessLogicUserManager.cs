@@ -1848,30 +1848,11 @@ namespace BusinessLogic
             }
         }
 
-        public async Task<IBusinessLogicResult<UploadedPhotoViewModel>> UploadPhotoAsync(IFormFile formFile, int uploaderUserId)
+        public async Task<IBusinessLogicResult<UploadedPhotoViewModel>> UploadPhotoAsync(IFormFile formFile)
         {
             var messages = new List<IBusinessLogicMessage>();
             try
             {
-                // Critical Authentication and Authorization
-                try
-                {
-                    var userRole = await _roleRepository.DeferredSelectAll().SingleOrDefaultAsync(role => role.Name == RoleTypes.User.ToString());
-                    var isUserAuthorized = _userRoleRepository.DeferredSelectAll().Any(u => u.UserId == uploaderUserId && u.RoleId == userRole.Id);
-                    if (!isUserAuthorized)
-                    {
-                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
-                        return new BusinessLogicResult<UploadedPhotoViewModel>(succeeded: false, result: null,
-                            messages: messages);
-                    }
-                }
-                catch (Exception exception)
-                {
-                    messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InternalError));
-                    return new BusinessLogicResult<UploadedPhotoViewModel>(succeeded: false, result: null,
-                        messages: messages, exception: exception);
-                }
-
                 bool checkFileType;
                 try
                 {
