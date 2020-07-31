@@ -58,7 +58,8 @@ namespace Data.DataAccess.Context
                 ContactEmail = "abolfazl.sh1374@gmail.com",
                 AboutUs = "We're The Transport Team",
                 ContactNumber = "+98 937 733 9223",
-                Logo = "abcd"
+                Logo = "abcd",
+                OffersCountLimit = 5
             };
 
             modelBuilder.Entity<Settings>().HasData(settings);

@@ -52,7 +52,7 @@ namespace BusinessLogic
                         messages: messages, exception: exception);
                 }
 
-                var feedback = await _utility.MapAsync<User, Feedback>(user);
+                var feedback = await _utility.MapAsync<SendFeedbackViewModel, Feedback>(sendFeedbackViewModel);
                 feedback.Text = sendFeedbackViewModel.Text;
                 feedback.CreateDateTime = DateTime.Now;
 
@@ -220,7 +220,7 @@ namespace BusinessLogic
                 contactUs.CreateDateTime = DateTime.Now;
                 await _contactUsRepository.AddAsync(contactUs);
                 
-                messages.Add(new BusinessLogicMessage(type: MessageType.Info, message: MessageId.TransporterExists));
+                messages.Add(new BusinessLogicMessage(type: MessageType.Info, message: MessageId.EntitySuccessfullyAdded));
                 return new BusinessLogicResult(succeeded: true, messages: messages);
             }
             catch (Exception exception)

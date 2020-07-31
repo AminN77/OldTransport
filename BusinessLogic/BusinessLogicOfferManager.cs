@@ -617,10 +617,8 @@ namespace BusinessLogic
 
                     if (offer == null || offer.IsDeleted)
                     {
-                        messages.Add(new BusinessLogicMessage(type: MessageType.Error,
-                                message: MessageId.ProjectNotFound, BusinessLogicSetting.UserDisplayName));
-                        return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
-                           messages: messages);
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.EntityDoesNotExist));
+                        return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null, messages: messages);
                     }
 
                     Transporter transporter;
@@ -637,10 +635,8 @@ namespace BusinessLogic
 
                     if (transporter.UserId != editorUserId)
                     {
-                        messages.Add(new BusinessLogicMessage(type: MessageType.Error,
-                                message: MessageId.AccessDenied, BusinessLogicSetting.UserDisplayName));
-                        return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null,
-                           messages: messages);
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
+                        return new BusinessLogicResult<EditOfferViewModel>(succeeded: false, result: null, messages: messages);
                     }
 
                     editOfferViewModel.TransporterId = transporter.Id;
@@ -684,7 +680,7 @@ namespace BusinessLogic
                 }
 
                 messages.Add(
-                    new BusinessLogicMessage(type: MessageType.Info, message: MessageId.UserSuccessfullyEdited));
+                    new BusinessLogicMessage(type: MessageType.Info, message: MessageId.EntitySuccessfullyUpdated));
                 return new BusinessLogicResult<EditOfferViewModel>(succeeded: true, result: editOfferViewModel,
                     messages: messages);
             }
