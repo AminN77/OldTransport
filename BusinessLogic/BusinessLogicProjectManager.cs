@@ -24,12 +24,14 @@ namespace BusinessLogic
         private readonly IRepository<UserRole> _userRoleRepository;
         private readonly IRepository<User> _userRepository;
         private readonly IRepository<Offer> _offerRepository;
+        private readonly IRepository<Country> _countryRepository;
+        private readonly IRepository<City> _cityRepository;
         private readonly BusinessLogicUtility _utility;
 
         public BusinessLogicProjectManager(IRepository<Merchant> merchantRepository, IRepository<Project> projectRepository,
                 BusinessLogicUtility utility, IRepository<Accept> acceptRepository, IRepository<Role> roleRepository,
                 IRepository<UserRole> userRoleRepository, IRepository<User> userRepository, IRepository<Offer> offerRepository,
-                IRepository<Transporter> transporerRepository)
+                IRepository<Transporter> transporerRepository, IRepository<Country> countryRepository, IRepository<City> cityRepository)
         {
             _merchantRepository = merchantRepository;
             _projectRepository = projectRepository;
@@ -39,6 +41,8 @@ namespace BusinessLogic
             _userRepository = userRepository;
             _offerRepository = offerRepository;
             _transporerRepository = transporerRepository;
+            _cityRepository = cityRepository;
+            _countryRepository = countryRepository;
             _utility = utility;
         }
 
@@ -1043,6 +1047,30 @@ namespace BusinessLogic
             {
                 messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
                 return new BusinessLogicResult<int?>(succeeded: false, messages: messages, exception: exception, result: null);
+            }
+        }
+
+        public async Task<IBusinessLogicResult<ListResultViewModel<CountriesViewModel>>> GetCountriesAsync()
+        {
+            var messages = new List<IBusinessLogicMessage>();
+            try
+            {
+                var countriesViewModel = await _countryRepository.DeferredSelectAll()
+                    .ProjectTo<CountriesViewModel>(new MapperConfiguration(config =>
+                        config.CreateMap<Country, CountriesViewModel>())).ToListAsync();
+
+                var result = new ListResultViewModel<CountriesViewModel>
+                {
+                    Results = countriesViewModel
+                };
+
+                return new BusinessLogicResult<ListResultViewModel<CountriesViewModel>>(succeeded: true,
+                    result: result, messages: messages);
+            }
+            catch (Exception exception)
+            {
+                messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                return new BusinessLogicResult<ListResultViewModel<CountriesViewModel>> (succeeded: false, messages: messages, exception: exception, result: null);
             }
         }
 
