@@ -1074,6 +1074,30 @@ namespace BusinessLogic
             }
         }
 
+        public async Task<IBusinessLogicResult<ListResultViewModel<CitiesViewModel>>> GetCitiesAsync(int countryId)
+        {
+            var messages = new List<IBusinessLogicMessage>();
+            try
+            {
+                var citiesViewModel = await _cityRepository.DeferredSelectAll(c => c.CountryId == countryId)
+                    .ProjectTo<CitiesViewModel>(new MapperConfiguration(config =>
+                        config.CreateMap<Country, CitiesViewModel>())).ToListAsync();
+
+                var result = new ListResultViewModel<CitiesViewModel>
+                {
+                    Results = citiesViewModel
+                };
+
+                return new BusinessLogicResult<ListResultViewModel<CitiesViewModel>>(succeeded: true,
+                    result: result, messages: messages);
+            }
+            catch (Exception exception)
+            {
+                messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                return new BusinessLogicResult<ListResultViewModel<CitiesViewModel>>(succeeded: false, messages: messages, exception: exception, result: null);
+            }
+        }
+
         public void Dispose()
         {
             _projectRepository.Dispose();

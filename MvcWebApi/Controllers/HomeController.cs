@@ -75,5 +75,14 @@ namespace MvcWebApi.Controllers
             if (!result.Succeeded) return StatusCode(500, result);
             return Ok(result);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> Citiies(int countryId)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var result = await _businessLogicProjectManager.GetCitiesAsync(countryId);
+            if (!result.Succeeded) return StatusCode(500, result);
+            return Ok(result);
+        }
     }
 }
