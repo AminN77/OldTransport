@@ -1,6 +1,7 @@
 ﻿using Cross.Abstractions.EntityEnums;
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.Reflection;
 
 namespace ViewModels
 {
@@ -125,5 +126,17 @@ namespace ViewModels
     public class DeleteProjectViewModel : EditProjectViewModel
     {
         public bool IsDeleted { get; set; }
+    }
+
+    public class CountriesViewModel
+    {
+        public int Id { get; set; }
+
+        public string Name { get; set; }
+    }
+
+    public class CitiesViewModel : CountriesViewModel
+    {
+        public int CountryId { get; set; }
     }
 }

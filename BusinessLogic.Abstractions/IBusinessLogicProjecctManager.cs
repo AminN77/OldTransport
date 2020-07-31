@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using ViewModels;
 
@@ -22,5 +20,6 @@ namespace BusinessLogic.Abstractions
         Task<IBusinessLogicResult> DeactivateProjectAsync(int projectId, int deactivatorUsertId);
         Task<IBusinessLogicResult> ActivateProjectAsync(int projectId, int activatorUserId);
         Task<IBusinessLogicResult<int?>> CountProjectsAsync();
+        Task<IBusinessLogicResult<ListResultViewModel<CountriesViewModel>>> GetCountriesAsync();
     }
 }
