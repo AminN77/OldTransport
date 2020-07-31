@@ -73,7 +73,7 @@ namespace MvcWebApi.Controllers
             return Ok(res);
         }
 
-        [HttpPost]
+        [HttpPut]
         [Authorize]
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> EditUser(EditUserViewModel editUserViewModel)

@@ -219,10 +219,13 @@ namespace BusinessLogic
                     }
                     catch (Exception exception)
                     {
-                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.EntitySuccessfullyDeleted));
-                        return new BusinessLogicResult<DeleteProjectViewModel>(succeeded: true, result: null,
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
+                        return new BusinessLogicResult<DeleteProjectViewModel>(succeeded: false, result: null,
                             messages: messages, exception: exception);
                     }
+
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Info, message: MessageId.EntitySuccessfullyDeleted));
+                    return new BusinessLogicResult<DeleteProjectViewModel>(succeeded: true, result: null, messages: messages);
                 }
                 else if (projectAccept.Status == AcceptStatus.Mcanceled || projectAccept.Status == AcceptStatus.TCanceled)
                 {
