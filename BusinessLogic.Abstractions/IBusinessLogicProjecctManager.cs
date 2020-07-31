@@ -21,5 +21,6 @@ namespace BusinessLogic.Abstractions
         Task<IBusinessLogicResult> ActivateProjectAsync(int projectId, int activatorUserId);
         Task<IBusinessLogicResult<int?>> CountProjectsAsync();
         Task<IBusinessLogicResult<ListResultViewModel<CountriesViewModel>>> GetCountriesAsync();
+        Task<IBusinessLogicResult<ListResultViewModel<CitiesViewModel>>> GetCitiesAsync(int countryId);
     }
 }
