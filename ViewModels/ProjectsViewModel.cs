@@ -73,6 +73,11 @@ namespace ViewModels
         public int AcceptedOfferId { get; set; }
 
         public int MerchantId { get; set; }
+
+        [Display(Name = "Cargo")]
+        [Required(ErrorMessage = "Please enter {0}")]
+        [MaxLength(500)]
+        public string Cargo { get; set; }
     }
 
     public class EditProjectViewModel : AddProjectViewModel
@@ -110,11 +115,6 @@ namespace ViewModels
         [Required(ErrorMessage = "Please enter {0}")]
         [Range(0.0, double.MaxValue)]
         public double Quantity { get; set; }
-
-        [Display(Name = "Cargo")]
-        [Required(ErrorMessage = "Please enter {0}")]
-        [MaxLength(500)]
-        public string Cargo { get; set; }
 
         public string MerchantName { get; set; }
 

@@ -621,7 +621,8 @@ namespace BusinessLogic
                             BeginningCountry = pm.p.BeginningCountry,
                             DestinationCity = pm.p.DestinationCity,
                             DestinationCountry = pm.p.DestinationCountry,
-                            Budget = pm.p.Budget
+                            Budget = pm.p.Budget,
+                            Cargo = pm.p.Cargo
                         });
 
                     //.ProjectTo<ListProjectViewModel>(new MapperConfiguration(config =>
