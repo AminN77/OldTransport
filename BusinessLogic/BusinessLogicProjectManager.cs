@@ -339,6 +339,9 @@ namespace BusinessLogic
                 project.BeginningCountry = editProjectViewModel.DestinationCountry;
                 project.Budget = editProjectViewModel.Budget;
                 project.Weight = editProjectViewModel.Weight;
+                project.Cargo = editProjectViewModel.Cargo;
+                project.Quantity = editProjectViewModel.Quantity;
+                project.Dimention = editProjectViewModel.Dimention;
 
                 //try
                 //{
