@@ -84,6 +84,9 @@ namespace ViewModels
     {
         [Required]
         public int Id { get; set; }
+
+        [Required]
+        public bool IsEnabled { get; set; }
     }
 
     public class AcceptOfferViewModel
