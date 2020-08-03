@@ -587,6 +587,16 @@ namespace BusinessLogic
                         (o, a) => o).Distinct().SingleOrDefaultAsync();
                     if (acceptedOffer != null) item.AcceptedOfferId = acceptedOffer.Id;
                 }
+                foreach (var item in projectListViewModels)
+                {
+                    var acceptedOffer = await _offerRepository.DeferredWhere(o => o.ProjectId == item.Id)
+                        .Join(_acceptRepository.DeferredSelectAll(),
+                        o => o.Id,
+                        a => a.OfferId,
+                        (o, a) => o).Distinct().SingleOrDefaultAsync();
+                    if (acceptedOffer != null) item.AcceptedOfferId = acceptedOffer.Id;
+                }
+
 
                 return new BusinessLogicResult<ListResultViewModel<ListProjectViewModel>>(succeeded: true,
                     result: result, messages: messages);
@@ -1085,7 +1095,7 @@ namespace BusinessLogic
             {
                 var citiesViewModel = await _cityRepository.DeferredSelectAll(c => c.CountryId == countryId)
                     .ProjectTo<CitiesViewModel>(new MapperConfiguration(config =>
-                        config.CreateMap<Country, CitiesViewModel>())).ToListAsync();
+                        config.CreateMap<City, CitiesViewModel>())).ToListAsync();
 
                 var result = new ListResultViewModel<CitiesViewModel>
                 {
