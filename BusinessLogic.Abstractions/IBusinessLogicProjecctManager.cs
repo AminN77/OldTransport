@@ -8,7 +8,7 @@ namespace BusinessLogic.Abstractions
     {
         Task<IBusinessLogicResult<AddProjectViewModel>> AddProjectAsync(AddProjectViewModel addProjectViewModel, int AdderUserId);
         Task<IBusinessLogicResult<ListResultViewModel<ListProjectViewModel>>> GetProjectsAsync(int page,
-            int pageSize, string search, string sort, string filter);
+            int pageSize, string search, string sort, string filter, int? transporterId);
         Task<IBusinessLogicResult<ListResultViewModel<ListProjectViewModel>>> GetMerchantProjectsAsync(int page,
             int pageSize, string search, string sort, string filter, int getterUserId);
         Task<IBusinessLogicResult<EditProjectViewModel>> EditProjectAsync(EditProjectViewModel editProjectViewModel, int editorUserId);
