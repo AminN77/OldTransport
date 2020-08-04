@@ -78,6 +78,8 @@ namespace ViewModels
         [Required(ErrorMessage = "Please enter {0}")]
         [MaxLength(500)]
         public string Cargo { get; set; }
+
+        public bool HasOfferFromTransporter { get; set; }
     }
 
     public class EditProjectViewModel : AddProjectViewModel

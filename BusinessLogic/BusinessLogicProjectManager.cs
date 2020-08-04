@@ -531,7 +531,7 @@ namespace BusinessLogic
             }
         }
 
-        public async Task<IBusinessLogicResult<ListResultViewModel<ListProjectViewModel>>> GetProjectsAsync(int page, int pageSize, string search, string sort, string filter)
+        public async Task<IBusinessLogicResult<ListResultViewModel<ListProjectViewModel>>> GetProjectsAsync(int page, int pageSize, string search, string sort, string filter, int? transporterId)
         {
             var messages = new List<IBusinessLogicMessage>();
 
@@ -587,16 +587,13 @@ namespace BusinessLogic
                         (o, a) => o).Distinct().SingleOrDefaultAsync();
                     if (acceptedOffer != null) item.AcceptedOfferId = acceptedOffer.Id;
                 }
-                foreach (var item in projectListViewModels)
+                if (transporterId.HasValue)
                 {
-                    var acceptedOffer = await _offerRepository.DeferredWhere(o => o.ProjectId == item.Id)
-                        .Join(_acceptRepository.DeferredSelectAll(),
-                        o => o.Id,
-                        a => a.OfferId,
-                        (o, a) => o).Distinct().SingleOrDefaultAsync();
-                    if (acceptedOffer != null) item.AcceptedOfferId = acceptedOffer.Id;
+                    foreach (var item in projectListViewModels)
+                    {
+                        item.HasOfferFromTransporter = _offerRepository.DeferredWhere(o => o.ProjectId == item.Id && o.TransporterId == transporterId).Distinct().Any();
+                    }
                 }
-
 
                 return new BusinessLogicResult<ListResultViewModel<ListProjectViewModel>>(succeeded: true,
                     result: result, messages: messages);
