@@ -33,5 +33,6 @@ namespace BusinessLogic.Abstractions
         Task<IBusinessLogicResult<int?>> MerchantAuthenticator(int userId);
         Task<IBusinessLogicResult<int?>> TransporterAuthenticator(int userId);
         Task<IBusinessLogicResult<UploadedPhotoViewModel>> UploadPhotoAsync(IFormFile formFile);
+        Task<IBusinessLogicResult> ResendSendVerificationEmailAsync(EmailViewModel emailViewModel);
     }
 }

@@ -1275,6 +1275,41 @@ namespace BusinessLogic
             }
         }
 
+        public async Task<IBusinessLogicResult> ResendSendVerificationEmailAsync(EmailViewModel emailViewModel)
+        {
+            var messages = new List<IBusinessLogicMessage>();
+            try
+            {
+                User user;
+                try
+                {
+                    user = await _userRepository.DeferredSelectAll().SingleOrDefaultAsync(u => u.EmailAddress == emailViewModel.EmailAddress);
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                    return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+                }
+
+                if (user != null && !user.IsEnabled)
+                {
+                    await SendVerificationEmailAsync(emailViewModel, user.ActivationCode);
+
+                    messages.Add(new BusinessLogicMessage(MessageType.Info, MessageId.VerificationEmailSuccessfullySent));
+                    return new BusinessLogicResult(succeeded: true, messages: messages);
+                }
+
+                messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
+                return new BusinessLogicResult(succeeded: false, messages: messages);
+
+            }
+            catch (Exception exception)
+            {
+                messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+            }
+        }
+
         public async Task<IBusinessLogicResult> VerifyActivationCodeAysnc(ActivationCodeViewModel activationCodeViewModel)
         {
             var messages = new List<IBusinessLogicMessage>();
