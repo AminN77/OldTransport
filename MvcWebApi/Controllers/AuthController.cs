@@ -99,5 +99,13 @@ namespace MvcWebApi.Controllers
             if (!res.Succeeded) return StatusCode(500, res);
             return Ok(res);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> ResendEmail(EmailViewModel emailViewModel)
+        {
+            var res = await _businessLogicUserManager.ResendSendVerificationEmailAsync(emailViewModel);
+            if (!res.Succeeded) return StatusCode(500, res);
+            return Ok(res);
+        }
     }
 }
