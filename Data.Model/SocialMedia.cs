@@ -1,9 +1,10 @@
 ﻿using Data.Abstractions.Models;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Data.Model
 {
-    public class SocialMedia : IEntity<int>
+    public class SocialMedia : ISocialMedia
     {
         [Key]
         public int Id { get; set; }
@@ -13,5 +14,10 @@ namespace Data.Model
 
         [Required]
         public string Link { get; set; }
+
+        [ForeignKey("Settings")]
+        public int SettingsId { get; set; }
+
+        public Settings Settings { get; set; }
     }
 }

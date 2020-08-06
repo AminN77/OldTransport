@@ -73,7 +73,7 @@ namespace MvcWebApi.Controllers
             return Ok(res);
         }
 
-        [HttpPost]
+        [HttpPut]
         [Authorize]
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> EditUser(EditUserViewModel editUserViewModel)
@@ -83,6 +83,17 @@ namespace MvcWebApi.Controllers
             var res = await _businessLogicUserManager.EditUserAsync(editUserViewModel, editorUserId);
             if (!res.Succeeded) return StatusCode(500, res);
             return Ok(res);
+        }
+
+        [HttpPost]
+        [Authorize]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> UploadPhoto(IFormFile formFile)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var result = await _businessLogicUserManager.UploadPhotoAsync(formFile);
+            if (!result.Succeeded) return StatusCode(500, result);
+            return Ok(result);
         }
 
         [HttpGet]

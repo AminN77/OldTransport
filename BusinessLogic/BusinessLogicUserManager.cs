@@ -8,6 +8,7 @@ using Cross.Abstractions;
 using Cross.Abstractions.EntityEnums;
 using Data.Abstractions;
 using Data.Model;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ViewModels;
@@ -732,19 +733,6 @@ namespace BusinessLogic
                         messages: messages);
                 }
 
-                if (editUserViewModel.file != null)
-                {
-                    var check = _fileService.FileTypeValidator(editUserViewModel.file, Cross.Abstractions.EntityEnums.FileTypes.ProfilePhoto);
-                    if (!check)
-                    {
-                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.InvalidFileType));
-                        return new BusinessLogicResult<EditUserViewModel>(succeeded: false, result: null,
-                            messages: messages);
-                    }
-                    //var resizedPhoto = _fileService.PhotoResizer(file);
-                    editUserViewModel.Picture = await _fileService.SaveFile(editUserViewModel.file, Cross.Abstractions.EntityEnums.FileTypes.ProfilePhoto);
-                }
-
                 User user;
 
                 try
@@ -1279,6 +1267,41 @@ namespace BusinessLogic
                 }
                 messages.Add(new BusinessLogicMessage(MessageType.Info, MessageId.VerificationEmailSuccessfullySent));
                 return new BusinessLogicResult(succeeded: true, messages: messages);
+            }
+            catch (Exception exception)
+            {
+                messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+            }
+        }
+
+        public async Task<IBusinessLogicResult> ResendSendVerificationEmailAsync(EmailViewModel emailViewModel)
+        {
+            var messages = new List<IBusinessLogicMessage>();
+            try
+            {
+                User user;
+                try
+                {
+                    user = await _userRepository.DeferredSelectAll().SingleOrDefaultAsync(u => u.EmailAddress == emailViewModel.EmailAddress);
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                    return new BusinessLogicResult(succeeded: false, messages: messages, exception: exception);
+                }
+
+                if (user != null && !user.IsEnabled)
+                {
+                    await SendVerificationEmailAsync(emailViewModel, user.ActivationCode);
+
+                    messages.Add(new BusinessLogicMessage(MessageType.Info, MessageId.VerificationEmailSuccessfullySent));
+                    return new BusinessLogicResult(succeeded: true, messages: messages);
+                }
+
+                messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.AccessDenied));
+                return new BusinessLogicResult(succeeded: false, messages: messages);
+
             }
             catch (Exception exception)
             {
@@ -1857,6 +1880,55 @@ namespace BusinessLogic
             {
                 messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
                 return new BusinessLogicResult<int?>(succeeded: false, messages: messages, exception: exception, result: null);
+            }
+        }
+
+        public async Task<IBusinessLogicResult<UploadedPhotoViewModel>> UploadPhotoAsync(IFormFile formFile)
+        {
+            var messages = new List<IBusinessLogicMessage>();
+            try
+            {
+                bool checkFileType;
+                try
+                {
+                    checkFileType = _fileService.FileTypeValidator(formFile, FileTypes.Photo);
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                    return new BusinessLogicResult<UploadedPhotoViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
+                }
+
+                if (checkFileType)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InvalidFileType));
+                    return new BusinessLogicResult<UploadedPhotoViewModel>(succeeded: false, messages: messages, result: null);
+                }
+
+                UploadedPhotoViewModel uploadedPhotoViewModel = null;
+                try
+                {
+                    uploadedPhotoViewModel.Picture = _fileService.SaveFile(formFile, FileTypes.Photo);
+                }
+                catch (Exception exception)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                    return new BusinessLogicResult<UploadedPhotoViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
+                }
+
+                if (uploadedPhotoViewModel == null)
+                {
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                    return new BusinessLogicResult<UploadedPhotoViewModel>(succeeded: false, messages: messages, result: null);
+                }
+
+                messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.FileSuccessfullyUploaded));
+                return new BusinessLogicResult<UploadedPhotoViewModel>(succeeded: true, messages: messages, result: uploadedPhotoViewModel);
+            }
+            catch (Exception exception)
+            {
+                messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                return new BusinessLogicResult<UploadedPhotoViewModel>(succeeded: false, messages: messages, exception: exception, result: null);
             }
         }
 

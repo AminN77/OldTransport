@@ -51,8 +51,6 @@ namespace ViewModels
         [DataType(DataType.MultilineText)]
         public string Bio { get; set; }
 
-        public IFormFile file { get; set; }
-
         public string PhoneNumber { get; set; }
     }
 
@@ -176,4 +174,12 @@ namespace ViewModels
     }
 
     public class UserForgetPasswordViewModel : EmailViewModel { }
+
+    public class UploadedPhotoViewModel
+    {
+        [Required(ErrorMessage = "لطفا {0} را وارد کنید.")]
+        [Display(Name = "Picture")]
+        [DataType(DataType.ImageUrl)]
+        public string Picture { get; set; }
+    }
 }

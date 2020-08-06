@@ -24,12 +24,14 @@ namespace BusinessLogic
         private readonly IRepository<UserRole> _userRoleRepository;
         private readonly IRepository<User> _userRepository;
         private readonly IRepository<Offer> _offerRepository;
+        private readonly IRepository<Country> _countryRepository;
+        private readonly IRepository<City> _cityRepository;
         private readonly BusinessLogicUtility _utility;
 
         public BusinessLogicProjectManager(IRepository<Merchant> merchantRepository, IRepository<Project> projectRepository,
                 BusinessLogicUtility utility, IRepository<Accept> acceptRepository, IRepository<Role> roleRepository,
                 IRepository<UserRole> userRoleRepository, IRepository<User> userRepository, IRepository<Offer> offerRepository,
-                IRepository<Transporter> transporerRepository)
+                IRepository<Transporter> transporerRepository, IRepository<Country> countryRepository, IRepository<City> cityRepository)
         {
             _merchantRepository = merchantRepository;
             _projectRepository = projectRepository;
@@ -39,6 +41,8 @@ namespace BusinessLogic
             _userRepository = userRepository;
             _offerRepository = offerRepository;
             _transporerRepository = transporerRepository;
+            _cityRepository = cityRepository;
+            _countryRepository = countryRepository;
             _utility = utility;
         }
 
@@ -219,10 +223,13 @@ namespace BusinessLogic
                     }
                     catch (Exception exception)
                     {
-                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.EntitySuccessfullyDeleted));
-                        return new BusinessLogicResult<DeleteProjectViewModel>(succeeded: true, result: null,
+                        messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
+                        return new BusinessLogicResult<DeleteProjectViewModel>(succeeded: false, result: null,
                             messages: messages, exception: exception);
                     }
+
+                    messages.Add(new BusinessLogicMessage(type: MessageType.Info, message: MessageId.EntitySuccessfullyDeleted));
+                    return new BusinessLogicResult<DeleteProjectViewModel>(succeeded: true, result: null, messages: messages);
                 }
                 else if (projectAccept.Status == AcceptStatus.Mcanceled || projectAccept.Status == AcceptStatus.TCanceled)
                 {
@@ -332,6 +339,9 @@ namespace BusinessLogic
                 project.BeginningCountry = editProjectViewModel.DestinationCountry;
                 project.Budget = editProjectViewModel.Budget;
                 project.Weight = editProjectViewModel.Weight;
+                project.Cargo = editProjectViewModel.Cargo;
+                project.Quantity = editProjectViewModel.Quantity;
+                project.Dimention = editProjectViewModel.Dimention;
 
                 //try
                 //{
@@ -521,7 +531,7 @@ namespace BusinessLogic
             }
         }
 
-        public async Task<IBusinessLogicResult<ListResultViewModel<ListProjectViewModel>>> GetProjectsAsync(int page, int pageSize, string search, string sort, string filter)
+        public async Task<IBusinessLogicResult<ListResultViewModel<ListProjectViewModel>>> GetProjectsAsync(int page, int pageSize, string search, string sort, string filter, int? transporterId)
         {
             var messages = new List<IBusinessLogicMessage>();
 
@@ -530,6 +540,103 @@ namespace BusinessLogic
                 var projectsQuery = _projectRepository.DeferredSelectAll(p => !p.IsDeleted)
                     .ProjectTo<ListProjectViewModel>(new MapperConfiguration(config =>
                         config.CreateMap<Project, ListProjectViewModel>()));
+
+                if (!string.IsNullOrEmpty(search))
+                {
+                    projectsQuery = projectsQuery.Where(project =>
+                        project.BeginningCountry.Contains(search) || project.DestinationCountry.Contains(search) || project.DestinationCity.Contains(search)
+                        || project.BeginningCity.Contains(search));
+
+                }
+
+                if (!string.IsNullOrWhiteSpace(filter))
+                {
+                    projectsQuery = projectsQuery.ApplyFilter(filter);
+                }
+
+                if (string.IsNullOrWhiteSpace(sort))
+                {
+                    sort = nameof(ListProjectViewModel.BeginningCountry) + ":Asc";
+                }
+                else
+                {
+                    var propertyName = sort.Split(':')[0];
+                    var propertyInfo = typeof(ListProjectViewModel).GetProperties().SingleOrDefault(p =>
+                        p.Name.Equals(propertyName, StringComparison.InvariantCultureIgnoreCase));
+                    if (propertyInfo == null) sort = nameof(ListProjectViewModel.BeginningCountry) + ":Asc";
+                }
+
+                projectsQuery = projectsQuery.ApplyOrderBy(sort);
+                var projectListViewModels = await projectsQuery.PaginateAsync(page, pageSize);
+                var recordsCount = await projectsQuery.CountAsync();
+                var pageCount = (int)Math.Ceiling(recordsCount / (double)pageSize);
+                var result = new ListResultViewModel<ListProjectViewModel>
+                {
+                    Results = projectListViewModels,
+                    Page = page,
+                    PageSize = pageSize,
+                    TotalEntitiesCount = recordsCount,
+                    TotalPagesCount = pageCount
+                };
+                foreach (var item in projectListViewModels)
+                {
+                    var acceptedOffer = await _offerRepository.DeferredWhere(o => o.ProjectId == item.Id)
+                        .Join(_acceptRepository.DeferredSelectAll(),
+                        o => o.Id,
+                        a => a.OfferId,
+                        (o, a) => o).Distinct().SingleOrDefaultAsync();
+                    if (acceptedOffer != null) item.AcceptedOfferId = acceptedOffer.Id;
+                }
+                if (transporterId.HasValue)
+                {
+                    foreach (var item in projectListViewModels)
+                    {
+                        item.HasOfferFromTransporter = _offerRepository.DeferredWhere(o => o.ProjectId == item.Id && o.TransporterId == transporterId).Distinct().Any();
+                    }
+                }
+
+                return new BusinessLogicResult<ListResultViewModel<ListProjectViewModel>>(succeeded: true,
+                    result: result, messages: messages);
+            }
+            catch (Exception exception)
+            {
+                messages.Add(new BusinessLogicMessage(type: MessageType.Error, message: MessageId.Exception));
+                return new BusinessLogicResult<ListResultViewModel<ListProjectViewModel>>(succeeded: false,
+                    result: null, messages: messages, exception: exception);
+            }
+
+        }
+
+        public async Task<IBusinessLogicResult<ListResultViewModel<ListProjectViewModel>>> GetMerchantProjectsAsync(int page, int pageSize, string search, string sort, string filter, int getterUserId)
+        {
+            var messages = new List<IBusinessLogicMessage>();
+
+            try
+            {
+                var projectsQuery = _projectRepository.DeferredSelectAll(p => !p.IsDeleted)
+                        .Join(_merchantRepository.DeferredSelectAll(),
+                        p => p.MerchantId,
+                        m => m.Id,
+                        (p, m) => new { p, m })
+                        .Join(_userRepository.DeferredSelectAll(u => u.Id == getterUserId),
+                        pm => pm.m.UserId,
+                        u => u.Id,
+                        (pm, u) => new ListProjectViewModel()
+                        {
+                            Id = pm.p.Id,
+                            IsEnabled = pm.p.IsEnabled,
+                            MerchantId = pm.m.Id,
+                            Title = pm.p.Title,
+                            BeginningCity = pm.p.BeginningCity,
+                            BeginningCountry = pm.p.BeginningCountry,
+                            DestinationCity = pm.p.DestinationCity,
+                            DestinationCountry = pm.p.DestinationCountry,
+                            Budget = pm.p.Budget,
+                            Cargo = pm.p.Cargo
+                        });
+
+                    //.ProjectTo<ListProjectViewModel>(new MapperConfiguration(config =>
+                    //    config.CreateMap<Project, ListProjectViewModel>()));
 
                 if (!string.IsNullOrEmpty(search))
                 {
@@ -951,6 +1058,54 @@ namespace BusinessLogic
             {
                 messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
                 return new BusinessLogicResult<int?>(succeeded: false, messages: messages, exception: exception, result: null);
+            }
+        }
+
+        public async Task<IBusinessLogicResult<ListResultViewModel<CountriesViewModel>>> GetCountriesAsync()
+        {
+            var messages = new List<IBusinessLogicMessage>();
+            try
+            {
+                var countriesViewModel = await _countryRepository.DeferredSelectAll()
+                    .ProjectTo<CountriesViewModel>(new MapperConfiguration(config =>
+                        config.CreateMap<Country, CountriesViewModel>())).ToListAsync();
+
+                var result = new ListResultViewModel<CountriesViewModel>
+                {
+                    Results = countriesViewModel
+                };
+
+                return new BusinessLogicResult<ListResultViewModel<CountriesViewModel>>(succeeded: true,
+                    result: result, messages: messages);
+            }
+            catch (Exception exception)
+            {
+                messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                return new BusinessLogicResult<ListResultViewModel<CountriesViewModel>> (succeeded: false, messages: messages, exception: exception, result: null);
+            }
+        }
+
+        public async Task<IBusinessLogicResult<ListResultViewModel<CitiesViewModel>>> GetCitiesAsync(int countryId)
+        {
+            var messages = new List<IBusinessLogicMessage>();
+            try
+            {
+                var citiesViewModel = await _cityRepository.DeferredSelectAll(c => c.CountryId == countryId)
+                    .ProjectTo<CitiesViewModel>(new MapperConfiguration(config =>
+                        config.CreateMap<City, CitiesViewModel>())).ToListAsync();
+
+                var result = new ListResultViewModel<CitiesViewModel>
+                {
+                    Results = citiesViewModel
+                };
+
+                return new BusinessLogicResult<ListResultViewModel<CitiesViewModel>>(succeeded: true,
+                    result: result, messages: messages);
+            }
+            catch (Exception exception)
+            {
+                messages.Add(new BusinessLogicMessage(type: MessageType.Critical, message: MessageId.InternalError));
+                return new BusinessLogicResult<ListResultViewModel<CitiesViewModel>>(succeeded: false, messages: messages, exception: exception, result: null);
             }
         }
 

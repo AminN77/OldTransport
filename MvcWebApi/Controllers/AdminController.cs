@@ -97,7 +97,7 @@ namespace MvcWebApi.Controllers
         [HttpPut]
         [IgnoreAntiforgeryToken]
         [Authorize(Policy = CustomRoles.Admin)]
-        public async Task<IActionResult> Settings(SettingsViewModel settingsViewModel)
+        public async Task<IActionResult> Settings(SettingsViewModels settingsViewModel)
         {
             if (!ModelState.IsValid) return BadRequest();
             var editorUserId = HttpContext.GetCurrentUserId();
@@ -180,6 +180,53 @@ namespace MvcWebApi.Controllers
             if (!ModelState.IsValid) return BadRequest();
             var getterUserId = HttpContext.GetCurrentUserId();
             var res = await _businessLogicFeedbackManager.GetContactMessageAsync(messageId, getterUserId);
+            if (!res.Succeeded) return StatusCode(500, res);
+            return Ok(res);
+        }
+
+        [HttpPost]
+        [Authorize(Policy = CustomRoles.Admin)]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> AddHowItWorks(HowItWorksViewModel howItWorksViewModel)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var adderUserId = HttpContext.GetCurrentUserId();
+            var res = await _businessLogicSettingsManager.AdminAddHowItWorksAsync(adderUserId, howItWorksViewModel);
+            if (!res.Succeeded) return StatusCode(500, res);
+            return Ok(res);
+        }
+
+        [HttpPut]
+        [Authorize(Policy = CustomRoles.Admin)]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> EditHowItWorks(EditHowItWorksViewModel editHowItWorksViewModel)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var editorUserId = HttpContext.GetCurrentUserId();
+            var res = await _businessLogicSettingsManager.AdminEditHowItWorksAsync(editorUserId, editHowItWorksViewModel);
+            if (!res.Succeeded) return StatusCode(500, res);
+            return Ok(res);
+        }
+
+        [HttpGet]
+        [Authorize(Policy = CustomRoles.Admin)]
+        public async Task<IActionResult> GetHowItWorks(int howItWorksId)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var getterUserId = HttpContext.GetCurrentUserId();
+            var res = await _businessLogicSettingsManager.AdminGetHowItWorksForEditAsync(getterUserId, howItWorksId);
+            if (!res.Succeeded) return StatusCode(500, res);
+            return Ok(res);
+        }
+
+        [HttpGet]
+        [IgnoreAntiforgeryToken]
+        [Authorize(Policy = CustomRoles.Admin)]
+        public async Task<IActionResult> DeleteHowItWorks(int howItWorksId)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var deleterUserId = HttpContext.GetCurrentUserId();
+            var res = await _businessLogicSettingsManager.AdminDeleteHowItWorksAsync(deleterUserId, howItWorksId);
             if (!res.Succeeded) return StatusCode(500, res);
             return Ok(res);
         }

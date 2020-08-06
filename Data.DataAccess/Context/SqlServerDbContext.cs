@@ -27,6 +27,7 @@ namespace Data.DataAccess.Context
         public DbSet<City> Cities { get; set; }
         public DbSet<ContactUs> ContactUs { get; set; }
         public DbSet<Feedback> Feedbacks { get; set; }
+        public DbSet<HowItWorks> HowItWorks { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -31,19 +31,19 @@ namespace MvcWebApi.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> HowItWorks()
+        public async Task<IActionResult> TermsAndConditions()
         {
             if (!ModelState.IsValid) return BadRequest();
-            var res = await _businessLogicSettingsManager.GetHowItWorks();
+            var res = await _businessLogicSettingsManager.GetTermsAndConditions();
             if (!res.Succeeded) return StatusCode(500, res);
             return Ok(res);
         }
 
         [HttpGet]
-        public async Task<IActionResult> TermsAndConditions()
+        public async Task<IActionResult> HowItWorksList()
         {
             if (!ModelState.IsValid) return BadRequest();
-            var res = await _businessLogicSettingsManager.GetTermsAndConditions();
+            var res = await _businessLogicSettingsManager.ListHowItWorksAsync();
             if (!res.Succeeded) return StatusCode(500, res);
             return Ok(res);
         }
@@ -63,6 +63,24 @@ namespace MvcWebApi.Controllers
         {
             if (!ModelState.IsValid) return BadRequest();
             var result = await _businessLogicFeedbackManager.ContactUsAsync(contactUsViewModel);
+            if (!result.Succeeded) return StatusCode(500, result);
+            return Ok(result);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Countries()
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var result = await _businessLogicProjectManager.GetCountriesAsync();
+            if (!result.Succeeded) return StatusCode(500, result);
+            return Ok(result);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Citiies(int countryId)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var result = await _businessLogicProjectManager.GetCitiesAsync(countryId);
             if (!result.Succeeded) return StatusCode(500, result);
             return Ok(result);
         }

@@ -45,7 +45,18 @@ namespace MvcWebApi.Controllers
         public async Task<IActionResult> OffersList(int page, int pageSize, string search, string sort, string filter)
         {
             if (!ModelState.IsValid) return BadRequest();
-            var result = await _businessLogicOfferManager.GetOfferAsync(page, pageSize, search, sort, filter);
+            var result = await _businessLogicOfferManager.GetOffersAsync(page, pageSize, search, sort, filter);
+            if (!result.Succeeded) return StatusCode(500, result);
+            return Ok(result);
+        }
+
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> TransporterOffersList(int page, int pageSize, string search, string sort, string filter)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var getterUserId = HttpContext.GetCurrentUserId();
+            var result = await _businessLogicOfferManager.GetTransporterOffersAsync(page, pageSize, search, sort, filter, getterUserId);
             if (!result.Succeeded) return StatusCode(500, result);
             await _panelHub.UpdateOffersListRealTime();
             return Ok(result);

@@ -1,6 +1,7 @@
 ﻿using Cross.Abstractions.EntityEnums;
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.Reflection;
 
 namespace ViewModels
 {
@@ -72,12 +73,22 @@ namespace ViewModels
         public int AcceptedOfferId { get; set; }
 
         public int MerchantId { get; set; }
+
+        [Display(Name = "Cargo")]
+        [Required(ErrorMessage = "Please enter {0}")]
+        [MaxLength(500)]
+        public string Cargo { get; set; }
+
+        public bool HasOfferFromTransporter { get; set; }
     }
 
     public class EditProjectViewModel : AddProjectViewModel
     {
         [Required]
         public int Id { get; set; }
+
+        [Required]
+        public bool IsEnabled { get; set; }
     }
 
     public class AcceptOfferViewModel
@@ -110,11 +121,6 @@ namespace ViewModels
         [Range(0.0, double.MaxValue)]
         public double Quantity { get; set; }
 
-        [Display(Name = "Cargo")]
-        [Required(ErrorMessage = "Please enter {0}")]
-        [MaxLength(500)]
-        public string Cargo { get; set; }
-
         public string MerchantName { get; set; }
 
         public int Offerscount { get; set; }
@@ -125,5 +131,17 @@ namespace ViewModels
     public class DeleteProjectViewModel : EditProjectViewModel
     {
         public bool IsDeleted { get; set; }
+    }
+
+    public class CountriesViewModel
+    {
+        public int Id { get; set; }
+
+        public string Name { get; set; }
+    }
+
+    public class CitiesViewModel : CountriesViewModel
+    {
+        public int CountryId { get; set; }
     }
 }

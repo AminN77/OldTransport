@@ -4,13 +4,10 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Internal;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Cross
 {
@@ -29,7 +26,7 @@ namespace Cross
             var extention = Path.GetExtension(file.FileName);
             switch (fileType)
             {
-                case FileTypes.ProfilePhoto:
+                case FileTypes.Photo:
                     if (extention == ".jpg" || extention == ".png" || extention == ".JPG" || extention == ".PNG") return true;
                     return false;
             }
@@ -77,13 +74,13 @@ namespace Cross
             }
         }
 
-        public async Task<string> SaveFile(IFormFile file, FileTypes fileType)
+        public string SaveFile(IFormFile file, FileTypes fileType)
         {
             var typePath = "";
             switch (fileType)
             {
-                case FileTypes.ProfilePhoto:
-                    typePath = "Uploads/Images/ProfilePhotos";
+                case FileTypes.Photo:
+                    typePath = "Uploads/Images";
                     break;
             }
             if (typePath == null)
@@ -96,10 +93,7 @@ namespace Cross
             var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
             var filePath = Path.Combine(profilePhotoPath, fileName);
 
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await file.CopyToAsync(stream);
-            }
+            SaveImage(file, filePath, fileName);
 
             return fileName;
         }
@@ -123,6 +117,54 @@ namespace Cross
                     return $"{Math.Round(fileSize / gigabyte, 2, MidpointRounding.AwayFromZero):##,###.##}GB";
                 default:
                     return "n/a";
+            }
+        }
+
+        public static Bitmap ResizeImage(Image originalImg)
+        {
+            try
+            {
+                int newWidth = 200;
+                float tempHeight = originalImg.Size.Width / originalImg.Size.Height;
+                int newHeight = Convert.ToInt32(newWidth / tempHeight);
+                Bitmap bm = new Bitmap(newWidth, newHeight);
+                Graphics g = Graphics.FromImage(bm);
+                g.DrawImage(originalImg, 0, 0, newWidth, newHeight);
+                g.Dispose();
+                return bm;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public static void SaveImage(IFormFile file, string path, string fileName)
+        {
+            try
+            {
+                Image im = Image.FromStream(file.OpenReadStream());
+                Bitmap bmp = ResizeImage(im);
+                SaveImage(bmp, path, fileName);
+            }
+            catch
+            {
+                throw new ArgumentException("Parameter is not valid", "HttpPostFileBase");
+            }
+
+        }
+
+        public static void SaveImage(Bitmap bmp, string path, string fileName)
+        {
+            try
+            {
+                path = Path.Combine(path);
+                string FileName = path + fileName;
+                bmp.Save(FileName, ImageFormat.Jpeg);
+            }
+            catch
+            {
+                throw new ArgumentException("Parameter is not valid", "Bitmap");
             }
         }
     }

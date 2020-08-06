@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Threading.Tasks;
 using ViewModels;
 
@@ -31,5 +32,7 @@ namespace BusinessLogic.Abstractions
         Task<IBusinessLogicResult> ForgetPasswordAsync(UserForgetPasswordViewModel userForgetPasswordViewModel);
         Task<IBusinessLogicResult<int?>> MerchantAuthenticator(int userId);
         Task<IBusinessLogicResult<int?>> TransporterAuthenticator(int userId);
+        Task<IBusinessLogicResult<UploadedPhotoViewModel>> UploadPhotoAsync(IFormFile formFile);
+        Task<IBusinessLogicResult> ResendSendVerificationEmailAsync(EmailViewModel emailViewModel);
     }
 }

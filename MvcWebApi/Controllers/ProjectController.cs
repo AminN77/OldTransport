@@ -42,13 +42,23 @@ namespace MvcWebApi.Controllers
 
         [HttpGet]
         [Authorize]
-        [IgnoreAntiforgeryToken]
-        public async Task<IActionResult> ProjectsList(int page, int pageSize, string search, string sort, string filter)
+        public async Task<IActionResult> ProjectsList(int page, int pageSize, string search, string sort, string filter, int? transporterId)
         {
             if (!ModelState.IsValid) return BadRequest();
-            var result = await _businessLogicProjectManager.GetProjectsAsync(page, pageSize, search, sort, filter);
+            var result = await _businessLogicProjectManager.GetProjectsAsync(page, pageSize, search, sort, filter, transporterId.Value);
             if (!result.Succeeded) return StatusCode(500, result);
             await _panelHub.UpdateProjectsListRealTime();
+            return Ok(result);
+        }
+
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> MerchantProjectsList(int page, int pageSize, string search, string sort, string filter)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var getterUserId = HttpContext.GetCurrentUserId();
+            var result = await _businessLogicProjectManager.GetMerchantProjectsAsync(page, pageSize, search, sort, filter, getterUserId);
+            if (!result.Succeeded) return StatusCode(500, result);
             return Ok(result);
         }
 

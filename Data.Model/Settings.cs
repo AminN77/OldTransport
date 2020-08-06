@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Data.Model
 {
-    public class Settings: IEntity<int>
+    public class Settings: ISettings
     {
         [Key]
         public int Id { get; set; }
@@ -22,8 +22,6 @@ namespace Data.Model
         public string ContactNumber { get; set; }
 
         public string TermsAndConditions { get; set; }
-
-        public string HowItWorks { get; set; }
 
         public int OffersCountLimit { get; set; }
     }
