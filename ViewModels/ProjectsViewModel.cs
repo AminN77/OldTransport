@@ -80,6 +80,7 @@ namespace ViewModels
         public string Cargo { get; set; }
 
         public bool HasOfferFromTransporter { get; set; }
+        public DateTime CreateDateTime { get; set; }
     }
 
     public class EditProjectViewModel : AddProjectViewModel
