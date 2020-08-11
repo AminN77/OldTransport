@@ -591,7 +591,7 @@ namespace BusinessLogic
                 {
                     foreach (var item in projectListViewModels)
                     {
-                        item.HasOfferFromTransporter = _offerRepository.DeferredWhere(o => o.ProjectId == item.Id && o.TransporterId == transporterId).Distinct().Any();
+                        item.HasOfferFromTransporter = _offerRepository.DeferredWhere(o => o.ProjectId == item.Id && o.TransporterId == transporterId.Value).Distinct().Any();
                     }
                 }
 
@@ -632,7 +632,8 @@ namespace BusinessLogic
                             DestinationCity = pm.p.DestinationCity,
                             DestinationCountry = pm.p.DestinationCountry,
                             Budget = pm.p.Budget,
-                            Cargo = pm.p.Cargo
+                            Cargo = pm.p.Cargo,
+                            CreateDateTime = pm.p.CreateDateTime
                         });
 
                     //.ProjectTo<ListProjectViewModel>(new MapperConfiguration(config =>
